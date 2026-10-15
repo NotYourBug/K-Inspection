@@ -13,13 +13,16 @@ Run:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import math
 import os
 import signal
+import socket
 import threading
-from dataclasses import dataclass
+import time
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -31,6 +34,12 @@ from .alert_routing import (
 )
 from .feishu_app import FeishuAppClient, build_alert_card, load_feishu_app_config_from_env
 from .notify import send_feishu_text
+from .bridge_auth import AuthenticationError, SourceCredential, authenticate, load_sources, validate_sources
+from .bridge_store import BacklogFull, DeliveryStore, StorageUnavailable
+from .delivery_adapter import DeliveryAdapter
+from .delivery_identity import canonical_content_hash, identity_quality
+from .delivery_models import AcceptResult, DeliveryTarget
+from .delivery_worker import DeliveryWorker
 
 logger = logging.getLogger(__name__)
 MAX_WEBHOOK_BYTES = 1024 * 1024
@@ -40,7 +49,7 @@ REPORT_MAX_AGE = {"5m": 900, "10m": 1800, "hourly": 7200, "daily": 129600, "full
 @dataclass
 class BridgeConfig:
     mode: str
-    feishu_webhook: str | None = None
+    feishu_webhook: str | None = field(default=None, repr=False)
     feishu_chat_id: str | None = None
     chat_routes: tuple[FixedChatRoute, ...] = ()
     chat_policy: str = "fixed"
@@ -50,6 +59,14 @@ class BridgeConfig:
     listen_host: str = "0.0.0.0"
     listen_port: int = 8000
     timeout_s: float = 5.0
+    delivery_mode: str = "sync"
+    state_db: str | None = None
+    source_credentials: tuple[SourceCredential, ...] = ()
+    max_requests: int = 16
+    max_body_bytes: int = MAX_WEBHOOK_BYTES
+    max_backlog: int = 10000
+    dedup_seconds: int = 300
+    webhook_destination_id: str = "webhook-default"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,6 +88,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Chat policy (default: fixed); automatic chat creation is disabled",
     )
     p.add_argument("--timeout", default=5.0, type=float)
+    p.add_argument("--delivery-mode", choices=["sync", "async"], default=None)
+    p.add_argument("--state-db", default=None)
+    p.add_argument("--sources-file", default=None, help="Secret-mounted JSON source credentials (also BRIDGE_SOURCES_FILE)")
+    p.add_argument("--max-requests", type=int, default=16)
+    p.add_argument("--max-body-bytes", type=int, default=MAX_WEBHOOK_BYTES)
+    p.add_argument("--max-backlog", type=int, default=10000)
+    p.add_argument("--dedup-seconds", type=int, default=300)
+    p.add_argument("--webhook-destination-id", default="webhook-default")
     return p
 
 
@@ -126,12 +151,98 @@ def _format_alerts(alerts: tuple[Alert, ...], limit: int) -> list[str]:
 
 
 class _ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
-    """HTTPServer with thread-per-request concurrency."""
+    """Reject overload BEFORE spawning a request thread, including slow readers."""
     daemon_threads = True
     allow_reuse_address = True
+    request_queue_size = 16
+
+    def __init__(self, address, handler, *, max_requests=16):
+        self._slots = threading.BoundedSemaphore(max_requests)
+        self._closing = False
+        self._draining = {}
+        self._drain_lock = threading.Lock()
+        self._max_draining = max_requests + 16
+        self.delivery_worker = None
+        self.delivery_store = None
+        super().__init__(address, handler)
+
+    def process_request(self, request, client_address):
+        if not self._slots.acquire(blocking=False):
+            try:
+                request.settimeout(1)
+                request.sendall(b"HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\nContent-Length: 0\r\n\r\n")
+            except OSError:
+                pass
+            finally:
+                self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except BaseException:
+            self._slots.release()
+            raise
+
+    def process_request_thread(self, request, client_address):
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self._slots.release()
+
+    def shutdown_request(self, request):
+        # Closing with an unread body can replace 413/503 with TCP RST (notably
+        # Windows). Half-close the response, then drain in the existing server
+        # loop for <=1s. No extra thread; both sockets and per-tick reads bounded.
+        try:
+            request.shutdown(socket.SHUT_WR)
+            request.setblocking(False)
+        except OSError:
+            self.close_request(request)
+            return
+        with self._drain_lock:
+            if self._closing or len(self._draining) >= self._max_draining:
+                self.close_request(request)
+            else:
+                self._draining[request] = time.monotonic() + 1
+
+    def service_actions(self):
+        with self._drain_lock:
+            for request, deadline in list(self._draining.items()):
+                close = time.monotonic() >= deadline
+                try:
+                    close = close or not request.recv(65536)
+                except BlockingIOError:
+                    pass
+                except OSError:
+                    close = True
+                if close:
+                    self.close_request(request)
+                    del self._draining[request]
+
+    def server_close(self):
+        with self._drain_lock:
+            self._closing = True
+            for request in self._draining:
+                self.close_request(request)
+            self._draining.clear()
+        super().server_close()
+        if self.delivery_worker is not None:
+            self.delivery_worker.stop()
 
 
 def _validate_config(cfg: BridgeConfig) -> None:
+    if cfg.delivery_mode not in {"sync", "async"}:
+        raise ValueError("delivery-mode must be sync or async")
+    validate_sources(cfg.source_credentials)
+    if cfg.delivery_mode == "async" and (not cfg.state_db or not cfg.source_credentials):
+        raise ValueError("async requires state-db and source authentication")
+    for name in ("max_requests", "max_body_bytes", "max_backlog"):
+        value = getattr(cfg, name)
+        if type(value) is not int or value < 1:
+            raise ValueError(f"{name} must be positive")
+    if type(cfg.dedup_seconds) is not int or cfg.dedup_seconds < 0:
+        raise ValueError("dedup-seconds must be non-negative")
+    if not cfg.webhook_destination_id or len(cfg.webhook_destination_id) > 64:
+        raise ValueError("invalid webhook destination ID")
     if cfg.mode not in {"app", "webhook"}:
         raise ValueError("mode must be webhook or app")
     if cfg.chat_policy != "fixed":
@@ -209,12 +320,37 @@ def _compose_notification_lines(batch: AlertBatch, cfg: BridgeConfig) -> list[st
     return lines
 
 
+def handle_alert_request(source_id: str, payload: object, store: DeliveryStore,
+                         now: datetime, *, cfg: BridgeConfig) -> AcceptResult:
+    """Freeze validated per-destination content before an atomic acceptance."""
+    batch = normalize_payload(payload)
+    notifications = (route_alerts(batch, cfg.feishu_chat_id, cfg.chat_routes) if cfg.mode == "app"
+                     else {cfg.webhook_destination_id: batch})
+    targets = []
+    for destination, notification in notifications.items():
+        quality = sorted({flag for alert in notification.alerts for flag in identity_quality(alert)})
+        lines = _compose_notification_lines(notification, cfg)
+        if cfg.mode == "app":
+            destination_id = "app-" + hashlib.sha256(destination.encode()).hexdigest()[:24]
+            firing = bool(notification.firing)
+            content = {"mode": "app", "chat_id": destination, "identity_quality": quality,
+                "card": build_alert_card("K8s 告警通知" if firing else "K8s 告警状态变更", lines,
+                                         "red" if firing else "orange")}
+        else:
+            destination_id = destination
+            content = {"mode": "webhook", "text": "\n".join(lines), "identity_quality": quality}
+        targets.append(DeliveryTarget(destination_id, canonical_content_hash(notification), content))
+    return store.accept(source_id, batch, tuple(targets), now)
+
+
 def create_server(
     cfg: BridgeConfig, feishu_app: FeishuAppClient | None = None,
 ) -> _ThreadingHTTPServer:
     _validate_config(cfg)
     if cfg.mode == "app" and feishu_app is None:
         feishu_app = FeishuAppClient(load_feishu_app_config_from_env())
+    store = (DeliveryStore(Path(cfg.state_db), max_backlog=cfg.max_backlog, dedup_seconds=cfg.dedup_seconds)
+             if cfg.delivery_mode == "async" else None)
     logger.info(
         "alert-bridge starting: mode=%s chat_policy=%s listen=%s:%d routes=%d",
         cfg.mode, cfg.chat_policy, cfg.listen_host, cfg.listen_port, len(cfg.chat_routes),
@@ -229,6 +365,15 @@ def create_server(
             if self.path not in {"/", "/alert"}:
                 self.send_error(404)
                 return
+            source_id = "legacy-sync"
+            if cfg.source_credentials:
+                try:
+                    if len(self.headers.get_all("Authorization", [])) != 1:
+                        raise AuthenticationError("authentication required")
+                    source_id = authenticate(self.headers, cfg.source_credentials)
+                except AuthenticationError:
+                    self.send_error(401, "authentication required")
+                    return
             if self.headers.get("Transfer-Encoding"):
                 self.send_error(400, "Transfer-Encoding is not supported")
                 return
@@ -240,7 +385,7 @@ def create_server(
                 self.send_error(413, "oversized Content-Length")
                 return
             length = int(lengths[0])
-            if length <= 0 or length > MAX_WEBHOOK_BYTES:
+            if length <= 0 or length > cfg.max_body_bytes:
                 self.send_error(413, "invalid or oversized webhook body")
                 return
             try:
@@ -256,12 +401,24 @@ def create_server(
                 self.send_error(408, "webhook body read timed out")
                 return
             try:
+                if store is not None:
+                    receipt = handle_alert_request(source_id, payload, store, datetime.now(timezone.utc), cfg=cfg)
+                    body = json.dumps({"receipt_id": receipt.receipt_id, "new_jobs": len(receipt.new_job_ids),
+                                       "reused_jobs": len(receipt.reused_job_ids)}).encode()
+                    self.send_response(202)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return
                 handle_alert_payload(payload, cfg, feishu_app)
                 self.send_response(200)
                 self.end_headers()
                 self.wfile.write(b"ok")
+            except (StorageUnavailable, BacklogFull):
+                self.send_error(503, "delivery storage or capacity unavailable")
             except Exception:
-                logger.exception("alert-bridge error processing webhook")
+                logger.error("alert-bridge failed to process webhook")
                 self.send_response(500)
                 self.end_headers()
                 self.wfile.write(b"internal error")
@@ -278,11 +435,19 @@ def create_server(
             # Suppress default HTTP request logging; we log at the application level.
             return
 
-    return _ThreadingHTTPServer((cfg.listen_host, cfg.listen_port), Handler)
+    server = _ThreadingHTTPServer((cfg.listen_host, cfg.listen_port), Handler, max_requests=cfg.max_requests)
+    server.delivery_store = store
+    if store is not None:
+        adapter = DeliveryAdapter(feishu_app=feishu_app,
+                                  webhooks={cfg.webhook_destination_id: cfg.feishu_webhook} if cfg.feishu_webhook else {})
+        server.delivery_worker = DeliveryWorker(store, adapter)
+    return server
 
 
 def run_server(cfg: BridgeConfig) -> _ThreadingHTTPServer:
     httpd = create_server(cfg)
+    if getattr(httpd, "delivery_worker", None) is not None:
+        httpd.delivery_worker.start()
     logger.info("alert-bridge listening on %s:%d", cfg.listen_host, cfg.listen_port)
 
     def _shutdown(signum: int, frame: Any) -> None:
@@ -330,6 +495,15 @@ def _config_from_args(args: argparse.Namespace) -> BridgeConfig:
         listen_host=args.listen_host,
         listen_port=int(args.listen_port),
         timeout_s=float(args.timeout),
+        delivery_mode=args.delivery_mode or os.getenv("BRIDGE_DELIVERY_MODE", "sync"),
+        state_db=args.state_db or os.getenv("BRIDGE_STATE_DB"),
+        source_credentials=(load_sources(args.sources_file or os.getenv("BRIDGE_SOURCES_FILE"))
+            if args.sources_file or os.getenv("BRIDGE_SOURCES_FILE") else
+            (SourceCredential(os.getenv("BRIDGE_SOURCE_ID", ""), os.getenv("BRIDGE_TOKEN", "")),)
+            if os.getenv("BRIDGE_TOKEN") or os.getenv("BRIDGE_SOURCE_ID") else ()),
+        max_requests=args.max_requests, max_body_bytes=args.max_body_bytes,
+        max_backlog=args.max_backlog, dedup_seconds=args.dedup_seconds,
+        webhook_destination_id=args.webhook_destination_id,
     )
     _validate_config(cfg)
     return cfg

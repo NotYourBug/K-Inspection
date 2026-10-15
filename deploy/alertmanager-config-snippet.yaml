@@ -19,3 +19,8 @@ receivers:
     webhook_configs:  
       - url: http://k8s-inspector-alert-bridge.kube-system.svc:8000/alert
         send_resolved: true
+        # Async cutover (requires a mounted Secret shared with Bridge):
+        # http_config:
+        #   authorization:
+        #     type: Bearer
+        #     credentials_file: /etc/bridge-auth/token
