@@ -1,0 +1,61 @@
+# Prometheus rule file, NOT a Kubernetes resource. Opt in after adding the
+# inspector-bridge scrape job. Route these alerts to an independent receiver.
+groups:
+  - name: inspector-bridge-delivery
+    rules:
+      - alert: InspectorBridgeDeadDeliveries
+        expr: inspector_bridge_jobs{state="DEAD"} > 0
+        for: 1m
+        labels:
+          severity: critical
+          notification_channel: independent
+        annotations:
+          summary: Bridge has unhandled dead deliveries
+      - alert: InspectorBridgeBacklogOld
+        expr: inspector_bridge_oldest_pending_age_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+          notification_channel: independent
+        annotations:
+          summary: Bridge delivery backlog is older than five minutes
+      - alert: InspectorBridgeWorkerStalled
+        expr: inspector_bridge_worker_heartbeat_age_seconds > 30
+        for: 1m
+        labels:
+          severity: critical
+          notification_channel: independent
+        annotations:
+          summary: Bridge worker is stopped or stalled
+      - alert: InspectorBridgeDatabaseUnavailable
+        expr: inspector_bridge_database_writable == 0
+        for: 1m
+        labels:
+          severity: critical
+          notification_channel: independent
+        annotations:
+          summary: Bridge delivery database is not writable
+      - alert: InspectorBridgeUnavailable
+        expr: up{job="inspector-bridge"} == 0 or absent(up{job="inspector-bridge"})
+        for: 2m
+        labels:
+          severity: critical
+          notification_channel: independent
+        annotations:
+          summary: Bridge scrape target is unavailable or missing
+      - alert: InspectorBridgeUnknownResults
+        expr: inspector_bridge_unknown_jobs > 0
+        for: 5m
+        labels:
+          severity: warning
+          notification_channel: independent
+        annotations:
+          summary: Bridge deliveries retain unknown-result evidence
+      - alert: InspectorBridgeCapacityLow
+        expr: inspector_bridge_backlog_ratio > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          notification_channel: independent
+        annotations:
+          summary: Bridge delivery capacity is nearly exhausted

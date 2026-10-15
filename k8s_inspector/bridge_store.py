@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .alert_routing import AlertBatch
-from .delivery_models import AcceptResult, DeliveryJob, DeliveryResult, DeliveryTarget
+from .delivery_models import AcceptResult, DeliveryJob, DeliveryResult, DeliveryTarget, StoreStats
 
 SCHEMA_VERSION = 1
 
@@ -87,6 +87,7 @@ class DeliveryStore:
                     ON DELETE CASCADE, attempt_no INTEGER NOT NULL, lease_token TEXT, at REAL NOT NULL,
                     event_type TEXT NOT NULL, result_unknown INTEGER NOT NULL DEFAULT 0,
                     error_kind TEXT, error_code TEXT, external_id TEXT, reason TEXT)""")
+                db.execute("CREATE TABLE IF NOT EXISTS store_health (id INTEGER PRIMARY KEY, probed_at REAL NOT NULL)")
         except OSError as exc:
             raise StorageUnavailable("delivery storage unavailable") from exc
 
@@ -230,6 +231,50 @@ class DeliveryStore:
             db.execute("""UPDATE outbox SET state='PENDING',attempt_count=attempt_count-1,
                 lease_token=NULL,lease_until=NULL,next_attempt_at=? WHERE delivery_id=?""", (stamp, delivery_id))
             return True
+
+    def stats(self, now: datetime) -> StoreStats:
+        stamp = epoch(now)
+        with self._connection() as db:
+            counts = {state: 0 for state in ("PENDING", "SENDING", "RETRY_WAIT", "SENT", "DEAD")}
+            counts.update(dict(db.execute("SELECT state,count(*) FROM outbox GROUP BY state")))
+            oldest = db.execute("SELECT min(created_at) FROM outbox WHERE state IN ('PENDING','SENDING','RETRY_WAIT')").fetchone()[0]
+            commit = db.execute("""SELECT max(at) FROM (SELECT received_at AS at FROM inbox
+                                  UNION ALL SELECT at FROM delivery_events)""").fetchone()[0]
+            unknown = db.execute("SELECT count(*) FROM outbox WHERE result_unknown=1").fetchone()[0]
+            return StoreStats(counts, max(0, stamp - oldest) if oldest is not None else 0,
+                              utc(commit), unknown, counts["DEAD"], sum(v for k, v in counts.items() if k != "SENT"))
+
+    def probe_write(self, now: datetime) -> None:
+        with self._transaction() as db:
+            db.execute("""INSERT INTO store_health VALUES (1,?) ON CONFLICT(id)
+                          DO UPDATE SET probed_at=excluded.probed_at""", (epoch(now),))
+
+    def prune_sent(self, before: datetime) -> int:
+        cutoff = epoch(before)
+        with self._transaction() as db:
+            count = db.execute("""DELETE FROM outbox WHERE state='SENT' AND sent_at<?
+                AND result_unknown=0 AND NOT EXISTS (SELECT 1 FROM delivery_events e
+                WHERE e.delivery_id=outbox.delivery_id AND e.result_unknown=1)""", (cutoff,)).rowcount
+            db.execute("""DELETE FROM inbox WHERE received_at<? AND NOT EXISTS
+                (SELECT 1 FROM inbox_jobs j WHERE j.receipt_id=inbox.receipt_id)""", (cutoff,))
+            return count
+
+    def requeue(self, delivery_id: str, reason: str, now: datetime) -> None:
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 1000:
+            raise ValueError("a non-empty maintenance reason of at most1000 characters is required")
+        stamp = epoch(now)
+        with self._transaction() as db:
+            row = db.execute("SELECT * FROM outbox WHERE delivery_id=?", (delivery_id,)).fetchone()
+            if row is None or row["state"] != "DEAD":
+                raise ValueError("only a DEAD delivery can be manually requeued")
+            self._event(db, row, stamp, "manual_requeue", reason=reason.strip())
+            db.execute("""UPDATE outbox SET state='PENDING',attempt_count=0,budget_started_at=NULL,
+                next_attempt_at=?,lease_token=NULL,lease_until=NULL WHERE delivery_id=?""", (stamp, delivery_id))
+
+    def events(self, delivery_id: str) -> tuple[dict, ...]:
+        with self._connection() as db:
+            return tuple(dict(r) for r in db.execute(
+                "SELECT * FROM delivery_events WHERE delivery_id=? ORDER BY event_id", (delivery_id,)))
 
     @staticmethod
     def _job(row) -> DeliveryJob:

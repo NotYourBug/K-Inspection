@@ -48,3 +48,13 @@ class DeliveryResult:
     error_code: str | None = None
     retry_after_seconds: float | None = None
     error_kind: str | None = None
+
+
+@dataclass(frozen=True)
+class StoreStats:
+    state_counts: dict[str, int]
+    oldest_pending_age: float
+    last_commit: datetime | None
+    unknown_count: int
+    dead_count: int
+    backlog_count: int

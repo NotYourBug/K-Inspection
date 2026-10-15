@@ -40,6 +40,7 @@ from .delivery_adapter import DeliveryAdapter
 from .delivery_identity import canonical_content_hash, identity_quality
 from .delivery_models import AcceptResult, DeliveryTarget
 from .delivery_worker import DeliveryWorker
+from .bridge_observability import bridge_ready, render_metrics
 
 logger = logging.getLogger(__name__)
 MAX_WEBHOOK_BYTES = 1024 * 1024
@@ -424,6 +425,23 @@ def create_server(
                 self.wfile.write(b"internal error")
 
         def do_GET(self) -> None:  # noqa: N802
+            now = datetime.now(timezone.utc)
+            worker = self.server.delivery_worker
+            heartbeat = worker.last_heartbeat if worker is not None else None
+            if self.path == "/readyz":
+                ready = store is None or bridge_ready(store, heartbeat, now)
+                self.send_response(200 if ready else 503)
+                self.end_headers()
+                self.wfile.write(b"ready" if ready else b"not ready")
+                return
+            if self.path == "/metrics":
+                body = render_metrics(store, heartbeat, now)
+                self.send_response(200)
+                self.send_header("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
             if self.path == "/healthz":
                 self.send_response(200)
                 self.end_headers()
