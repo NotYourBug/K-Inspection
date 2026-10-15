@@ -262,10 +262,7 @@ class TestCheckControlPlane:
         with patch("k8s_inspector.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 50}):
             # Mock healthy component pods
-            pod = MagicMock()
-            pod.status.phase = "Running"
-            pod.status.container_statuses = []
-            pod.metadata.name = "apiserver-1"
+            pod = make_sdk_pod("apiserver-1")
             core.list_namespaced_pod.return_value.items = [pod]
 
             result = check_control_plane(core, api_client, cfg)
@@ -277,10 +274,7 @@ class TestCheckControlPlane:
 
         with patch("k8s_inspector.checks.apiserver_healthz",
                    return_value={"ok": False, "latency_ms": 100, "error": "timeout"}):
-            pod = MagicMock()
-            pod.status.phase = "Running"
-            pod.status.container_statuses = []
-            pod.metadata.name = "apiserver-1"
+            pod = make_sdk_pod("apiserver-1")
             core.list_namespaced_pod.return_value.items = [pod]
 
             result = check_control_plane(core, api_client, cfg)
@@ -303,10 +297,7 @@ class TestCheckControlPlane:
 
         with patch("k8s_inspector.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 600}):
-            pod = MagicMock()
-            pod.status.phase = "Running"
-            pod.status.container_statuses = []
-            pod.metadata.name = "apiserver-1"
+            pod = make_sdk_pod("apiserver-1")
             core.list_namespaced_pod.return_value.items = [pod]
 
             result = check_control_plane(core, api_client, cfg)
@@ -320,13 +311,9 @@ class TestCheckControlPlane:
 
 class TestCheckKubeSystemAddons:
     def test_all_healthy(self, cfg):
-        core = MagicMock()
-        pod = MagicMock()
-        pod.status.phase = "Running"
-        pod.metadata.name = "addon-1"
-        core.list_namespaced_pod.return_value.items = [pod]
-
-        result = check_kube_system_addons(core, cfg)
+        from tests.test_failure_preservation import addon_clients
+        core, apps = addon_clients(make_sdk_pod("addon-1"))
+        result = check_kube_system_addons(core, cfg, apps=apps)
         assert result.status == Status.PASS
 
     def test_missing_addon_is_warn(self, cfg):

@@ -10,6 +10,7 @@ Conventions:
 from __future__ import annotations
 
 import time
+import math
 from datetime import datetime, timezone
 from typing import Any
 
@@ -25,139 +26,73 @@ def _duration_ms(t0: float) -> int:
     return int((time.perf_counter() - t0) * 1000)
 
 
-def check_nodes(
-    core: client.CoreV1Api,
-    custom: client.CustomObjectsApi,
-    cfg: InspectorConfig,
-    include_metrics: bool = True,
-) -> CheckResult:
-    """
-    Node inspection:
-    - Ready status: FAIL if any node is NotReady.
-    - NoSchedule taints: WARN if a taint key is not in the allowlist.
-    - Resource utilization: WARN if CPU/memory exceeds thresholds (requires metrics-server).
-
-    include_metrics=False is used for high-frequency profiles (e.g. 5m) to avoid
-    hammering the Metrics API.
-    """
+def check_nodes(core: client.CoreV1Api, custom: client.CustomObjectsApi,
+                cfg: InspectorConfig, include_metrics: bool = True) -> CheckResult:
+    """Preserve Node conditions even when optional usage collection fails."""
     t0 = time.perf_counter()
-    name = "nodes"
+    data: dict[str, Any] = {"not_ready": [], "noschedule_taints": [],
+                            "over_cpu": [], "over_memory": [], "utilization": [],
+                            "collection_errors": []}
+    errors = data["collection_errors"]
     try:
         nodes = core.list_node().items
-        not_ready: list[str] = []
-        noschedule: list[str] = []
-        capacity: dict[str, dict[str, str]] = {}
-
-        for n in nodes:
-            n_name = n.metadata.name if n.metadata else ""
-
-            ready = False
-            for c in n.status.conditions or []:
-                if c.type == "Ready":
-                    ready = (c.status == "True")
-                    break
-            if not ready:
-                not_ready.append(n_name)
-
-            for t in n.spec.taints or []:
-                if t.effect == "NoSchedule":
-                    key = t.key or ""
-                    if key and key not in cfg.allow_noschedule_taints:
-                        noschedule.append(f"{n_name}:{key}")
-
-            if n.status and n.status.capacity:
-                capacity[n_name] = {
-                    "cpu": str(n.status.capacity.get("cpu", "")),
-                    "memory": str(n.status.capacity.get("memory", "")),
-                }
-
-        metrics = get_node_metrics(custom) if include_metrics else {}
-        util: list[dict[str, Any]] = []
-        over_cpu: list[str] = []
-        over_mem: list[str] = []
-
-        if metrics:
-            for n_name, usage in metrics.items():
-                c = capacity.get(n_name)
-                if not c:
-                    continue
-                cpu_u = parse_quantity(usage.get("cpu", "0"))
-                cpu_c = parse_quantity(c.get("cpu", "0"))
-                mem_u = parse_quantity(usage.get("memory", "0"))
-                mem_c = parse_quantity(c.get("memory", "0"))
-                cpu_p = (cpu_u / cpu_c) if cpu_c else 0.0
-                mem_p = (mem_u / mem_c) if mem_c else 0.0
-                util.append(
-                    {
-                        "node": n_name,
-                        "cpu_utilization": round(cpu_p, 4),
-                        "mem_utilization": round(mem_p, 4),
-                    }
-                )
-                if cpu_p >= cfg.thresholds.node_cpu_utilization:
-                    over_cpu.append(n_name)
-                if mem_p >= cfg.thresholds.node_memory_utilization:
-                    over_mem.append(n_name)
-
-        # NotReady is the highest-severity finding; include noschedule data alongside it
-        # so the report does not lose information.
-        if not_ready:
-            return CheckResult(
-                name=name,
-                status=Status.FAIL,
-                summary=f"NotReady nodes: {len(not_ready)}",
-                data={"not_ready": not_ready, "noschedule_taints": noschedule, "utilization": util},
-                duration_ms=_duration_ms(t0),
-            )
-
-        if over_cpu or over_mem:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary=f"Resource usage over threshold: CPU={len(over_cpu)} Memory={len(over_mem)}",
-                data={
-                    "over_cpu": over_cpu,
-                    "over_memory": over_mem,
-                    "noschedule_taints": noschedule,
-                    "utilization": util,
-                    "thresholds": {
-                        "cpu": cfg.thresholds.node_cpu_utilization,
-                        "memory": cfg.thresholds.node_memory_utilization,
-                    },
-                },
-                duration_ms=_duration_ms(t0),
-            )
-
-        if noschedule:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary=f"NoSchedule taints outside allowlist: {len(noschedule)}",
-                data={"noschedule_taints": noschedule, "utilization": util},
-                duration_ms=_duration_ms(t0),
-            )
-
-        status = Status.PASS
-        summary = f"Nodes Ready: {len(nodes)}"
-        if include_metrics and metrics is None:
-            status = Status.WARN
-            summary = "Nodes Ready (Metrics API unavailable, skipped CPU/memory check)"
-
-        return CheckResult(
-            name=name,
-            status=status,
-            summary=summary,
-            data={"count": len(nodes), "utilization": util},
-            duration_ms=_duration_ms(t0),
-        )
-    except Exception as e:
-        return CheckResult(
-            name=name,
-            status=Status.WARN,
-            summary="Node inspection error (degraded)",
-            data={"error": str(e)},
-            duration_ms=_duration_ms(t0),
-        )
+    except Exception as exc:
+        data["error"] = type(exc).__name__
+        errors.append("Node list unavailable")
+        return CheckResult("nodes", Status.WARN, "Node collection unknown", data, _duration_ms(t0))
+    capacity: dict[str, dict[str, str]] = {}
+    for n in nodes:
+        name = n.metadata.name if n.metadata else ""
+        ready = next((c for c in (n.status.conditions or []) if c.type == "Ready"), None) if n.status else None
+        if ready and ready.status in {"False", "Unknown"}:
+            data["not_ready"].append(name)
+        elif not ready or ready.status != "True":
+            errors.append(f"Node readiness unknown: {name}")
+        for taint in (n.spec.taints or []) if n.spec else []:
+            if taint.effect == "NoSchedule" and taint.key and taint.key not in cfg.allow_noschedule_taints:
+                data["noschedule_taints"].append(f"{name}:{taint.key}")
+        if n.status:
+            available = n.status.allocatable
+            capacity[name] = available if isinstance(available, dict) else (n.status.capacity or {})
+    metrics = None
+    if include_metrics:
+        try:
+            metrics = get_node_metrics(custom)
+        except Exception as exc:
+            errors.append(f"Node metrics unavailable: {type(exc).__name__}")
+        if not metrics:
+            errors.append("Node metrics incomplete or unavailable")
+        for name in capacity:
+            usage = (metrics or {}).get(name)
+            if not usage:
+                if metrics:
+                    errors.append(f"Node metrics missing: {name}")
+                continue
+            row: dict[str, Any] = {"node": name}
+            for resource, key, threshold, over_key in (
+                ("cpu", "cpu_utilization", cfg.thresholds.node_cpu_utilization, "over_cpu"),
+                ("memory", "mem_utilization", cfg.thresholds.node_memory_utilization, "over_memory")):
+                row[key] = None
+                try:
+                    numerator = parse_quantity(usage[resource])
+                    denominator = parse_quantity(capacity[name][resource])
+                    if not math.isfinite(numerator) or not math.isfinite(denominator) or numerator < 0 or denominator <= 0:
+                        raise ValueError("invalid usage or capacity")
+                    value = numerator / denominator
+                    row[key] = round(value, 4)
+                    if value >= threshold:
+                        data[over_key].append(name)
+                except (ValueError, TypeError, KeyError, OverflowError):
+                    errors.append(f"Node {resource} utilization unknown: {name}")
+            data["utilization"].append(row)
+    data["count"] = len(nodes)
+    if not nodes:
+        errors.append("No Nodes observed")
+    status = Status.FAIL if data["not_ready"] else (Status.WARN if errors or any(
+        data[k] for k in ("noschedule_taints", "over_cpu", "over_memory")) else Status.PASS)
+    return CheckResult("nodes", status,
+                       f"Nodes: total={len(nodes)} not_ready={len(data['not_ready'])} collection_errors={len(errors)}",
+                       data, _duration_ms(t0))
 
 
 def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = None,
@@ -446,178 +381,97 @@ def check_warning_events(core: client.CoreV1Api, cfg: InspectorConfig) -> CheckR
         )
 
 
-def check_control_plane(core: client.CoreV1Api, api_client: client.ApiClient, cfg: InspectorConfig) -> CheckResult:
-    """
-    Control plane inspection:
-    - Hits /healthz to verify apiserver health and latency.
-    - Checks that kube-apiserver/kube-controller-manager/kube-scheduler Pods are Running.
-
-    Some clusters use static Pods or external control planes, so missing Pods
-    produces a WARN rather than FAIL.
-    """
+def check_control_plane(core: client.CoreV1Api, api_client: client.ApiClient,
+                        cfg: InspectorConfig) -> CheckResult:
+    """API health and component visibility are independent observations."""
     t0 = time.perf_counter()
-    name = "control-plane"
-    ns = cfg.control_plane_namespace
+    errors: list[str] = []
     try:
         health = apiserver_healthz(api_client, timeout_s=2.0)
-        selector_keys = [
-            ("kube-apiserver", "component=kube-apiserver"),
-            ("kube-controller-manager", "component=kube-controller-manager"),
-            ("kube-scheduler", "component=kube-scheduler"),
-        ]
-        cp: dict[str, Any] = {"apiserver_healthz": health, "components": {}}
-        any_missing = False
-        any_bad = False
-
-        for comp, sel in selector_keys:
-            pods = core.list_namespaced_pod(namespace=ns, label_selector=sel).items
+    except Exception as exc:
+        health = {"ok": None, "error_kind": type(exc).__name__}
+        errors.append("API health collection unavailable")
+    cp: dict[str, Any] = {"apiserver_healthz": health, "components": {},
+                          "collection_errors": errors, "capability": "COMPLETE"}
+    unhealthy = health.get("ok") is False
+    warning = health.get("ok") is not True
+    now = datetime.now(timezone.utc)
+    for component in ("kube-apiserver", "kube-controller-manager", "kube-scheduler"):
+        try:
+            pods = core.list_namespaced_pod(namespace=cfg.control_plane_namespace,
+                                             label_selector=f"component={component}").items
+            states = [(p, evaluate_pod_state(p, cfg, now)) for p in pods]
+            bad = [{"name": p.metadata.name, "issues": state["current_issues"]}
+                   for p, state in states if state["current_issues"]]
+            historical = sum(bool(s["historical_issues"]) for _, s in states)
+            ready = sum(s["readiness"] == "HEALTHY" for _, s in states)
+            cp["components"][component] = {"found": len(pods), "ready": ready, "bad": bad}
+            unhealthy = unhealthy or bool(bad)
+            warning = warning or not pods or ready < len(pods) or historical > 0
             if not pods:
-                any_missing = True
-                cp["components"][comp] = {"found": 0}
-                continue
-            bad: list[dict[str, str]] = []
-            for p in pods:
-                phase = p.status.phase if p.status else ""
-                if phase != "Running":
-                    bad.append(
-                        {
-                            "namespace": ns,
-                            "name": p.metadata.name if p.metadata else "",
-                            "phase": phase,
-                        }
-                    )
-                    continue
-                for cs in p.status.container_statuses or []:
-                    if (cs.restart_count or 0) >= cfg.thresholds.pod_restart_count:
-                        bad.append(
-                            {
-                                "namespace": ns,
-                                "name": p.metadata.name if p.metadata else "",
-                                "phase": phase,
-                                "issue": f"restart_count>={cfg.thresholds.pod_restart_count}",
-                            }
-                        )
-                        break
-            if bad:
-                any_bad = True
-            cp["components"][comp] = {"found": len(pods), "bad": bad}
-
-        if not health.get("ok", False):
-            return CheckResult(
-                name=name,
-                status=Status.FAIL,
-                summary="apiserver /healthz failed",
-                data=cp,
-                duration_ms=_duration_ms(t0),
-            )
-        if any_bad:
-            return CheckResult(
-                name=name,
-                status=Status.FAIL,
-                summary="Control plane component Pods unhealthy",
-                data=cp,
-                duration_ms=_duration_ms(t0),
-            )
-        if any_missing:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary=f"Some control plane Pods not found in {ns} (may be static Pods or external)",
-                data=cp,
-                duration_ms=_duration_ms(t0),
-            )
-        latency = health.get("latency_ms")
-        if isinstance(latency, int) and latency >= 500:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary=f"apiserver /healthz latency high: {latency}ms",
-                data=cp,
-                duration_ms=_duration_ms(t0),
-            )
-        return CheckResult(
-            name=name,
-            status=Status.PASS,
-            summary="Control plane healthy",
-            data=cp,
-            duration_ms=_duration_ms(t0),
-        )
-    except Exception as e:
-        return CheckResult(
-            name=name,
-            status=Status.WARN,
-            summary="Control plane inspection error (degraded)",
-            data={"namespace": ns, "error": str(e)},
-            duration_ms=_duration_ms(t0),
-        )
+                cp["capability"] = "PARTIAL"
+        except Exception as exc:
+            errors.append(f"{component} collection unavailable: {type(exc).__name__}")
+            cp["components"][component] = {"found": None, "ready": None}
+            cp["capability"] = "PARTIAL"
+            warning = True
+    latency = health.get("latency_ms")
+    warning = warning or (isinstance(latency, (int, float)) and latency >= 500)
+    status = Status.FAIL if unhealthy else (Status.WARN if warning else Status.PASS)
+    return CheckResult("control-plane", status,
+                       "Control plane observations" if not warning else "Control plane degraded or capability limited",
+                       cp, _duration_ms(t0))
 
 
-def check_kube_system_addons(core: client.CoreV1Api, cfg: InspectorConfig) -> CheckResult:
-    """
-    kube-system addon inspection (by label selector).
-
-    Default checks: kube-proxy, calico-node, coredns.
-    Adjust selectors if your cluster uses different CNI/DNS.
-    """
+def check_kube_system_addons(core: client.CoreV1Api, cfg: InspectorConfig,
+                             apps: client.AppsV1Api | None = None) -> CheckResult:
+    """Check observed Ready Pods and controller expectations for known addons."""
     t0 = time.perf_counter()
-    name = "kube-system-addons"
-    ns = cfg.control_plane_namespace
+    errors: list[str] = []
+    out: dict[str, Any] = {"namespace": cfg.control_plane_namespace, "addons": {},
+                           "collection_errors": errors}
     try:
-        checks = [
-            ("kube-proxy", "k8s-app=kube-proxy"),
-            ("cni-calico", "k8s-app=calico-node"),
-            ("coredns", "k8s-app=kube-dns"),
-        ]
-        out: dict[str, Any] = {"namespace": ns, "addons": {}}
-        any_bad = False
-        any_missing = False
-
-        for addon, selector in checks:
-            pods = core.list_namespaced_pod(namespace=ns, label_selector=selector).items
-            if not pods:
-                any_missing = True
-                out["addons"][addon] = {"found": 0}
+        apps = apps if apps is not None else client.AppsV1Api(core.api_client)
+    except Exception as exc:
+        errors.append(f"Addon controller API unavailable: {type(exc).__name__}")
+    warning = False
+    for addon, selector in (("kube-proxy", "k8s-app=kube-proxy"),
+                            ("cni-calico", "k8s-app=calico-node"),
+                            ("coredns", "k8s-app=kube-dns")):
+        item: dict[str, Any] = {"found": None, "ready": None, "expected_replicas": None, "bad": []}
+        out["addons"][addon] = item
+        try:
+            pods = core.list_namespaced_pod(namespace=cfg.control_plane_namespace,
+                                             label_selector=selector).items
+            states = [(p, evaluate_pod_state(p, cfg, datetime.now(timezone.utc))) for p in pods]
+            item["found"] = len(pods)
+            item["ready"] = sum(state["readiness"] == "HEALTHY" for _, state in states)
+            item["bad"] = [{"name": p.metadata.name, "readiness": state["readiness"],
+                            "issues": state["current_issues"]}
+                           for p, state in states if state["readiness"] != "HEALTHY"]
+            warning = warning or not pods or bool(item["bad"])
+        except Exception as exc:
+            errors.append(f"{addon} Pods unavailable: {type(exc).__name__}")
+            warning = True
+        try:
+            if apps is None:
+                raise RuntimeError("controller client unavailable")
+            deployments = apps.list_namespaced_deployment(namespace=cfg.control_plane_namespace,
+                                                           label_selector=selector).items
+            daemonsets = apps.list_namespaced_daemon_set(namespace=cfg.control_plane_namespace,
+                                                          label_selector=selector).items
+            if not deployments and not daemonsets:
+                warning = True
                 continue
-            bad: list[dict[str, str]] = []
-            for p in pods:
-                phase = p.status.phase if p.status else ""
-                if phase != "Running":
-                    bad.append({"name": p.metadata.name if p.metadata else "", "phase": phase})
-            if bad:
-                any_bad = True
-                out["addons"][addon] = {"found": len(pods), "bad": bad}
-
-        if any_bad:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary="kube-system addon Pods unhealthy",
-                data=out,
-                duration_ms=_duration_ms(t0),
-            )
-        if any_missing:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary="Some kube-system addons not found (check CNI/DNS selectors)",
-                data=out,
-                duration_ms=_duration_ms(t0),
-            )
-        return CheckResult(
-            name=name,
-            status=Status.PASS,
-            summary="kube-system addons healthy",
-            data=out,
-            duration_ms=_duration_ms(t0),
-        )
-    except Exception as e:
-        return CheckResult(
-            name=name,
-            status=Status.WARN,
-            summary="kube-system addon inspection error (degraded)",
-            data={"namespace": ns, "error": str(e)},
-            duration_ms=_duration_ms(t0),
-        )
+            expected = sum(1 if d.spec.replicas is None else d.spec.replicas for d in deployments)
+            expected += sum(d.status.desired_number_scheduled or 0 for d in daemonsets)
+            item["expected_replicas"] = expected
+            warning = warning or item["ready"] is None or item["ready"] < expected
+        except Exception as exc:
+            errors.append(f"{addon} controller expectations unavailable: {type(exc).__name__}")
+            warning = True
+    return CheckResult("kube-system-addons", Status.WARN if warning or errors else Status.PASS,
+                       "Addon Ready and controller observations", out, _duration_ms(t0))
 
 
 def run_all(

@@ -300,11 +300,13 @@ def test_http_invalid_body_is_400_and_has_no_side_effects(http_receiver, body):
 
 def test_http_rejects_oversize_and_bad_content_length(http_receiver):
     server, client = http_receiver
-    assert request(server, b"x", {"Content-Length": str(bridge.MAX_WEBHOOK_BYTES + 1)}) == 413
-    assert request(server, b"x", {"Content-Length": "-1"}) == 400
-    assert request(server, b"x", {"Content-Length": "invalid"}) == 400
-    assert request(server, b"x", {"Content-Length": "9" * 5000}) == 413
-    assert request(server, b"x", path="/unsupported") == 404
+    # These requests must be rejected from headers before reading any body.
+    # Sending an unread byte can race a TCP reset on Windows when the server closes.
+    assert request(server, b"", {"Content-Length": str(bridge.MAX_WEBHOOK_BYTES + 1)}) == 413
+    assert request(server, b"", {"Content-Length": "-1"}) == 400
+    assert request(server, b"", {"Content-Length": "invalid"}) == 400
+    assert request(server, b"", {"Content-Length": "9" * 5000}) == 413
+    assert request(server, b"", path="/unsupported") == 404
     client.send_card_message.assert_not_called()
 
 
