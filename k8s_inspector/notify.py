@@ -10,6 +10,8 @@ import json
 import urllib.request
 from typing import Any
 
+from .provider_error import ProviderError, retry_after_seconds
+
 
 def send_feishu_text(webhook_url: str, text: str, timeout_s: float = 5.0) -> dict[str, Any]:
     """
@@ -27,14 +29,17 @@ def send_feishu_text(webhook_url: str, text: str, timeout_s: float = 5.0) -> dic
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-        body = resp.read().decode("utf-8", errors="replace")
+        body = resp.read(65537).decode("utf-8", errors="replace")
+        if len(body.encode("utf-8")) > 65536:
+            raise ProviderError(unknown=True)
         try:
             result = json.loads(body)
         except ValueError as exc:
-            raise RuntimeError("Feishu webhook returned invalid JSON; delivery not confirmed") from exc
+            raise ProviderError(unknown=True) from exc
         if not isinstance(result, dict):
-            raise RuntimeError("Feishu webhook returned an invalid response; delivery not confirmed")
+            raise ProviderError(unknown=True)
         code = result.get("code") if "code" in result else result.get("StatusCode")
         if type(code) is not int or code != 0 or not 200 <= resp.status < 300:
-            raise RuntimeError(f"Feishu webhook delivery failed (code={code!r})")
+            raise ProviderError(code, status=resp.status, unknown=type(code) is not int,
+                                retry_after=retry_after_seconds(getattr(resp, "headers", {})))
         return {"status": resp.status, "body": body[:2000]}

@@ -14,6 +14,8 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from .provider_error import ProviderError, retry_after_seconds
+
 
 @dataclass
 class FeishuAppConfig:
@@ -58,7 +60,8 @@ class FeishuAppClient:
             raise RuntimeError(f"Failed to create chat: {resp.msg}, code: {resp.code}")
         return resp.data.chat_id
 
-    def send_card_message(self, chat_id: str, card: dict[str, Any]) -> None:
+    def send_card_message(self, chat_id: str, card: dict[str, Any],
+                          message_uuid: str | None = None) -> str | None:
         """Send an interactive card message to a chat."""
         im_v1 = _import_im_v1()
         lark = _import_lark()
@@ -71,13 +74,18 @@ class FeishuAppClient:
                 .receive_id(chat_id)
                 .msg_type("interactive")
                 .content(content)
+                .uuid(message_uuid)
                 .build()
             )
             .build()
         )
         resp = self._client.im.v1.message.create(req)
-        if not resp.success():
-            raise RuntimeError(f"Failed to send card message: {resp.msg}, code: {resp.code}")
+        raw = getattr(resp, "raw", None)
+        status = getattr(raw, "status_code", None)
+        if not resp.success() or status is None or not 200 <= status < 300:
+            raise ProviderError(resp.code, status=status, unknown=resp.code is None,
+                                retry_after=retry_after_seconds(getattr(raw, "headers", {})))
+        return getattr(getattr(resp, "data", None), "message_id", None)
 
     def send_text_message(self, chat_id: str, text: str) -> None:
         """Send a plain text message to a chat."""
@@ -135,7 +143,7 @@ class FeishuAppClient:
 
 def _build_lark_client(app_id: str, app_secret: str):
     lark = _import_lark()
-    return lark.Client.builder().app_id(app_id).app_secret(app_secret).build()
+    return lark.Client.builder().app_id(app_id).app_secret(app_secret).timeout(10).build()
 
 
 def _import_lark():
