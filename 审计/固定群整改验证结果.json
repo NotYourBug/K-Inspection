@@ -1,0 +1,74 @@
+{
+  "python": "3.11.9",
+  "pyyaml": "6.0.3",
+  "yaml_files": 16,
+  "yaml_documents": 28,
+  "python_files_syntax_checked": 15,
+  "declared_python_3_9_syntax": "passed; not a Python 3.9 runtime test",
+  "alertmanager_main_matches_snippet": true,
+  "group_by": [
+    "cluster"
+  ],
+  "secret_references_present_in_example": true,
+  "kustomize_resource_paths_exist": true,
+  "bridge_has_no_create_or_rename_calls": true,
+  "cli_help_smoke": "passed",
+  "missing_fallback_startup_smoke": "passed (exit 2)",
+  "baseline_files_changed": [
+    {
+      "path": "AGENTS.md",
+      "added_lines": 8,
+      "removed_lines": 6
+    },
+    {
+      "path": "README.md",
+      "added_lines": 31,
+      "removed_lines": 14
+    },
+    {
+      "path": "k8s_inspector/alertmanager_bridge.py",
+      "added_lines": 230,
+      "removed_lines": 259
+    },
+    {
+      "path": "k8s_inspector/notify.py",
+      "added_lines": 10,
+      "removed_lines": 0
+    },
+    {
+      "path": "deploy/alertmanager-feishu-bridge.yaml",
+      "added_lines": 23,
+      "removed_lines": 15
+    },
+    {
+      "path": "deploy/secret-feishu.example.yaml",
+      "added_lines": 2,
+      "removed_lines": 2
+    },
+    {
+      "path": "deploy/monitoring-alertmanager.yaml",
+      "added_lines": 2,
+      "removed_lines": 8
+    },
+    {
+      "path": "deploy/alertmanager-config-snippet.yaml",
+      "added_lines": 2,
+      "removed_lines": 8
+    },
+    {
+      "path": "tests/test_notify.py",
+      "added_lines": 26,
+      "removed_lines": 2
+    }
+  ],
+  "new_code_or_config_files": [
+    "k8s_inspector/alert_routing.py",
+    "tests/test_alert_routing.py",
+    "tests/test_alertmanager_bridge.py",
+    "deploy/feishu-routes.example.yaml"
+  ],
+  "real_feishu_messages_sent": false,
+  "cluster_deployed": false,
+  "docker_image_built": false,
+  "kustomize_rendered": false
+}

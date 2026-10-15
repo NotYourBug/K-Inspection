@@ -1,0 +1,14 @@
+# 普通路由配置文件，不是 Kubernetes 资源；不要直接 kubectl apply 此文件。
+# 可通过 --routes-file 指定，或挂载到 Pod 后设置 FEISHU_ROUTES_FILE。
+# 所有 chat_id 都指向已有群，应用机器人需已加入相应群。
+default_chat_id: "YOUR_FIXED_CHAT_ID"
+routes:
+  # 顺序匹配，第一条命中即停止。未命中或缺少标签时使用 default_chat_id。
+  - match:
+      cluster: "prod"
+      alertname: "K8sInspectorPendingPVC"
+    chat_id: "YOUR_STORAGE_CHAT_ID"
+  - match:
+      # 当前巡检规则未统一输出 owner_team；缺少该标签时会使用兜底群。
+      owner_team: "payments"
+    chat_id: "YOUR_PAYMENTS_CHAT_ID"

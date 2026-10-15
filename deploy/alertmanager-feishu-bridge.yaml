@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-inspector-alert-bridge
+  template:
+    metadata:
+      labels:
+        app: k8s-inspector-alert-bridge
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: bridge
+          image: your-registry/k8s-inspector:0.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - python
+            - -m
+            - k8s_inspector.alertmanager_bridge
+          env:
+            - name: FEISHU_MODE
+              value: "app"
+            - name: FEISHU_CHAT_POLICY
+              value: "fixed"
+            - name: FEISHU_CHAT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-inspector-feishu
+                  key: fixed_chat_id
+            - name: FEISHU_WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-inspector-feishu
+                  key: feishu_webhook
+                  optional: true
+            - name: FEISHU_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-inspector-feishu
+                  key: app_id
+            - name: FEISHU_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: k8s-inspector-feishu
+                  key: app_secret
+            - name: INSPECTOR_REPORT_DIR
+              value: "/data/out"
+            - name: INSPECTOR_REPORT_MAX_RESULTS
+              value: "5"
+            - name: INSPECTOR_REPORT_MAX_ITEMS
+              value: "3"
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: out
+              mountPath: /data/out
+              readOnly: true
+      volumes:
+        - name: out
+          persistentVolumeClaim:
+            claimName: k8s-inspector-out
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: kube-system
+spec:
+  selector:
+    app: k8s-inspector-alert-bridge
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http

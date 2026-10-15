@@ -1,0 +1,15 @@
+.venv/
+.superpowers/
+__pycache__/
+.pytest_cache/
+.codegraph/
+.claude/
+*.py[cod]
+*.egg-info/
+*.zip
+build/
+dist/
+out/
+.env
+.env.*
+!*.example
