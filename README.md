@@ -7,6 +7,8 @@
 - 告警推送：飞书群机器人 Webhook（仅推送失败项，可选）
 - 执行方式：本地运行 / 容器化 + CronJob
 
+当前实现范围以代码和报告证据为准；下文巡检维度表也包含人工运维目标，磁盘/网络主动探测、etcd 深检和按日重启增量尚未实现。2026-10-15 完成首批巡检正确性整改：Pod 当前/历史状态分离、PVC 绑定语义、部分采集证据保留、原子报告与独立输出；详细计划见 docs/superpowers/plans/2026-10-02-remediation-roadmap.md。
+
 ### 一、巡检整体框架
 
 | **<font style="color:rgb(0, 0, 0);">巡检维度</font>** | **<font style="color:rgb(0, 0, 0);">核心目标</font>**                       | **<font style="color:rgb(0, 0, 0);">执行方式</font>** | **<font style="color:rgb(0, 0, 0);">执行频率</font>**        |
@@ -132,11 +134,19 @@ thresholds:
   pod_restart_count: 3
   warning_events_max: 50
 control_plane_namespace: kube-system
+pod_unready_grace_seconds: 120
+pod_pending_grace_seconds: 300
+pvc_pending_grace_seconds: 300
+output_policy: strict  # 可选；默认 best-effort
 allow_noschedule_taints:
   - "node-role.kubernetes.io/control-plane"
 ```
 
 ## 容器化与 CronJob
+
+配置中的未知字段、错误类型、非有限数值和无效范围会在连接集群前报错。重启阈值仍为累计计数；历史 OOM 不再冒充当前故障。Ready=False 的观察期使用 condition.lastTransitionTime；时间缺失为未知。正常 WaitForFirstConsumer 无消费者和宽限期内 Pending 单独记录，Lost 与超时绑定异常保留证据。
+
+Addon 期望副本需要读取配置 namespace 内的 Deployment/DaemonSet；deploy/rbac.yaml 增加了 kube-system 内的只读 Role。若 control_plane_namespace 改为其他 namespace，应同步调整该 Role/RoleBinding。
 
 部署清单在 deploy/：
 
@@ -174,14 +184,16 @@ kubectl apply -k deploy
 - `deploy/secret-feishu.example.yaml`：
   - `app_id`
   - `app_secret`
-  - `alert_user_open_ids`
+  - `fixed_chat_id`
 - `INSPECTOR_CLUSTER`：集群标识（建议必填，用于指标/告警/群名区分集群；deploy/cronjobs-by-frequency.yaml / deploy/cronjob.yaml 默认是占位符 YOUR\_CLUSTER\_NAME，部署前必须替换）
 
 ## 退出码
 
 - 0：无 FAIL（可能包含 WARN）
 - 2：存在 FAIL
-- 1：仅当传入 --fail-on warn 且存在 WARN 时
+- 1：配置/启动错误，或 --fail-on warn 且只有 WARN；显式 --output-policy strict 时，任何已配置输出失败也返回 1（优先于业务 FAIL 的 2）
+
+默认 output_policy=best-effort，输出彼此独立尝试；--output-policy strict 可覆盖文件配置。INSPECTOR_EXIT_MODE=always0 / --exit-mode always0 只覆盖有效巡检运行的退出码，不抹掉失败记录，也不覆盖启动配置错误。每次运行在 canonical latest 目录写 run-status.json，列出输出成功/失败与 run_success；该状态文件不能记录自身写入失败，失败会进入日志并影响 strict 退出码。
 
 ## 执行频率（profile）
 
@@ -194,9 +206,12 @@ kubectl apply -k deploy
 
 本项目默认通过 PV/PVC 持久化巡检产物，并按频率做分层留存，避免高频任务导致存储无限增长：
 
-- **高频（5m/10m）**：写入 `latest/<profile>/report.json`，覆盖写（并可配置 `--persist-level issue` 仅在 WARN/FAIL 时落盘）
-- **低频（hourly/daily）**：写入 `archive/<profile>/<时间目录>/report.json`，用于追溯与复盘
+- **所有 profile**：每次原子刷新 latest/<profile>/report.json，包括有效恢复；--persist-level issue/none 仅控制额外格式/归档，不能关闭 canonical latest JSON
+- **路径兼容**：--output-dir ./out 生成 ./out/latest/<profile>/；已有 --output-dir /data/out/latest/5m 不会重复嵌套。archive/hourly、archive/daily 的部署路径也会更新对应 latest
+- **低频归档**：启用 --archive hourly/daily 后写 archive/<频次>/<UTC时间桶>/<UTC时间戳_唯一标识>/report.json；同秒运行不覆盖。未启用 archive 时，额外格式仍可写入原 output-dir
 - **定期清理**：`cleanup` CronJob 负责删除过期归档目录（hourly 7 天，daily 30 天，默认可改）
+
+先执行 python -m k8s_inspector.cli cleanup --root ./out/archive --dry-run 检查清理名单。数值时间桶按 UTC 解释；存量非 UTC 目录可能有时差，应先核对或迁移。清理拒绝符号链接/Windows reparse 路径，只统计实际删除成功，任何删除失败返回非零；保留天数0表示不清理。原子发布不等于多任务写同一 latest 的互斥，部署仍需 concurrencyPolicy=Forbid。
 
 对应文件：
 
@@ -206,6 +221,8 @@ kubectl apply -k deploy
 ## Prometheus + Grafana（可观测性增强）
 
 本项目支持将巡检结果推送到 Pushgateway，再由 Prometheus 抓取，Grafana 展示大盘。
+
+新增 k8s_inspector_run_success 和 k8s_inspector_sink_success：业务 FAIL 可以是成功执行的巡检；采集未知或必需输出失败则执行质量失败。推送内容只包含推送前已经完成的输出结果，不能提前宣称本次指标推送成功；该次推送结果见 run-status.json/日志。独立目标清单、持久最后有效观察及“失明不假恢复”的规则治理仍待 C 批次完成。
 
 1. 部署 Pushgateway（示例）
 

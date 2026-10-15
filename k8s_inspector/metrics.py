@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any
 
 from .models import Report, Status
+from .sinks import SinkResult, execution_success
 
 
 @dataclass
@@ -28,12 +29,14 @@ def push_report_to_gateway(
     profile: str,
     cfg: PushGatewayConfig,
     extra_grouping: dict[str, str] | None = None,
+    *,
+    sink_results: tuple[SinkResult, ...] = (),
 ) -> None:
     """Convert a Report to Prometheus metrics and push to Pushgateway."""
     prometheus_client = _import_prometheus_client()
 
     registry = prometheus_client.CollectorRegistry()
-    populate_registry(report=report, profile=profile, registry=registry)
+    populate_registry(report=report, profile=profile, registry=registry, sink_results=sink_results)
 
     grouping_key = dict(extra_grouping or {})
     grouping_key.setdefault("cluster", report.cluster)
@@ -48,11 +51,12 @@ def push_report_to_gateway(
     )
 
 
-def populate_registry(report: Report, profile: str, registry: Any) -> None:
+def populate_registry(report: Report, profile: str, registry: Any, *,
+                      sink_results: tuple[SinkResult, ...] = ()) -> None:
     """
     Fill a Prometheus CollectorRegistry from a Report.
 
-    Defines 6 Gauge metrics:
+    Defines business gauges plus run/sink execution quality:
     - k8s_inspector_last_run_timestamp
     - k8s_inspector_report_summary
     - k8s_inspector_check_status
@@ -61,6 +65,16 @@ def populate_registry(report: Report, profile: str, registry: Any) -> None:
     - k8s_inspector_node_utilization
     """
     prometheus_client = _import_prometheus_client()
+    run_success = prometheus_client.Gauge(
+        "k8s_inspector_run_success",
+        "Inspection and required output success before this metrics delivery.",
+        ["cluster", "profile"], registry=registry)
+    run_success.labels(report.cluster, profile).set(int(execution_success(report, sink_results)))
+    sink_success = prometheus_client.Gauge(
+        "k8s_inspector_sink_success", "Completed output attempt success.",
+        ["cluster", "profile", "sink"], registry=registry)
+    for outcome in sink_results:
+        sink_success.labels(report.cluster, profile, outcome.name).set(int(outcome.success))
 
     g_last_run = prometheus_client.Gauge(
         "k8s_inspector_last_run_timestamp",

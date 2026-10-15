@@ -60,6 +60,7 @@ k8s_inspector/
                       #   load_kube, apiserver_healthz, get_node_metrics, parse_quantity
   report.py           # Output writers: write_json, write_csv, write_html, format_failed_summary
   metrics.py          # Converts Report → Prometheus Gauge metrics → Pushgateway (push)
+  sinks.py            # Isolated output attempts, redacted SinkResult, run-status.json
   notify.py           # send_feishu_text: bot webhook using stdlib urllib (no requests dep)
   alertmanager_bridge.py  # Long-running HTTP server receiving Alertmanager webhooks
                       #   Two delivery modes: "webhook" (fixed-group text) and "app" (existing-chat cards)
@@ -79,9 +80,11 @@ deploy/               # Kustomize manifests: RBAC, CronJobs (by frequency), Prom
 ## Key design decisions
 
 - **Profile-based execution**: `5m` → data plane only (Node Ready + Pods + PVC, no metrics), `10m` → control plane, `hourly` → infra essentials, `daily`/`full` → all checks including events and kube-system addons. Controls API pressure at different frequencies.
-- **Every check function catches its own exceptions** and returns a `CheckResult` with status `WARN` on error — single check failure never crashes the entire inspection.
+- **Every check isolates collection errors**: pure collection failure returns WARN; already confirmed FAIL survives later optional collection errors. Details include collection_errors and unknown observations.
 - **Pushgateway pattern** for CronJob metrics: inspection runs are ephemeral, so metrics are pushed to Pushgateway for Prometheus scrape rather than exposing a `/metrics` endpoint.
-- **Exit codes**: 0 = no FAIL, 2 = has FAIL, 1 = has WARN only when `--fail-on warn`. `INSPECTOR_EXIT_MODE=always0` overrides to always return 0 (for use with Prometheus alerts).
+- **Exit codes**: 0 = no FAIL, 2 = has FAIL, 1 = WARN when --fail-on warn, or configuration failure. Explicit --output-policy strict also returns 1 on configured output failure, before business 2; default best-effort preserves business exit behavior. always0 overrides valid run exit codes only, not startup validation or observable sink/run failure.
+- **Configuration validation**: finite ratios in [0,1], nonnegative integer counters, strict field/type validation. Grace defaults: Pod unready 120s, Pod Pending 300s, PVC Pending 300s. Ready uses condition transition time; historical OOM/restarts are separate evidence.
 - **Two Feishu delivery modes, fixed chat policy**: `webhook` sends text to an existing group; `app` sends cards to existing chat IDs with optional exact-label responsibility routing and a required fallback. No automatic create/invite/rename operations. Manual incident escalation and persistent delivery state are subsequent remediation steps.
 - **The MCP server** (`mcp_server.py`) is fully self-contained — it duplicates `parse_quantity`, `_BAD_POD_REASONS`, `_pod_issue`, and client init rather than importing from the shared modules. This is intentional so it can be deployed independently.
-- **Report storage layering**: high-frequency profiles write to `latest/<profile>/report.json` (overwrite), low-frequency write to `archive/<profile>/<timestamp>/` for retention. A cleanup CronJob prunes hourly archives after 7 days and daily after 30 days.
+- **Report storage layering**: every run atomically refreshes latest/<profile>/report.json, even with persist-level issue/none; extra output/archive respects persistence policy. Canonical deployed latest/archive paths remain supported. Archives use UTC buckets plus unique run directories. cleanup supports --dry-run, rejects symlink/reparse targets and reports deletion failures; hourly7/daily30 days retained.
+- **Output evidence**: run-status.json records attempted sinks and execution quality independently of the legacy Report root. Prometheus run/sink metrics describe completed attempts before metrics push; that push result is in status/logs. Persistent last-valid observations and missing-target monitoring remain C work.

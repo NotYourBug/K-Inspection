@@ -55,3 +55,10 @@ def test_cli_invalid_config_does_not_initialize_kubernetes(config_file, monkeypa
     result = main(["run", "--config", str(config_file({"thresholds": {"pod_restart_count": -1}}))])
     assert result == 1
     assert "pod_restart_count" in capsys.readouterr().err
+
+
+def test_strict_output_policy_can_be_configured(config_file):
+    cfg = load_config(str(config_file({"output_policy": "strict"})))
+    assert cfg.output_policy == "strict"
+    with pytest.raises(ValueError, match="output_policy"):
+        load_config(str(config_file({"output_policy": "typo"})))

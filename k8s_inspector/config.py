@@ -40,6 +40,7 @@ class InspectorConfig:
     pod_unready_grace_seconds: float = 120
     pod_pending_grace_seconds: float = 300
     pvc_pending_grace_seconds: float = 300
+    output_policy: str = "best-effort"
 
 
 def _object(value: Any, allowed: set[str], label: str) -> dict[str, Any]:
@@ -102,5 +103,9 @@ def load_config(path: str | None) -> InspectorConfig:
             or any(not isinstance(x, str) or not x.strip() for x in taints)):
         raise ValueError("allow_noschedule_taints must be an array of non-empty strings")
     cfg.allow_noschedule_taints = [x.strip() for x in taints]
+    policy = data.get("output_policy", cfg.output_policy)
+    if policy not in ("best-effort", "strict"):
+        raise ValueError("output_policy must be best-effort or strict")
+    cfg.output_policy = policy
 
     return cfg

@@ -25,6 +25,7 @@ from .metrics import PushGatewayConfig, push_report_to_gateway
 from .models import Report
 from .notify import send_feishu_text
 from .report import format_failed_summary, write_csv, write_html, write_json
+from .sinks import run_sinks, write_run_status
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="Execution frequency preset",
     )
     run.add_argument("--output-dir", default="./out")
+    run.add_argument("--output-policy", default=None, choices=["best-effort", "strict"],
+                     help="strict returns 1 if any configured output fails")
     run.add_argument(
         "--formats",
         default="json",
@@ -159,6 +162,10 @@ def cmd_run(args: argparse.Namespace) -> int:
     except (ValueError, OSError, RuntimeError) as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         return 1
+    formats = {f.strip().lower() for f in str(args.formats).split(",") if f.strip()}
+    if not formats or formats - {"json", "csv", "html"}:
+        print("Configuration error: formats must contain json, csv or html", file=sys.stderr)
+        return 1
 
     kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
 
@@ -184,42 +191,49 @@ def cmd_run(args: argparse.Namespace) -> int:
         results=results,
     )
 
-    formats = {f.strip().lower() for f in str(args.formats).split(",") if f.strip()}
     latest, extra_base = _output_locations(Path(args.output_dir), args.profile, args.archive)
-    write_json(report, str(latest))
+    actions = {"latest_json": lambda: write_json(report, str(latest))}
     if _should_persist(report, str(args.persist_level)):
         out_dir = _resolve_output_dir(str(extra_base), str(args.archive), now)
         if "json" in formats and Path(out_dir) != latest:
-            write_json(report, out_dir)
+            actions["json"] = lambda: write_json(report, out_dir)
         if "csv" in formats:
-            write_csv(report, out_dir)
+            actions["csv"] = lambda: write_csv(report, out_dir)
         if "html" in formats:
-            write_html(report, out_dir)
+            actions["html"] = lambda: write_html(report, out_dir)
+
+    webhook = args.feishu_webhook or os.getenv("FEISHU_WEBHOOK")
+    if webhook and (report.has_fail or report.has_warn):
+        actions["notification"] = lambda: send_feishu_text(
+            webhook, text=format_failed_summary(report))
+    outcomes = run_sinks(actions, required=frozenset(actions))
 
     pushgateway_url = args.pushgateway_url or os.getenv("PUSHGATEWAY_URL")
     if pushgateway_url:
         job = args.pushgateway_job or os.getenv("PUSHGATEWAY_JOB") or "k8s-inspector"
-        try:
-            push_report_to_gateway(
+        outcomes += run_sinks({"metrics": lambda: push_report_to_gateway(
                 report=report,
                 profile=args.profile,
                 cfg=PushGatewayConfig(
                     url=pushgateway_url, job=job, timeout_s=float(args.pushgateway_timeout)
                 ),
-            )
-        except Exception as e:
-            logger.warning("Pushgateway push failed: %s", e)
-
-    webhook = args.feishu_webhook or os.getenv("FEISHU_WEBHOOK")
-    if webhook and (report.has_fail or report.has_warn):
-        text = format_failed_summary(report)
-        send_feishu_text(webhook, text=text)
+                sink_results=outcomes,
+            )}, required=frozenset({"metrics"}))
+    outcomes += run_sinks({"run_status": lambda: write_run_status(
+        report, args.profile, outcomes, latest / "run-status.json")},
+        required=frozenset({"run_status"}))
+    for outcome in outcomes:
+        if not outcome.success:
+            logger.error("Output %s failed (%s)", outcome.name, outcome.error_kind)
 
     exit_mode = (
         (args.exit_mode or os.getenv("INSPECTOR_EXIT_MODE") or "strict").strip().lower()
     )
     if exit_mode == "always0":
         return 0
+    output_policy = args.output_policy or cfg.output_policy
+    if output_policy == "strict" and any(not x.success and x.required for x in outcomes):
+        return 1
     if report.has_fail:
         return 2
     if args.fail_on == "warn" and report.has_warn:
@@ -311,6 +325,7 @@ def cmd_cleanup(args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     p = build_parser()
     args = p.parse_args(argv)
     if args.command == "run":
