@@ -1,4 +1,6 @@
 """Low-cardinality local health and metrics. Never enqueue self-monitoring alerts."""
+from __future__ import annotations
+
 from datetime import datetime
 
 from prometheus_client import CollectorRegistry, Gauge, generate_latest

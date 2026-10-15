@@ -1,0 +1,14 @@
+# EXAMPLE ONLY: select and validate the actual local/block StorageClass in E2.
+# Never use the report NFS volume for SQLite. RWX/NFS/shared writers unsupported.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-bridge-state
+  namespace: kube-system
+spec:
+  accessModes: [ReadWriteOnce]
+  volumeMode: Filesystem
+  storageClassName: validated-block-storage
+  resources:
+    requests:
+      storage: 2Gi

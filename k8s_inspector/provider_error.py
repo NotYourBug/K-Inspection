@@ -1,4 +1,6 @@
 """Sanitized provider failure metadata shared by synchronous and queued sends."""
+from __future__ import annotations
+
 import math
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime

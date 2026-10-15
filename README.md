@@ -291,7 +291,9 @@ python -m k8s_inspector.alertmanager_bridge --mode webhook --feishu-webhook "<we
 - 当前巡检规则尚未统一输出 `owner_team`；可以先按已有的 `cluster`、`alertname`、`check` 标签路由，补齐团队标签后再增加责任归属规则。
 - 路由文件替换真实群 ID 后，可用 `kubectl create configmap k8s-inspector-feishu-routes --from-file=routes.yaml=<路由文件路径> -n kube-system` 创建 ConfigMap，再给 Bridge 增加只读挂载并设置 `FEISHU_ROUTES_FILE`。示例路由文件不是 Kubernetes 资源，不直接 `kubectl apply`。
 
-每条通知保留来源标签，混合批次会同时显示 firing/resolved。恢复通知仅描述所列告警，不能代表整个事件已恢复；上游截断会明确提示。Bridge 在实际发送成功后返回 HTTP 200，校验错误返回 400，超大请求返回 413，交付失败返回 500，交由 Alertmanager 重试。某一责任群发送失败仍会尝试其他群。当前未实现持久投递去重，多群部分成功后的重试可能让成功群再次收到消息。
+每条通知保留来源标签，混合批次会同时显示 firing/resolved。恢复通知仅描述所列告警，不能代表整个事件已恢复；上游截断会明确提示。默认同步模式在实际发送成功后返回 HTTP200，校验错误400、超大请求413、交付失败500。可选 `--delivery-mode async` 提供逐目的地SQLite事务队列、内容去重、租约重试和重启恢复，HTTP202仅表示持久接收；鉴权和独立状态卷为必需配置，存储/容量失败返回503。发送结果不明时仍可能重复，不能宣称恰好一次。
+
+异步模式的启用顺序、Secret、备份/迁移、死信处理和独立监控见[可靠投递运维手册](docs/runbooks/bridge-delivery.md)。`deploy/components/bridge-async` 为显式选择的示例组件，默认base保持sync；真实PVC、promtool、供应商UUID窗口和Pod替换恢复验收通过后再切换生产。
 
 巡检背景通过 `INSPECTOR_REPORT_DIR` / `--report-dir` 配置，默认 `/data/out`。只有同一 cluster/profile、没有责任路由或团队/namespace/service 范围的通知才会附带匹配的新鲜快照；缺少身份、过期、时间无效或混合 profile 时不附带。快照仅作为背景，不作为事件恢复依据。`--report-max-results 0` 可关闭附带背景，CLI 数量参数优先于环境变量。
 

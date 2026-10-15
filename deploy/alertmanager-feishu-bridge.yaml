@@ -5,6 +5,8 @@ metadata:
   namespace: kube-system
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: k8s-inspector-alert-bridge
@@ -13,6 +15,7 @@ spec:
       labels:
         app: k8s-inspector-alert-bridge
     spec:
+      terminationGracePeriodSeconds: 30
       restartPolicy: Always
       containers:
         - name: bridge
@@ -59,7 +62,7 @@ spec:
               containerPort: 8000
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /readyz
               port: http
           livenessProbe:
             httpGet:

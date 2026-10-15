@@ -6,9 +6,11 @@ deduplication and commits the receipt and ALL destinations together.
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
+import time
 import uuid
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,7 +18,7 @@ from pathlib import Path
 from .alert_routing import AlertBatch
 from .delivery_models import AcceptResult, DeliveryJob, DeliveryResult, DeliveryTarget, StoreStats
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 class StorageUnavailable(RuntimeError):
@@ -45,6 +47,105 @@ def _json(value: object) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
+_REQUIRED_COLUMNS = {
+    "inbox": {"receipt_id", "source_id", "received_at", "normalized_payload", "truncated"},
+    "outbox": {"delivery_id", "source_id", "destination_id", "content_hash", "generation", "payload",
+        "state", "attempt_count", "next_attempt_at", "lease_token", "lease_until", "external_id",
+        "error_kind", "created_at", "sent_at", "result_unknown", "error_code", "budget_started_at"},
+    "inbox_jobs": {"receipt_id", "delivery_id"},
+    "delivery_events": {"event_id", "delivery_id", "attempt_no", "lease_token", "at", "event_type",
+                         "result_unknown", "error_kind", "error_code", "external_id", "reason"},
+    "store_health": {"id", "probed_at"},
+}
+
+
+def _read_version(db) -> int | None:
+    tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    if not tables:
+        return None
+    if "schema_version" not in tables:
+        raise UnsupportedSchema("not a delivery database")
+    versions = db.execute("SELECT version FROM schema_version").fetchall()
+    if len(versions) != 1 or type(versions[0][0]) is not int or not 1 <= versions[0][0] <= SCHEMA_VERSION:
+        raise UnsupportedSchema("unsupported delivery schema")
+    version = versions[0][0]
+    required = dict(_REQUIRED_COLUMNS)
+    if version >= 2:
+        required["migration_history"] = {"version", "applied_at", "backup_path"}
+    for table, columns in required.items():
+        present = {row[1] for row in db.execute(f"PRAGMA table_info({table})")}
+        if not columns <= present:
+            raise UnsupportedSchema("incomplete delivery schema")
+    return version
+
+
+def _backup_sqlite(path: Path, destination: Path) -> Path:
+    destination = Path(destination)
+    temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+    try:
+        if destination.resolve() == path.resolve() or os.path.lexists(destination):
+            raise ValueError("backup destination must be a new file")
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        deadline = time.monotonic() + 10
+        def progress(_status, _remaining, _total):
+            if time.monotonic() > deadline:
+                raise StorageUnavailable("backup deadline exceeded")
+        with closing(sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2)) as source:
+            with closing(sqlite3.connect(temporary, isolation_level=None)) as output:
+                source.backup(output, pages=128, progress=progress, sleep=.05)
+                if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                    raise StorageUnavailable("backup integrity check failed")
+        # Publish without overwriting another backup; hard link is atomic on the
+        # verified local/block filesystems supported by this deployment.
+        with temporary.open("r+b") as stream:
+            os.fsync(stream.fileno())
+        os.link(temporary, destination)
+        return destination
+    except (OSError, sqlite3.Error) as exc:
+        raise StorageUnavailable("delivery backup unavailable") from exc
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _upgrade_v2(db, backup: Path):
+    db.execute("CREATE TABLE migration_history (version INTEGER PRIMARY KEY, applied_at REAL NOT NULL, backup_path TEXT)")
+    db.execute("INSERT INTO migration_history VALUES (2,?,?)", (epoch(datetime.now(timezone.utc)), str(backup)))
+
+
+MIGRATIONS = {2: _upgrade_v2}
+
+
+def migrate(path: Path, target_version: int) -> None:
+    """Offline schema upgrade. Stop all service writers before invoking it."""
+    path = Path(path)
+    if not path.is_file() or target_version != SCHEMA_VERSION:
+        raise UnsupportedSchema("unsupported migration target or missing database")
+    db = None
+    try:
+        db = sqlite3.connect(path, isolation_level=None, timeout=2)
+        db.execute("PRAGMA foreign_keys=ON")
+        db.execute("PRAGMA synchronous=FULL")
+        version = _read_version(db)
+        if version is None:
+            raise UnsupportedSchema("empty delivery database")
+        if version == target_version:
+            return
+        backup = _backup_sqlite(path, path.with_name(f"{path.name}.pre-v{target_version}-{uuid.uuid4().hex}.bak"))
+        db.execute("BEGIN IMMEDIATE")
+        for next_version in range(version + 1, target_version + 1):
+            MIGRATIONS[next_version](db, backup)
+            db.execute("UPDATE schema_version SET version=?", (next_version,))
+        _read_version(db)
+        db.commit()
+    except sqlite3.Error as exc:
+        raise StorageUnavailable("delivery migration failed; pre-upgrade backup retained") from exc
+    finally:
+        if db is not None:
+            if db.in_transaction:
+                db.rollback()
+            db.close()
+
+
 class DeliveryStore:
     def __init__(self, path: Path, *, max_backlog: int = 10000, dedup_seconds: int = 300):
         if type(max_backlog) is not int or max_backlog < 1:
@@ -56,6 +157,10 @@ class DeliveryStore:
         self.dedup_seconds = dedup_seconds
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
+            with self._connection() as db:
+                version = _read_version(db)
+            if version is not None and version < SCHEMA_VERSION:
+                migrate(self.path, SCHEMA_VERSION)
             with self._connection() as db:
                 db.execute("PRAGMA journal_mode=WAL")
             with self._transaction() as db:
@@ -88,6 +193,11 @@ class DeliveryStore:
                     event_type TEXT NOT NULL, result_unknown INTEGER NOT NULL DEFAULT 0,
                     error_kind TEXT, error_code TEXT, external_id TEXT, reason TEXT)""")
                 db.execute("CREATE TABLE IF NOT EXISTS store_health (id INTEGER PRIMARY KEY, probed_at REAL NOT NULL)")
+                db.execute("""CREATE TABLE IF NOT EXISTS migration_history (
+                    version INTEGER PRIMARY KEY, applied_at REAL NOT NULL, backup_path TEXT)""")
+                if not versions:
+                    db.execute("INSERT INTO migration_history VALUES (?,?,NULL)",
+                               (SCHEMA_VERSION, epoch(datetime.now(timezone.utc))))
         except OSError as exc:
             raise StorageUnavailable("delivery storage unavailable") from exc
 
@@ -275,6 +385,9 @@ class DeliveryStore:
         with self._connection() as db:
             return tuple(dict(r) for r in db.execute(
                 "SELECT * FROM delivery_events WHERE delivery_id=? ORDER BY event_id", (delivery_id,)))
+
+    def backup(self, destination: Path) -> Path:
+        return _backup_sqlite(self.path, destination)
 
     @staticmethod
     def _job(row) -> DeliveryJob:

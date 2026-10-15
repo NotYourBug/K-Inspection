@@ -36,6 +36,12 @@ python -m k8s_inspector.cli cleanup --root ./out/archive --hourly-days 7 --daily
 # Start Alertmanager → Feishu bridge (long-running HTTP service)
 python -m k8s_inspector.alertmanager_bridge --mode app --feishu-chat-id oc_your_existing_chat --listen-port 8000
 
+# Durable async delivery (requires Secret sources and verified local/block state volume)
+python -m k8s_inspector.alertmanager_bridge --mode app --feishu-chat-id oc_your_existing_chat --delivery-mode async --state-db /var/lib/inspector/bridge.db --sources-file /etc/bridge-auth/sources.json
+
+# Local delivery maintenance (OS/container authorization; no HTTP admin API)
+python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db inspect
+
 # Start MCP server for LLM troubleshooting
 python -m k8s_inspector.mcp_server
 
@@ -66,6 +72,14 @@ k8s_inspector/
                       #   Two delivery modes: "webhook" (fixed-group text) and "app" (existing-chat cards)
                       #   Fixed chat policy; never maps notification groupKey to a new chat
   alert_routing.py    # Payload validation, alert identity fields, exact-label routes and fallback chat
+  bridge_auth.py      # Bearer credentials bind logical source IDs; Secret file/env
+  bridge_store.py     # SQLite atomic inbox/outbox, leases, audit, retention, backup/migration
+  delivery_models.py # Immutable delivery DTOs and StoreStats
+  delivery_identity.py # Canonical alert-cycle/content identity and quality flags
+  delivery_adapter.py # Confirmed app/webhook sends, sanitized provider outcomes
+  delivery_worker.py # Single worker, bounded retry budget and lease recovery
+  bridge_observability.py # DB/worker readiness and aggregate metrics
+  bridge_admin.py    # Container-local inspect/requeue/backup/prune commands
   feishu_app.py       # Feishu app bot client (lark-oapi SDK): create_chat, rename_chat, send_card
   state_store.py      # Legacy JsonStateStore: historical group_key → chat_id mapping,
                       #   no longer used by the fixed-chat Bridge
@@ -84,7 +98,8 @@ deploy/               # Kustomize manifests: RBAC, CronJobs (by frequency), Prom
 - **Pushgateway pattern** for CronJob metrics: inspection runs are ephemeral, so metrics are pushed to Pushgateway for Prometheus scrape rather than exposing a `/metrics` endpoint.
 - **Exit codes**: 0 = no FAIL, 2 = has FAIL, 1 = WARN when --fail-on warn, or configuration failure. Explicit --output-policy strict also returns 1 on configured output failure, before business 2; default best-effort preserves business exit behavior. always0 overrides valid run exit codes only, not startup validation or observable sink/run failure.
 - **Configuration validation**: finite ratios in [0,1], nonnegative integer counters, strict field/type validation. Grace defaults: Pod unready 120s, Pod Pending 300s, PVC Pending 300s. Ready uses condition transition time; historical OOM/restarts are separate evidence.
-- **Two Feishu delivery modes, fixed chat policy**: `webhook` sends text to an existing group; `app` sends cards to existing chat IDs with optional exact-label responsibility routing and a required fallback. No automatic create/invite/rename operations. Manual incident escalation and persistent delivery state are subsequent remediation steps.
+- **Two Feishu providers, fixed chat policy**: `webhook` sends text to an existing group; `app` sends cards to existing chat IDs with optional exact-label responsibility routing and a required fallback. No automatic create/invite/rename operations. Manual incident escalation remains D work.
+- **Bridge delivery contract**: default sync200 confirms provider success; opt-in async202 confirms atomic persistent acceptance only. Async requires source authentication and SQLite on a verified local/block PVC, replicas1/Recreate; no NFS/HA SQLite. Stable delivery ID/UUID, lease60s, provider HTTP timeout10s, max6 attempts, retry5/15/45/120/300s + jitter,900s retry deadline from first claim. Unknown results remain auditable; no exactly-once claim. See docs/runbooks/bridge-delivery.md for cutover/recovery/release gates.
 - **The MCP server** (`mcp_server.py`) is fully self-contained — it duplicates `parse_quantity`, `_BAD_POD_REASONS`, `_pod_issue`, and client init rather than importing from the shared modules. This is intentional so it can be deployed independently.
 - **Report storage layering**: every run atomically refreshes latest/<profile>/report.json, even with persist-level issue/none; extra output/archive respects persistence policy. Canonical deployed latest/archive paths remain supported. Archives use UTC buckets plus unique run directories. cleanup supports --dry-run, rejects symlink/reparse targets and reports deletion failures; hourly7/daily30 days retained.
 - **Output evidence**: run-status.json records attempted sinks and execution quality independently of the legacy Report root. Prometheus run/sink metrics describe completed attempts before metrics push; that push result is in status/logs. Persistent last-valid observations and missing-target monitoring remain C work.

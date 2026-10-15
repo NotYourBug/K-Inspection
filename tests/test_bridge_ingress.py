@@ -152,3 +152,25 @@ def test_cli_reads_mounted_sources_and_environment_without_exposing_token(tmp_pa
     cfg = bridge._config_from_args(args)
     assert cfg.source_credentials[0].source_id == "prod-am"
     assert TOKEN not in repr(cfg) and "example.invalid" not in repr(cfg)
+
+
+def test_async_http_worker_delivery_and_readiness_end_to_end(tmp_path, monkeypatch):
+    with serve(tmp_path) as (server, provider, _):
+        from tests.test_bridge_observability import get
+        provider.send_card_message.return_value = "om_confirmed"
+        finished = threading.Event()
+        original = server.delivery_store.finish
+        count = []
+        def finish(*args, **kwargs):
+            result = original(*args, **kwargs)
+            count.append(result)
+            if len(count) == 2:
+                finished.set()
+            return result
+        monkeypatch.setattr(server.delivery_store, "finish", finish)
+        server.delivery_worker.start()
+        assert post(server)[0] == 202
+        assert finished.wait(3)
+        assert len(server.delivery_store.list_jobs(state="SENT")) == 2
+        assert get(server, "/readyz")[0] == 200
+        assert provider.create_chat.call_count == provider.rename_chat.call_count == 0

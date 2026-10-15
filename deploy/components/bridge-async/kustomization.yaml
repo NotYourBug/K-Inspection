@@ -1,0 +1,10 @@
+# Opt-in component. Requires G2, an actual validated StorageClass and the Secret
+# described in docs/runbooks/bridge-delivery.md. Base deployment remains sync.
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+resources:
+  - ../../storage/bridge-state-pvc.yaml
+patches:
+  - path: bridge.yaml
+  - path: alertmanager.yaml
+  - path: alertmanager-config.yaml
