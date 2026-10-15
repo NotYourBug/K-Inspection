@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .alert_routing import AlertBatch
-from .delivery_models import AcceptResult, DeliveryJob, DeliveryTarget
+from .delivery_models import AcceptResult, DeliveryJob, DeliveryResult, DeliveryTarget
 
 SCHEMA_VERSION = 1
 
@@ -75,12 +75,18 @@ class DeliveryStore:
                     attempt_count INTEGER NOT NULL DEFAULT 0, next_attempt_at REAL NOT NULL,
                     lease_token TEXT, lease_until REAL, external_id TEXT, error_kind TEXT,
                     created_at REAL NOT NULL, sent_at REAL, result_unknown INTEGER NOT NULL DEFAULT 0,
-                    error_code TEXT, UNIQUE(source_id,destination_id,content_hash,generation))""")
+                    error_code TEXT, budget_started_at REAL,
+                    UNIQUE(source_id,destination_id,content_hash,generation))""")
                 db.execute("""CREATE TABLE IF NOT EXISTS inbox_jobs (
                     receipt_id TEXT NOT NULL REFERENCES inbox(receipt_id) ON DELETE CASCADE,
                     delivery_id TEXT NOT NULL REFERENCES outbox(delivery_id) ON DELETE CASCADE,
                     PRIMARY KEY(receipt_id,delivery_id))""")
                 db.execute("CREATE INDEX IF NOT EXISTS outbox_due ON outbox(state,next_attempt_at)")
+                db.execute("""CREATE TABLE IF NOT EXISTS delivery_events (
+                    event_id INTEGER PRIMARY KEY, delivery_id TEXT NOT NULL REFERENCES outbox(delivery_id)
+                    ON DELETE CASCADE, attempt_no INTEGER NOT NULL, lease_token TEXT, at REAL NOT NULL,
+                    event_type TEXT NOT NULL, result_unknown INTEGER NOT NULL DEFAULT 0,
+                    error_kind TEXT, error_code TEXT, external_id TEXT, reason TEXT)""")
         except OSError as exc:
             raise StorageUnavailable("delivery storage unavailable") from exc
 
@@ -156,11 +162,80 @@ class DeliveryStore:
             return tuple(self._job(r) for r in db.execute(query + " ORDER BY created_at,delivery_id",
                                                         (state,) if state is not None else ()))
 
+    def claim_due(self, now: datetime, lease_seconds: int = 60) -> DeliveryJob | None:
+        stamp = epoch(now)
+        if type(lease_seconds) is not int or lease_seconds < 1:
+            raise ValueError("lease_seconds must be positive")
+        with self._transaction() as db:
+            row = db.execute("""SELECT * FROM outbox WHERE
+                (state IN ('PENDING','RETRY_WAIT') AND next_attempt_at<=?) OR
+                (state='SENDING' AND lease_until<=?) ORDER BY next_attempt_at,created_at,delivery_id LIMIT 1""",
+                (stamp, stamp)).fetchone()
+            if row is None:
+                return None
+            delivery_id = row["delivery_id"]
+            if row["state"] == "SENDING":
+                self._event(db, row, stamp, "lease_expired", unknown=True, error_kind="lease_expired")
+                db.execute("UPDATE outbox SET result_unknown=1 WHERE delivery_id=?", (delivery_id,))
+            if row["attempt_count"] >= 6:
+                db.execute("""UPDATE outbox SET state='DEAD',lease_token=NULL,lease_until=NULL,
+                    error_kind='retry_exhausted' WHERE delivery_id=?""", (delivery_id,))
+                self._event(db, row, stamp, "dead", error_kind="retry_exhausted")
+                return None
+            token = str(uuid.uuid4())
+            db.execute("""UPDATE outbox SET state='SENDING',attempt_count=attempt_count+1,
+                lease_token=?,lease_until=?,budget_started_at=coalesce(budget_started_at,?)
+                WHERE delivery_id=?""", (token, stamp + lease_seconds, stamp, delivery_id))
+            claimed = db.execute("SELECT * FROM outbox WHERE delivery_id=?", (delivery_id,)).fetchone()
+            self._event(db, claimed, stamp, "claimed")
+            return self._job(claimed)
+
+    @staticmethod
+    def _event(db, row, stamp, event_type, *, unknown=False, error_kind=None,
+               error_code=None, external_id=None, reason=None):
+        db.execute("""INSERT INTO delivery_events (delivery_id,attempt_no,lease_token,at,event_type,
+            result_unknown,error_kind,error_code,external_id,reason) VALUES (?,?,?,?,?,?,?,?,?,?)""",
+            (row["delivery_id"], row["attempt_count"], row["lease_token"], stamp, event_type,
+             int(unknown), error_kind, error_code, external_id, reason))
+
+    def finish(self, delivery_id: str, lease_token: str, result: DeliveryResult, now: datetime,
+               *, retry_at: datetime | None = None) -> bool:
+        stamp = epoch(now)
+        retry_stamp = epoch(retry_at) if retry_at is not None else None
+        with self._transaction() as db:
+            row = db.execute("SELECT * FROM outbox WHERE delivery_id=?", (delivery_id,)).fetchone()
+            if (row is None or row["state"] != "SENDING" or row["lease_token"] != lease_token
+                    or row["lease_until"] <= stamp):
+                return False
+            state = "SENT" if result.success else (
+                "RETRY_WAIT" if result.retryable and retry_stamp is not None and row["attempt_count"] < 6 else "DEAD")
+            kind = None if result.success else result.error_kind or "provider_unknown"
+            db.execute("""UPDATE outbox SET state=?,next_attempt_at=?,lease_token=NULL,lease_until=NULL,
+                external_id=?,error_kind=?,error_code=?,sent_at=?,result_unknown=max(result_unknown,?)
+                WHERE delivery_id=?""", (state, retry_stamp if state == "RETRY_WAIT" else stamp,
+                result.external_id, kind, result.error_code, stamp if result.success else None,
+                int(result.result_unknown), delivery_id))
+            self._event(db, row, stamp, state.lower(), unknown=result.result_unknown,
+                        error_kind=kind, error_code=result.error_code, external_id=result.external_id)
+            return True
+
+    def release_claim(self, delivery_id: str, lease_token: str, now: datetime) -> bool:
+        """Release a claim only when its caller has not begun the provider operation."""
+        stamp = epoch(now)
+        with self._transaction() as db:
+            row = db.execute("SELECT * FROM outbox WHERE delivery_id=?", (delivery_id,)).fetchone()
+            if row is None or row["state"] != "SENDING" or row["lease_token"] != lease_token:
+                return False
+            self._event(db, row, stamp, "released_before_send")
+            db.execute("""UPDATE outbox SET state='PENDING',attempt_count=attempt_count-1,
+                lease_token=NULL,lease_until=NULL,next_attempt_at=? WHERE delivery_id=?""", (stamp, delivery_id))
+            return True
+
     @staticmethod
     def _job(row) -> DeliveryJob:
         fields = dict(row)
         fields["payload"] = json.loads(fields["payload"])
-        for name in ("next_attempt_at", "lease_until", "created_at", "sent_at"):
+        for name in ("next_attempt_at", "lease_until", "created_at", "sent_at", "budget_started_at"):
             fields[name] = utc(fields[name])
         fields["result_unknown"] = bool(fields["result_unknown"])
         return DeliveryJob(**fields)

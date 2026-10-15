@@ -36,6 +36,7 @@ class DeliveryJob:
     sent_at: datetime | None = None
     result_unknown: bool = False
     error_code: str | None = None
+    budget_started_at: datetime | None = None
 
 
 @dataclass(frozen=True)
