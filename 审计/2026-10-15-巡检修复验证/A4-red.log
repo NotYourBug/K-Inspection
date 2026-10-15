@@ -1,0 +1,108 @@
+FFFFFFF.                                                                 [100%]
+================================== FAILURES ===================================
+__________________ test_node_failure_survives_metrics_error ___________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002027489CF20>
+
+    def test_node_failure_survives_metrics_error(monkeypatch):
+        core = SimpleNamespace(list_node=lambda: SimpleNamespace(items=[node("n1", ready=False)]))
+        monkeypatch.setattr(checks, "get_node_metrics",
+                            lambda custom: {"n1": {"cpu": "invalid", "memory": "1Gi"}})
+        result = checks.check_nodes(core, None, InspectorConfig())
+>       assert result.status == Status.FAIL
+E       AssertionError: assert <Status.WARN: 'WARN'> == <Status.FAIL: 'FAIL'>
+E         
+E         - FAIL
+E         + WARN
+
+tests\test_failure_preservation.py:17: AssertionError
+______________ test_zero_allocatable_does_not_report_zero_usage _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000020274971C70>
+
+    def test_zero_allocatable_does_not_report_zero_usage(monkeypatch):
+        value = node("n1", capacity={"cpu": "0", "memory": "0"})
+        core = SimpleNamespace(list_node=lambda: SimpleNamespace(items=[value]))
+        monkeypatch.setattr(checks, "get_node_metrics",
+                            lambda custom: {"n1": {"cpu": "1", "memory": "1Gi"}})
+        result = checks.check_nodes(core, None, InspectorConfig())
+>       assert result.status == Status.WARN
+E       AssertionError: assert <Status.PASS: 'PASS'> == <Status.WARN: 'WARN'>
+E         
+E         - WARN
+E         + PASS
+
+tests\test_failure_preservation.py:28: AssertionError
+__________ test_bad_metrics_for_one_node_preserves_other_node_usage ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000020274970980>
+
+    def test_bad_metrics_for_one_node_preserves_other_node_usage(monkeypatch):
+        core = SimpleNamespace(list_node=lambda: SimpleNamespace(items=[node("a"), node("b")]))
+        monkeypatch.setattr(checks, "get_node_metrics", lambda custom: {
+            "a": {"cpu": "4", "memory": "1Gi"}, "b": {"cpu": "invalid", "memory": "1Gi"}})
+        result = checks.check_nodes(core, None, InspectorConfig())
+        assert result.status == Status.WARN
+>       assert result.data["over_cpu"] == ["a"]
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'over_cpu'
+
+tests\test_failure_preservation.py:39: KeyError
+_______ test_control_plane_health_failure_survives_component_forbidden ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000020274972330>
+
+    def test_control_plane_health_failure_survives_component_forbidden(monkeypatch):
+        monkeypatch.setattr(checks, "apiserver_healthz", lambda *a, **kw: {"ok": False})
+        core = MagicMock()
+        core.list_namespaced_pod.side_effect = PermissionError("forbidden")
+        result = checks.check_control_plane(core, None, InspectorConfig())
+>       assert result.status == Status.FAIL
+E       AssertionError: assert <Status.WARN: 'WARN'> == <Status.FAIL: 'FAIL'>
+E         
+E         - FAIL
+E         + WARN
+
+tests\test_failure_preservation.py:48: AssertionError
+______________ test_managed_control_plane_absence_is_not_healthy ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000202749B74D0>
+
+    def test_managed_control_plane_absence_is_not_healthy(monkeypatch):
+        monkeypatch.setattr(checks, "apiserver_healthz", lambda *a, **kw: {"ok": True})
+        core = MagicMock()
+        core.list_namespaced_pod.return_value.items = []
+        result = checks.check_control_plane(core, None, InspectorConfig())
+        assert result.status == Status.WARN
+>       assert result.data["capability"] == "PARTIAL"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'capability'
+
+tests\test_failure_preservation.py:59: KeyError
+_________________ test_addon_running_but_unready_is_not_pass __________________
+
+    def test_addon_running_but_unready_is_not_pass():
+        core, apps = addon_clients(pod("addon", ready=False))
+>       result = checks.check_kube_system_addons(core, InspectorConfig(), apps=apps)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_kube_system_addons() got an unexpected keyword argument 'apps'
+
+tests\test_failure_preservation.py:77: TypeError
+____________ test_addon_desired_replicas_exceed_ready_pods_is_warn ____________
+
+    def test_addon_desired_replicas_exceed_ready_pods_is_warn():
+        core, apps = addon_clients(pod("addon"), desired=3)
+>       result = checks.check_kube_system_addons(core, InspectorConfig(), apps=apps)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_kube_system_addons() got an unexpected keyword argument 'apps'
+
+tests\test_failure_preservation.py:84: TypeError
+=========================== short test summary info ===========================
+FAILED tests/test_failure_preservation.py::test_node_failure_survives_metrics_error
+FAILED tests/test_failure_preservation.py::test_zero_allocatable_does_not_report_zero_usage
+FAILED tests/test_failure_preservation.py::test_bad_metrics_for_one_node_preserves_other_node_usage
+FAILED tests/test_failure_preservation.py::test_control_plane_health_failure_survives_component_forbidden
+FAILED tests/test_failure_preservation.py::test_managed_control_plane_absence_is_not_healthy
+FAILED tests/test_failure_preservation.py::test_addon_running_but_unready_is_not_pass
+FAILED tests/test_failure_preservation.py::test_addon_desired_replicas_exceed_ready_pods_is_warn
+7 failed, 1 passed in 12.71s

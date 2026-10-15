@@ -10,6 +10,8 @@
 
 **Spec:** [设计基准](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/specs/2026-10-02-remediation-design.md)；[总计划](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/plans/2026-10-02-remediation-roadmap.md)。
 
+执行状态（2026-10-15）：A1–A6已完成本地离线验收和一次独立审查后的修复，256测试通过；详见审计/10-巡检关键缺陷实施记录-2026-10-15.md。Linux/真实卷与集群仍按E4/E5验收，不将本批通过等同生产发布。
+
 ## Global Constraints
 
 - 不改变 profile 范围；5m 不调用 Metrics API。保持 CLI、旧 Report 构造和异常隔离。
@@ -59,11 +61,11 @@ def test_unknown_config_key_is_rejected(config_file):
 
 config_file fixture 在本任务定义，写入 JSON/YAML 到 tmp_path；对 NaN 使用 JSON 兼容输入或 YAML 明确表示，避免序列化层先挡住被测校验。
 
-- [ ] 写上述非法值、未知键、旧最小配置及新默认值测试。
-- [ ] 运行 python -m pytest tests/test_config.py -q，确认失败来自缺少校验而非夹具错误。
-- [ ] 实现校验，补 YAML 缺依赖与文件错误的友好提示，邻近无效参数边界一并修正。
-- [ ] 再运行配置与 CLI 相关测试；确认既有合法配置仍可加载。
-- [ ] 审查配置兼容影响，记录新增字段和迁移提示，提交或保存可识别快照。
+- [x] 写上述非法值、未知键、旧最小配置及新默认值测试。
+- [x] 运行 python -m pytest tests/test_config.py -q，确认失败来自缺少校验而非夹具错误。
+- [x] 实现校验，补 YAML 缺依赖与文件错误的友好提示，邻近无效参数边界一并修正。
+- [x] 再运行配置与 CLI 相关测试；确认既有合法配置仍可加载。
+- [x] 审查配置兼容影响，记录新增字段和迁移提示，提交或保存可识别快照。
 
 ## A2：修正 Pod 当前状态、Ready 与历史稳定性
 
@@ -98,11 +100,11 @@ def test_running_unready_pod_after_grace_is_current_issue(unready_pod, cfg, now)
 
 本任务另定义 test_init_crashloop_is_current_issue、test_recent_pending_is_within_grace、test_missing_ready_is_unknown、test_bad_pod_does_not_hide_restart_evidence、test_successful_job_is_not_unready_failure。历史证据可以触发独立 WARN，但不能成为当前 OOM FAIL。
 
-- [ ] 写上列测试，明确每个 fixture 的当前/历史状态与时间。
-- [ ] 运行 python -m pytest tests/test_pod_semantics.py -q，验证现有漏报/误报确实被复现。
-- [ ] 先修 common，再接 checks；保持结果名称、计数与旧报告兼容。
-- [ ] 运行 Pod 语义测试与 tests/test_checks.py；检查 5m 没有新增 metrics 请求。
-- [ ] 审查当前故障和稳定性证据不会混用，记录目标 K8s 版本边界，提交。
+- [x] 写上列测试，明确每个 fixture 的当前/历史状态与时间。
+- [x] 运行 python -m pytest tests/test_pod_semantics.py -q，验证现有漏报/误报确实被复现。
+- [x] 先修 common，再接 checks；保持结果名称、计数与旧报告兼容。
+- [x] 运行 Pod 语义测试与 tests/test_checks.py；检查 5m 没有新增 metrics 请求。
+- [x] 审查当前故障和稳定性证据不会混用，记录目标 K8s 版本边界，提交。
 
 ## A3：修正 PVC 状态与等待消费者语义
 
@@ -137,11 +139,11 @@ def test_lost_pvc_is_fail(core, cfg, now):
 
 fixture 的 storage_class 参数在本任务扩展 A1 pvc factory，映射到 spec.storage_class_name；storage_class helper 返回 V1StorageClass。
 
-- [ ] 写上述测试及 test_old_pending_with_failed_consumer_has_evidence、test_storageclass_forbidden_is_unknown。
-- [ ] 运行 python -m pytest tests/test_pvc_semantics.py -q。
-- [ ] 实现按需关联和原因分类，旧 pending 列表保留，新增 lost_count/等待计数。
-- [ ] 跑 PVC 与 profile 测试；断言关联 list 次数按运行而非 PVC 数量增长。
-- [ ] 审查“等待”不会掩盖真正 Lost/消费者失败，提交。
+- [x] 写上述测试及 test_old_pending_with_failed_consumer_has_evidence、test_storageclass_forbidden_is_unknown。
+- [x] 运行 python -m pytest tests/test_pvc_semantics.py -q。
+- [x] 实现按需关联和原因分类，旧 pending 列表保留，新增 lost_count/等待计数。
+- [x] 跑 PVC 与 profile 测试；断言关联 list 次数按运行而非 PVC 数量增长。
+- [x] 审查“等待”不会掩盖真正 Lost/消费者失败，提交。
 
 ## A4：保留已确认故障，明确 Node、Addon 与控制面能力
 
@@ -171,11 +173,11 @@ def test_node_failure_survives_metrics_error(core, custom, cfg):
 
 还需 test_zero_allocatable_does_not_report_zero_usage、test_addon_running_but_unready_is_not_pass、test_managed_control_plane_absence_is_not_healthy、test_5m_never_requests_metrics；保留原 not_ready 列表字段。
 
-- [ ] 写故障保留与能力边界用例。
-- [ ] 运行 python -m pytest tests/test_failure_preservation.py -q。
-- [ ] 按子阶段隔离异常，保留已收集证据；避免一个 metrics 项失败丢弃所有 Node 结果。
-- [ ] 跑 checks/kube 相关测试；验证错误摘要无凭据泄漏。
-- [ ] 审查严重性聚合和未知分支，提交。
+- [x] 写故障保留与能力边界用例。
+- [x] 运行 python -m pytest tests/test_failure_preservation.py -q。
+- [x] 按子阶段隔离异常，保留已收集证据；避免一个 metrics 项失败丢弃所有 Node 结果。
+- [x] 跑 checks/kube 相关测试；验证错误摘要无凭据泄漏。
+- [x] 审查严重性聚合和未知分支，提交。
 
 ## A5：原子刷新 latest，归档与清理可信
 
@@ -210,11 +212,11 @@ def test_issue_only_run_refreshes_latest_on_recovery(run_cli, tmp_path):
 
 failing_replace 与 run_cli fixture 在本任务定义；run_cli 替换 load_kube/run_all，走实际 cmd_run。增加 test_cleanup_failure_is_not_counted、test_cleanup_dry_run_changes_nothing、test_cleanup_reparse_target_is_rejected。
 
-- [ ] 写失败替换、恢复刷新和清理用例。
-- [ ] 运行 python -m pytest tests/test_report_persistence.py -q。
-- [ ] 实现原子文件发布与独立归档；先验证绝对路径，再执行任何递归删除。
-- [ ] 跑 report/cleanup/CLI 回归；Windows 与容器 Linux 都验证替换行为。
-- [ ] 记录归档目录迁移及权限要求，提交。
+- [x] 写失败替换、恢复刷新和清理用例。
+- [x] 运行 python -m pytest tests/test_report_persistence.py -q。
+- [x] 实现原子文件发布与独立归档；先验证绝对路径，再执行任何递归删除。
+- [x] 跑 report/cleanup/CLI 回归；Windows 已验证替换行为；容器 Linux 仍按 E4/E5 验收。
+- [x] 记录归档目录迁移及权限要求，提交。
 
 ## A6：隔离输出故障与运行退出语义
 
@@ -248,15 +250,15 @@ def test_report_failure_does_not_block_metrics_or_notification():
 
 增加 test_strict_required_sink_failure_returns_one、test_always0_keeps_failed_sink_observable、test_warn_fail_exit_codes_remain_compatible。fixture 明确 required 集合与 sink 顺序，不依赖真实网络。
 
-- [ ] 写 sink 故障和退出码测试。
-- [ ] 运行 python -m pytest tests/test_sink_isolation.py -q。
-- [ ] 实现独立编排与脱敏结果；保证 metrics 能表达报告失败，不把它变成业务恢复。
-- [ ] 运行 python -m pytest tests/ -q；通过后不重复扩展无关测试。
-- [ ] 审查输出策略、README 兼容提示和 A 批次验收，提交。
+- [x] 写 sink 故障和退出码测试。
+- [x] 运行 python -m pytest tests/test_sink_isolation.py -q。
+- [x] 实现独立编排与脱敏结果；保证 metrics 能表达报告失败，不把它变成业务恢复。
+- [x] 运行 python -m pytest tests/ -q；通过后不重复扩展无关测试。
+- [x] 审查输出策略、README 兼容提示和 A 批次验收，提交。
 
 ## 批次完成与回退
 
-- [ ] A1–A6 均有真实失败复现与通过记录；现有测试没有通过削弱断言来适配。
-- [ ] 对照 G1：当前/历史、未知/健康、恢复刷新和输出隔离均成立。
-- [ ] 回退使用版本基线；不要把恢复后的 latest 换回旧故障报告。新字段兼容旧读取端。
-- [ ] 记录仍待 C 解决的执行质量、分页、完整 run_id 和 Prometheus 恢复语义。
+- [x] A1–A6 均有真实失败复现与通过记录；现有测试没有通过削弱断言来适配。
+- [x] 对照 G1：当前/历史、未知/健康、恢复刷新和输出隔离均成立。
+- [x] 回退使用版本基线；不要把恢复后的 latest 换回旧故障报告。新字段兼容旧读取端。
+- [x] 记录仍待 C 解决的执行质量、分页、完整 run_id 和 Prometheus 恢复语义。

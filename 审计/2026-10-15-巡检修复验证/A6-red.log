@@ -1,0 +1,187 @@
+FFFF.....FFF                                                             [100%]
+================================== FAILURES ===================================
+_________ test_report_failure_does_not_block_metrics_or_notification __________
+
+    def test_report_failure_does_not_block_metrics_or_notification():
+>       from k8s_inspector.sinks import run_sinks
+E       ModuleNotFoundError: No module named 'k8s_inspector.sinks'
+
+tests\test_sink_isolation.py:17: ModuleNotFoundError
+___________ test_cli_report_error_still_attempts_all_other_outputs ____________
+
+run_cli = <function run_cli.<locals>.run at 0x00000218581E5A80>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1400/test_cli_report_error_still_at0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002185818F380>
+
+    def test_cli_report_error_still_attempts_all_other_outputs(run_cli, tmp_path, monkeypatch):
+        calls = []
+        monkeypatch.setattr(cli, "write_json", lambda *a, **kw: denied())
+        monkeypatch.setattr(cli, "push_report_to_gateway", lambda **kw: calls.append("metrics"))
+        monkeypatch.setattr(cli, "send_feishu_text", lambda *a, **kw: calls.append("notification"))
+>       result = run_cli(status=Status.FAIL, output_dir=tmp_path, formats="json,csv,html",
+                         extra=("--pushgateway-url", "http://example.invalid",
+                                "--feishu-webhook", "https://example.invalid",
+                                "--output-policy", "strict"))
+
+tests\test_sink_isolation.py:33: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_report_persistence.py:23: in run
+    return cli.main(["run", "--output-dir", str(output_dir), "--profile", profile,
+k8s_inspector\cli.py:315: in main
+    args = p.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1908: in parse_args
+    self.error(msg)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2650: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='k8s-inspector', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'k8s-inspector: error: unrecognized arguments: --output-policy strict\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2637: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: k8s-inspector [-h] {run,cleanup} ...
+k8s-inspector: error: unrecognized arguments: --output-policy strict
+________________ test_strict_required_sink_failure_returns_one ________________
+
+run_cli = <function run_cli.<locals>.run at 0x00000218581E62A0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1400/test_strict_required_sink_fail0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002185818F8C0>
+
+    def test_strict_required_sink_failure_returns_one(run_cli, tmp_path, monkeypatch):
+        monkeypatch.setattr(cli, "write_json", lambda *a, **kw: denied())
+>       assert run_cli(output_dir=tmp_path, extra=("--output-policy", "strict")) == 1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_sink_isolation.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_report_persistence.py:23: in run
+    return cli.main(["run", "--output-dir", str(output_dir), "--profile", profile,
+k8s_inspector\cli.py:315: in main
+    args = p.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1908: in parse_args
+    self.error(msg)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2650: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='k8s-inspector', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'k8s-inspector: error: unrecognized arguments: --output-policy strict\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2637: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: k8s-inspector [-h] {run,cleanup} ...
+k8s-inspector: error: unrecognized arguments: --output-policy strict
+__________________ test_always0_keeps_failed_sink_observable __________________
+
+run_cli = <function run_cli.<locals>.run at 0x00000218581E6D40>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1400/test_always0_keeps_failed_sink0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002185818FDD0>
+
+    def test_always0_keeps_failed_sink_observable(run_cli, tmp_path, monkeypatch):
+        monkeypatch.setattr(cli, "write_json", lambda *a, **kw: denied())
+>       assert run_cli(output_dir=tmp_path, extra=("--output-policy", "strict",
+                                                 "--exit-mode", "always0")) == 0
+
+tests\test_sink_isolation.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_report_persistence.py:23: in run
+    return cli.main(["run", "--output-dir", str(output_dir), "--profile", profile,
+k8s_inspector\cli.py:315: in main
+    args = p.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1908: in parse_args
+    self.error(msg)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2650: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='k8s-inspector', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = 'k8s-inspector: error: unrecognized arguments: --output-policy strict\n'
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2637: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: k8s-inspector [-h] {run,cleanup} ...
+k8s-inspector: error: unrecognized arguments: --output-policy strict
+_______ test_failed_sink_is_exported_without_claiming_business_recovery _______
+
+    def test_failed_sink_is_exported_without_claiming_business_recovery():
+>       from k8s_inspector.sinks import SinkResult
+E       ModuleNotFoundError: No module named 'k8s_inspector.sinks'
+
+tests\test_sink_isolation.py:66: ModuleNotFoundError
+____ test_business_fail_with_successful_collection_is_successful_execution ____
+
+    def test_business_fail_with_successful_collection_is_successful_execution():
+        registry = CollectorRegistry()
+        populate_registry(Report("2026-10-15T00:00:00Z", "prod",
+                                  [CheckResult("nodes", Status.FAIL, "not ready")]),
+                           "5m", registry)
+>       assert registry.get_sample_value("k8s_inspector_run_success",
+                                         {"cluster": "prod", "profile": "5m"}) == 1
+E       AssertionError: assert None == 1
+E        +  where None = get_sample_value('k8s_inspector_run_success', {'cluster': 'prod', 'profile': '5m'})
+E        +    where get_sample_value = <prometheus_client.registry.CollectorRegistry object at 0x00000218581B3320>.get_sample_value
+
+tests\test_sink_isolation.py:83: AssertionError
+________ test_invalid_output_format_is_rejected_before_cluster_access _________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1400/test_invalid_output_format_is_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000218581B3800>
+
+    def test_invalid_output_format_is_rejected_before_cluster_access(tmp_path, monkeypatch):
+        def unexpected(**kwargs):
+            pytest.fail("invalid format must not initialize Kubernetes")
+        monkeypatch.setattr(cli, "load_kube", unexpected)
+>       assert cli.main(["run", "--formats", "jsno", "--output-dir", str(tmp_path)]) == 1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_sink_isolation.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\cli.py:317: in main
+    return cmd_run(args)
+           ^^^^^^^^^^^^^
+k8s_inspector\cli.py:163: in cmd_run
+    kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+kwargs = {'kubeconfig': None, 'context': None, 'in_cluster': False}
+
+    def unexpected(**kwargs):
+>       pytest.fail("invalid format must not initialize Kubernetes")
+E       Failed: invalid format must not initialize Kubernetes
+
+tests\test_sink_isolation.py:89: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_sink_isolation.py::test_report_failure_does_not_block_metrics_or_notification
+FAILED tests/test_sink_isolation.py::test_cli_report_error_still_attempts_all_other_outputs
+FAILED tests/test_sink_isolation.py::test_strict_required_sink_failure_returns_one
+FAILED tests/test_sink_isolation.py::test_always0_keeps_failed_sink_observable
+FAILED tests/test_sink_isolation.py::test_failed_sink_is_exported_without_claiming_business_recovery
+FAILED tests/test_sink_isolation.py::test_business_fail_with_successful_collection_is_successful_execution
+FAILED tests/test_sink_isolation.py::test_invalid_output_format_is_rejected_before_cluster_access
+7 failed, 5 passed in 7.00s

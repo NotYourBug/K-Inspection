@@ -1,0 +1,214 @@
+FFF.FFF.FFFFFFF                                                          [100%]
+================================== FAILURES ===================================
+______________ test_missing_node_usage_is_unknown_not_zero[None] ______________
+
+cpu = None
+
+    @pytest.mark.parametrize("cpu", [None, "", "   "])
+    def test_missing_node_usage_is_unknown_not_zero(cpu):
+        core, custom = MagicMock(), MagicMock()
+        core.list_node.return_value.items = [node("n1")]
+        usage = {"memory": "1Gi"}
+        if cpu is not None:
+            usage["cpu"] = cpu
+        custom.list_cluster_custom_object.return_value = {
+            "items": [{"metadata": {"name": "n1"}, "usage": usage}]}
+        result = checks.check_nodes(core, custom, InspectorConfig())
+>       assert result.status == Status.WARN
+E       AssertionError: assert <Status.PASS: 'PASS'> == <Status.WARN: 'WARN'>
+E         
+E         - WARN
+E         + PASS
+
+tests\test_review_regressions.py:30: AssertionError
+________________ test_missing_node_usage_is_unknown_not_zero[] ________________
+
+cpu = ''
+
+    @pytest.mark.parametrize("cpu", [None, "", "   "])
+    def test_missing_node_usage_is_unknown_not_zero(cpu):
+        core, custom = MagicMock(), MagicMock()
+        core.list_node.return_value.items = [node("n1")]
+        usage = {"memory": "1Gi"}
+        if cpu is not None:
+            usage["cpu"] = cpu
+        custom.list_cluster_custom_object.return_value = {
+            "items": [{"metadata": {"name": "n1"}, "usage": usage}]}
+        result = checks.check_nodes(core, custom, InspectorConfig())
+>       assert result.status == Status.WARN
+E       AssertionError: assert <Status.PASS: 'PASS'> == <Status.WARN: 'WARN'>
+E         
+E         - WARN
+E         + PASS
+
+tests\test_review_regressions.py:30: AssertionError
+______________ test_missing_node_usage_is_unknown_not_zero[   ] _______________
+
+cpu = '   '
+
+    @pytest.mark.parametrize("cpu", [None, "", "   "])
+    def test_missing_node_usage_is_unknown_not_zero(cpu):
+        core, custom = MagicMock(), MagicMock()
+        core.list_node.return_value.items = [node("n1")]
+        usage = {"memory": "1Gi"}
+        if cpu is not None:
+            usage["cpu"] = cpu
+        custom.list_cluster_custom_object.return_value = {
+            "items": [{"metadata": {"name": "n1"}, "usage": usage}]}
+        result = checks.check_nodes(core, custom, InspectorConfig())
+>       assert result.status == Status.WARN
+E       AssertionError: assert <Status.PASS: 'PASS'> == <Status.WARN: 'WARN'>
+E         
+E         - WARN
+E         + PASS
+
+tests\test_review_regressions.py:30: AssertionError
+___________ test_old_delayed_claim_with_new_consumer_does_not_fail ____________
+
+    def test_old_delayed_claim_with_new_consumer_does_not_fail():
+        result = delayed_claim_with_consumer(consumer_age=1)
+>       assert result.status == Status.PASS
+E       AssertionError: assert <Status.FAIL: 'FAIL'> == <Status.PASS: 'PASS'>
+E         
+E         - PASS
+E         + FAIL
+
+tests\test_review_regressions.py:74: AssertionError
+_____________ test_old_consumer_just_scheduled_gets_binding_grace _____________
+
+    def test_old_consumer_just_scheduled_gets_binding_grace():
+        result = delayed_claim_with_consumer(consumer_age=86400, scheduled_age=1)
+>       assert result.status == Status.PASS
+E       AssertionError: assert <Status.FAIL: 'FAIL'> == <Status.PASS: 'PASS'>
+E         
+E         - PASS
+E         + FAIL
+
+tests\test_review_regressions.py:81: AssertionError
+_________ test_unschedulable_consumer_does_not_blame_delayed_storage __________
+
+    def test_unschedulable_consumer_does_not_blame_delayed_storage():
+        result = delayed_claim_with_consumer(consumer_age=3600, unschedulable=True)
+>       assert result.status == Status.PASS
+E       AssertionError: assert <Status.FAIL: 'FAIL'> == <Status.PASS: 'PASS'>
+E         
+E         - PASS
+E         + FAIL
+
+tests\test_review_regressions.py:87: AssertionError
+__________ test_old_consumer_without_scheduling_evidence_is_unknown ___________
+
+    def test_old_consumer_without_scheduling_evidence_is_unknown():
+        result = delayed_claim_with_consumer(consumer_age=3600)
+>       assert result.status == Status.WARN
+E       AssertionError: assert <Status.FAIL: 'FAIL'> == <Status.WARN: 'WARN'>
+E         
+E         - WARN
+E         + FAIL
+
+tests\test_review_regressions.py:100: AssertionError
+_______________ test_control_plane_unknown_is_not_success[True] _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A6E0EB1520>
+visible = True
+
+    @pytest.mark.parametrize("visible", [True, False])
+    def test_control_plane_unknown_is_not_success(monkeypatch, visible):
+        monkeypatch.setattr(checks, "apiserver_healthz", lambda *a, **kw: {"ok": True})
+        core = MagicMock()
+        core.list_namespaced_pod.return_value.items = [pod("cp", conditions=[])] if visible else []
+        result = checks.check_control_plane(core, None, InspectorConfig())
+        assert result.status == Status.WARN
+>       assert result.data["capability"] == "PARTIAL"
+E       AssertionError: assert 'COMPLETE' == 'PARTIAL'
+E         
+E         - PARTIAL
+E         + COMPLETE
+
+tests\test_review_regressions.py:111: AssertionError
+______________ test_control_plane_unknown_is_not_success[False] _______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A6E0EF2900>
+visible = False
+
+    @pytest.mark.parametrize("visible", [True, False])
+    def test_control_plane_unknown_is_not_success(monkeypatch, visible):
+        monkeypatch.setattr(checks, "apiserver_healthz", lambda *a, **kw: {"ok": True})
+        core = MagicMock()
+        core.list_namespaced_pod.return_value.items = [pod("cp", conditions=[])] if visible else []
+        result = checks.check_control_plane(core, None, InspectorConfig())
+        assert result.status == Status.WARN
+        assert result.data["capability"] == "PARTIAL"
+>       assert result.data["unknown"]
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'unknown'
+
+tests\test_review_regressions.py:112: KeyError
+_________________ test_addon_unknown_readiness_is_not_success _________________
+
+    def test_addon_unknown_readiness_is_not_success():
+        core, apps = addon_clients(pod("addon", conditions=[]))
+        result = checks.check_kube_system_addons(core, InspectorConfig(), apps)
+>       assert result.data["unknown"]
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'unknown'
+
+tests\test_review_regressions.py:119: KeyError
+_______________ test_addon_unknown_expectations_are_not_success _______________
+
+    def test_addon_unknown_expectations_are_not_success():
+        core, apps = addon_clients(pod("addon"))
+        apps.list_namespaced_deployment.return_value.items = []
+        apps.list_namespaced_daemon_set.return_value.items = []
+        result = checks.check_kube_system_addons(core, InspectorConfig(), apps)
+>       assert result.data["unknown"]
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'unknown'
+
+tests\test_review_regressions.py:128: KeyError
+__________ test_control_plane_completed_component_is_current_failure __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001A6E0F5E450>
+
+    def test_control_plane_completed_component_is_current_failure(monkeypatch):
+        monkeypatch.setattr(checks, "apiserver_healthz", lambda *a, **kw: {"ok": True})
+        core = MagicMock()
+        core.list_namespaced_pod.return_value.items = [pod("cp", phase="Succeeded")]
+>       assert checks.check_control_plane(core, None, InspectorConfig()).status == Status.FAIL
+E       AssertionError: assert <Status.WARN: 'WARN'> == <Status.FAIL: 'FAIL'>
+E         
+E         - FAIL
+E         + WARN
+
+tests\test_review_regressions.py:136: AssertionError
+_______ test_restartable_init_crash_is_unhealthy_even_in_pending_grace ________
+
+    def test_restartable_init_crash_is_unhealthy_even_in_pending_grace():
+        value = pod("p", phase="Pending", ready=False, age_seconds=10,
+                     init_containers=[client.V1Container(name="sidecar", restart_policy="Always")],
+                     init_container_statuses=[
+                         container_status("sidecar", waiting="CrashLoopBackOff", ready=False)])
+        state = checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+        assert state["current_issues"][0]["reason"] == "CrashLoopBackOff"
+>       assert state["readiness"] == "UNHEALTHY"
+E       AssertionError: assert 'GRACE' == 'UNHEALTHY'
+E         
+E         - UNHEALTHY
+E         + GRACE
+
+tests\test_review_regressions.py:146: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_review_regressions.py::test_missing_node_usage_is_unknown_not_zero[None]
+FAILED tests/test_review_regressions.py::test_missing_node_usage_is_unknown_not_zero[]
+FAILED tests/test_review_regressions.py::test_missing_node_usage_is_unknown_not_zero[   ]
+FAILED tests/test_review_regressions.py::test_old_delayed_claim_with_new_consumer_does_not_fail
+FAILED tests/test_review_regressions.py::test_old_consumer_just_scheduled_gets_binding_grace
+FAILED tests/test_review_regressions.py::test_unschedulable_consumer_does_not_blame_delayed_storage
+FAILED tests/test_review_regressions.py::test_old_consumer_without_scheduling_evidence_is_unknown
+FAILED tests/test_review_regressions.py::test_control_plane_unknown_is_not_success[True]
+FAILED tests/test_review_regressions.py::test_control_plane_unknown_is_not_success[False]
+FAILED tests/test_review_regressions.py::test_addon_unknown_readiness_is_not_success
+FAILED tests/test_review_regressions.py::test_addon_unknown_expectations_are_not_success
+FAILED tests/test_review_regressions.py::test_control_plane_completed_component_is_current_failure
+FAILED tests/test_review_regressions.py::test_restartable_init_crash_is_unhealthy_even_in_pending_grace
+13 failed, 2 passed in 6.55s

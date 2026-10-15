@@ -1,0 +1,381 @@
+FFFFFFFFFFFFFFFF                                                         [100%]
+================================== FAILURES ===================================
+___________ test_running_ready_pod_with_old_oom_is_not_current_fail ___________
+
+    def test_running_ready_pod_with_old_oom_is_not_current_fail():
+        value = pod("p", container_statuses=[container_status(old_oom=True)])
+>       state = evaluate(value)
+                ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+____________ test_running_unready_pod_after_grace_is_current_issue ____________
+
+    def test_running_unready_pod_after_grace_is_current_issue():
+>       assert "PodNotReady" in reasons(evaluate(pod("p", ready=False)))
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:30: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+______ test_recent_readiness_transition_uses_condition_time_not_pod_age _______
+
+    def test_recent_readiness_transition_uses_condition_time_not_pod_age():
+        value = pod("p", ready=False, age_seconds=86400)
+        value.status.conditions[0].last_transition_time = NOW - timedelta(seconds=20)
+>       assert "PodNotReady" not in reasons(evaluate(value))
+                                            ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:36: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+_______________ test_unready_without_transition_time_is_unknown _______________
+
+    def test_unready_without_transition_time_is_unknown():
+        value = pod("p", ready=False)
+        value.status.conditions[0].last_transition_time = None
+>       state = evaluate(value)
+                ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+____________________ test_init_crashloop_is_current_issue _____________________
+
+    def test_init_crashloop_is_current_issue():
+        value = pod("p", init_container_statuses=[
+            container_status("setup", waiting="CrashLoopBackOff", ready=False)])
+>       assert "CrashLoopBackOff" in reasons(evaluate(value))
+                                             ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:50: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+___________________ test_init_nonzero_exit_is_current_issue ___________________
+
+    def test_init_nonzero_exit_is_current_issue():
+        value = pod("p", init_container_statuses=[container_status("setup", exit_code=1)])
+>       assert "InitContainerFailed" in reasons(evaluate(value))
+                                                ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+__________________ test_completed_init_is_not_current_issue ___________________
+
+    def test_completed_init_is_not_current_issue():
+        value = pod("p", init_container_statuses=[container_status("setup", exit_code=0)])
+>       assert evaluate(value)["current_issues"] == []
+               ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:60: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+____________ test_current_nonzero_terminated_container_is_failure _____________
+
+    def test_current_nonzero_terminated_container_is_failure():
+        value = pod("p", container_statuses=[container_status(exit_code=1, ready=False)])
+>       assert "ContainerFailed" in reasons(evaluate(value))
+                                            ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+_____________________ test_recent_pending_is_within_grace _____________________
+
+    def test_recent_pending_is_within_grace():
+>       state = evaluate(pod("p", phase="Pending", ready=False, age_seconds=30))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+__________________ test_old_unschedulable_pending_has_reason __________________
+
+    def test_old_unschedulable_pending_has_reason():
+        value = pod("p", phase="Pending", ready=False)
+        value.status.conditions.append(client.V1PodCondition(
+            type="PodScheduled", status="False", reason="Unschedulable", message="no capacity"))
+>       assert "Unschedulable" in reasons(evaluate(value))
+                                          ^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+________________________ test_missing_ready_is_unknown ________________________
+
+    def test_missing_ready_is_unknown():
+>       state = evaluate(pod("p", conditions=[]))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+_________________ test_successful_job_is_not_unready_failure __________________
+
+    def test_successful_job_is_not_unready_failure():
+>       assert evaluate(pod("p", phase="Succeeded", ready=False))["current_issues"] == []
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+_____________________ test_failed_job_is_current_failure ______________________
+
+    def test_failed_job_is_current_failure():
+>       assert "PodFailed" in reasons(evaluate(pod("p", phase="Failed", ready=False)))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+_________________ test_deleting_pod_is_not_readiness_failure __________________
+
+    def test_deleting_pod_is_not_readiness_failure():
+>       state = evaluate(pod("p", ready=False, deletion_timestamp=NOW))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pod_semantics.py:95: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = {'api_version': None,
+ 'kind': None,
+ 'metadata': {'annotations': None,
+              'creation_timestamp': datetime.d...aim_statuses': None,
+            'resources': None,
+            'start_time': None,
+            'volume_health': None}}
+
+    def evaluate(value):
+>       return checks.evaluate_pod_state(value, InspectorConfig(), NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.checks' has no attribute 'evaluate_pod_state'
+
+tests\test_pod_semantics.py:14: AttributeError
+_________________ test_bad_pod_does_not_hide_restart_evidence _________________
+
+    def test_bad_pod_does_not_hide_restart_evidence():
+        value = pod("p", container_statuses=[
+            container_status(waiting="CrashLoopBackOff", restarts=8)])
+        core = SimpleNamespace(list_pod_for_all_namespaces=lambda **kw: SimpleNamespace(items=[value]))
+        result = checks.check_pods(core, InspectorConfig())
+        assert result.status == Status.FAIL
+        assert len(result.data["bad"]) == 1
+>       assert len(result.data["restart_heavy"]) == 1
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'restart_heavy'
+
+tests\test_pod_semantics.py:107: KeyError
+_________________ test_missing_ready_does_not_report_healthy __________________
+
+    def test_missing_ready_does_not_report_healthy():
+        value = pod("p", conditions=[])
+        core = SimpleNamespace(list_pod_for_all_namespaces=lambda **kw: SimpleNamespace(items=[value]))
+>       assert checks.check_pods(core, InspectorConfig()).status == Status.WARN
+E       AssertionError: assert <Status.PASS: 'PASS'> == <Status.WARN: 'WARN'>
+E         
+E         - WARN
+E         + PASS
+
+tests\test_pod_semantics.py:113: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_pod_semantics.py::test_running_ready_pod_with_old_oom_is_not_current_fail
+FAILED tests/test_pod_semantics.py::test_running_unready_pod_after_grace_is_current_issue
+FAILED tests/test_pod_semantics.py::test_recent_readiness_transition_uses_condition_time_not_pod_age
+FAILED tests/test_pod_semantics.py::test_unready_without_transition_time_is_unknown
+FAILED tests/test_pod_semantics.py::test_init_crashloop_is_current_issue - At...
+FAILED tests/test_pod_semantics.py::test_init_nonzero_exit_is_current_issue
+FAILED tests/test_pod_semantics.py::test_completed_init_is_not_current_issue
+FAILED tests/test_pod_semantics.py::test_current_nonzero_terminated_container_is_failure
+FAILED tests/test_pod_semantics.py::test_recent_pending_is_within_grace - Att...
+FAILED tests/test_pod_semantics.py::test_old_unschedulable_pending_has_reason
+FAILED tests/test_pod_semantics.py::test_missing_ready_is_unknown - Attribute...
+FAILED tests/test_pod_semantics.py::test_successful_job_is_not_unready_failure
+FAILED tests/test_pod_semantics.py::test_failed_job_is_current_failure - Attr...
+FAILED tests/test_pod_semantics.py::test_deleting_pod_is_not_readiness_failure
+FAILED tests/test_pod_semantics.py::test_bad_pod_does_not_hide_restart_evidence
+FAILED tests/test_pod_semantics.py::test_missing_ready_does_not_report_healthy
+16 failed in 12.23s

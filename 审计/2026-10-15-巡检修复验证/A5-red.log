@@ -1,0 +1,199 @@
+FFFFFFFFFF                                                               [100%]
+================================== FAILURES ===================================
+______________ test_atomic_replace_failure_keeps_previous_report ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_atomic_replace_failure_ke0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001EE9F458E90>
+
+    def test_atomic_replace_failure_keeps_previous_report(tmp_path, monkeypatch):
+        path = tmp_path / "report.json"
+        path.write_text('{"status":"FAIL"}', encoding="utf-8")
+        def failing_replace(*args):
+            raise OSError("replace failed")
+        monkeypatch.setattr(os, "replace", failing_replace)
+        with pytest.raises(OSError):
+>           reports.atomic_write_text(path, '{"status":"PASS"}')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.report' has no attribute 'atomic_write_text'
+
+tests\test_report_persistence.py:36: AttributeError
+______________ test_issue_only_run_refreshes_latest_on_recovery _______________
+
+run_cli = <function run_cli.<locals>.run at 0x000001EE9EB98400>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_issue_only_run_refreshes_0')
+
+    def test_issue_only_run_refreshes_latest_on_recovery(run_cli, tmp_path):
+        run_cli(status=Status.FAIL, persist_on="issue", output_dir=tmp_path)
+        run_cli(status=Status.PASS, persist_on="issue", output_dir=tmp_path)
+        path = tmp_path / "latest/5m/report.json"
+>       assert json.loads(path.read_text())["summary"]["fail"] == 0
+                          ^^^^^^^^^^^^^^^^
+
+tests\test_report_persistence.py:45: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1027: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_issue_only_run_refreshes_0/latest/5m/report.json')
+mode = 'r', buffering = -1, encoding = 'locale', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1396\\test_issue_only_run_refreshes_0\\latest\\5m\\report.json'
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1013: FileNotFoundError
+_______________ test_canonical_latest_path_is_not_nested_twice ________________
+
+run_cli = <function run_cli.<locals>.run at 0x000001EE9F526DE0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_canonical_latest_path_is_0')
+
+    def test_canonical_latest_path_is_not_nested_twice(run_cli, tmp_path):
+        output = tmp_path / "latest/5m"
+        assert run_cli(output_dir=output, persist_on="none") == 0
+>       assert (output / "report.json").exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_canonical_latest_path_is_0/latest/5m') / 'report.json').exists
+
+tests\test_report_persistence.py:51: AssertionError
+_______________ test_latest_json_is_written_even_for_html_only ________________
+
+run_cli = <function run_cli.<locals>.run at 0x000001EE9F5263E0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_latest_json_is_written_ev0')
+
+    def test_latest_json_is_written_even_for_html_only(run_cli, tmp_path):
+        run_cli(output_dir=tmp_path, formats="html")
+>       assert (tmp_path / "latest/5m/report.json").exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_latest_json_is_written_ev0') / 'latest/5m/report.json').exists
+
+tests\test_report_persistence.py:57: AssertionError
+_________________ test_same_second_archives_do_not_overwrite __________________
+
+run_cli = <function run_cli.<locals>.run at 0x000001EE9F5277E0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_same_second_archives_do_n0')
+
+    def test_same_second_archives_do_not_overwrite(run_cli, tmp_path):
+        for _ in range(2):
+            run_cli(output_dir=tmp_path, profile="hourly", archive="hourly")
+        files = list((tmp_path / "archive/hourly").rglob("report.json"))
+>       assert len(files) == 2
+E       assert 0 == 2
+E        +  where 0 = len([])
+
+tests\test_report_persistence.py:65: AssertionError
+______________ test_legacy_archive_path_updates_canonical_latest ______________
+
+run_cli = <function run_cli.<locals>.run at 0x000001EE9F526AC0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_legacy_archive_path_updat0')
+
+    def test_legacy_archive_path_updates_canonical_latest(run_cli, tmp_path):
+        run_cli(output_dir=tmp_path / "archive/hourly", profile="hourly", archive="hourly")
+>       assert (tmp_path / "latest/hourly/report.json").exists()
+E       AssertionError: assert False
+E        +  where False = exists()
+E        +    where exists = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_legacy_archive_path_updat0') / 'latest/hourly/report.json').exists
+
+tests\test_report_persistence.py:71: AssertionError
+_____________________ test_cleanup_failure_is_not_counted _____________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_cleanup_failure_is_not_co0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001EE9F459F70>
+
+    def test_cleanup_failure_is_not_counted(tmp_path, monkeypatch):
+        root, bucket = expired_archive(tmp_path)
+        def denied(*a, **kw):
+            raise PermissionError("denied")
+        monkeypatch.setattr(cli.shutil, "rmtree", denied)
+        errors = []
+>       assert cli._cleanup_subdirs(root, 7, "%Y%m%d%H", error_sink=errors) == 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _cleanup_subdirs() got an unexpected keyword argument 'error_sink'
+
+tests\test_report_persistence.py:88: TypeError
+____________________ test_cleanup_dry_run_changes_nothing _____________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_cleanup_dry_run_changes_n0')
+
+    def test_cleanup_dry_run_changes_nothing(tmp_path):
+        root, bucket = expired_archive(tmp_path)
+>       assert cli._cleanup_subdirs(root, 7, "%Y%m%d%H", dry_run=True) == 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _cleanup_subdirs() got an unexpected keyword argument 'dry_run'
+
+tests\test_report_persistence.py:95: TypeError
+___________________ test_cleanup_reparse_target_is_rejected ___________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_cleanup_reparse_target_is0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001EE9F45CEC0>
+
+    def test_cleanup_reparse_target_is_rejected(tmp_path, monkeypatch):
+        root, bucket = expired_archive(tmp_path)
+        real_lstat = Path.lstat
+        def reparse_stat(path, *args, **kwargs):
+            if path == bucket:
+                return SimpleNamespace(st_file_attributes=0x400, st_mode=0o40755)
+            return real_lstat(path, *args, **kwargs)
+        monkeypatch.setattr(Path, "lstat", reparse_stat)
+        errors = []
+>       assert cli._cleanup_subdirs(root, 7, "%Y%m%d%H", error_sink=errors) == 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _cleanup_subdirs() got an unexpected keyword argument 'error_sink'
+
+tests\test_report_persistence.py:108: TypeError
+________________ test_cleanup_failed_deletion_returns_nonzero _________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_cleanup_failed_deletion_r0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001EE9F45D220>
+
+    def test_cleanup_failed_deletion_returns_nonzero(tmp_path, monkeypatch):
+        root, _ = expired_archive(tmp_path)
+        def denied(*a, **kw):
+            raise PermissionError("denied")
+        monkeypatch.setattr(cli.shutil, "rmtree", denied)
+>       assert cli.main(["cleanup", "--root", str(root.parent)]) == 1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_report_persistence.py:118: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\cli.py:256: in main
+    return cmd_cleanup(args)
+           ^^^^^^^^^^^^^^^^^
+k8s_inspector\cli.py:244: in cmd_cleanup
+    removed_hourly = _cleanup_subdirs(hourly, int(args.hourly_days), "%Y%m%d%H")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\cli.py:235: in _cleanup_subdirs
+    shutil.rmtree(p, ignore_errors=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+a = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1396/test_cleanup_failed_deletion_r0/archive/hourly/2020010100'),)
+kw = {'ignore_errors': True}
+
+    def denied(*a, **kw):
+>       raise PermissionError("denied")
+E       PermissionError: denied
+
+tests\test_report_persistence.py:116: PermissionError
+=========================== short test summary info ===========================
+FAILED tests/test_report_persistence.py::test_atomic_replace_failure_keeps_previous_report
+FAILED tests/test_report_persistence.py::test_issue_only_run_refreshes_latest_on_recovery
+FAILED tests/test_report_persistence.py::test_canonical_latest_path_is_not_nested_twice
+FAILED tests/test_report_persistence.py::test_latest_json_is_written_even_for_html_only
+FAILED tests/test_report_persistence.py::test_same_second_archives_do_not_overwrite
+FAILED tests/test_report_persistence.py::test_legacy_archive_path_updates_canonical_latest
+FAILED tests/test_report_persistence.py::test_cleanup_failure_is_not_counted
+FAILED tests/test_report_persistence.py::test_cleanup_dry_run_changes_nothing
+FAILED tests/test_report_persistence.py::test_cleanup_reparse_target_is_rejected
+FAILED tests/test_report_persistence.py::test_cleanup_failed_deletion_returns_nonzero
+10 failed in 4.09s

@@ -1,0 +1,377 @@
+FFFFFFFFFFFFFFFFFFFFF                                                    [100%]
+================================== FAILURES ===================================
+___________________ test_invalid_cpu_ratio_is_rejected[nan] ___________________
+
+value = nan
+config_file = <function config_file.<locals>.write at 0x00000232787A5760>
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.1, 1.1, True, "0.8"])
+    def test_invalid_cpu_ratio_is_rejected(value, config_file):
+>       with pytest.raises(ValueError, match="node_cpu_utilization"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:21: Failed
+___________________ test_invalid_cpu_ratio_is_rejected[inf] ___________________
+
+value = inf
+config_file = <function config_file.<locals>.write at 0x00000232787CFEC0>
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.1, 1.1, True, "0.8"])
+    def test_invalid_cpu_ratio_is_rejected(value, config_file):
+>       with pytest.raises(ValueError, match="node_cpu_utilization"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:21: Failed
+__________________ test_invalid_cpu_ratio_is_rejected[-0.1] ___________________
+
+value = -0.1
+config_file = <function config_file.<locals>.write at 0x000002327872DB20>
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.1, 1.1, True, "0.8"])
+    def test_invalid_cpu_ratio_is_rejected(value, config_file):
+>       with pytest.raises(ValueError, match="node_cpu_utilization"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:21: Failed
+___________________ test_invalid_cpu_ratio_is_rejected[1.1] ___________________
+
+value = 1.1
+config_file = <function config_file.<locals>.write at 0x000002327872DE40>
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.1, 1.1, True, "0.8"])
+    def test_invalid_cpu_ratio_is_rejected(value, config_file):
+>       with pytest.raises(ValueError, match="node_cpu_utilization"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:21: Failed
+__________________ test_invalid_cpu_ratio_is_rejected[True] ___________________
+
+value = True
+config_file = <function config_file.<locals>.write at 0x000002327872DEE0>
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.1, 1.1, True, "0.8"])
+    def test_invalid_cpu_ratio_is_rejected(value, config_file):
+>       with pytest.raises(ValueError, match="node_cpu_utilization"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:21: Failed
+___________________ test_invalid_cpu_ratio_is_rejected[0.8] ___________________
+
+value = '0.8'
+config_file = <function config_file.<locals>.write at 0x000002327872D940>
+
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), -0.1, 1.1, True, "0.8"])
+    def test_invalid_cpu_ratio_is_rejected(value, config_file):
+>       with pytest.raises(ValueError, match="node_cpu_utilization"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:21: Failed
+_____________________ test_unknown_config_key_is_rejected _____________________
+
+config_file = <function config_file.<locals>.write at 0x000002327872DDA0>
+
+    def test_unknown_config_key_is_rejected(config_file):
+>       with pytest.raises(ValueError, match="pod_unready_grace_second"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:26: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data0] ______________
+
+data = []
+config_file = <function config_file.<locals>.write at 0x000002327872E200>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+______________ test_invalid_shapes_and_values_are_rejected[None] ______________
+
+data = None
+config_file = <function config_file.<locals>.write at 0x000002327872E3E0>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data2] ______________
+
+data = {'thresholds': []}
+config_file = <function config_file.<locals>.write at 0x000002327872E5C0>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data3] ______________
+
+data = {'thresholds': {'pod_restart_count': 1.5}}
+config_file = <function config_file.<locals>.write at 0x000002327872E7A0>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data4] ______________
+
+data = {'thresholds': {'warning_events_max': True}}
+config_file = <function config_file.<locals>.write at 0x000002327872E980>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data5] ______________
+
+data = {'thresholds': {'pod_restart_count': -1}}
+config_file = <function config_file.<locals>.write at 0x000002327872EB60>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data6] ______________
+
+data = {'thresholds': {'typo': 1}}
+config_file = <function config_file.<locals>.write at 0x000002327872F060>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data7] ______________
+
+data = {'control_plane_namespace': ''}
+config_file = <function config_file.<locals>.write at 0x000002327872F560>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data8] ______________
+
+data = {'allow_noschedule_taints': 'one'}
+config_file = <function config_file.<locals>.write at 0x000002327872F740>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data9] ______________
+
+data = {'allow_noschedule_taints': [1]}
+config_file = <function config_file.<locals>.write at 0x000002327872F920>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data10] _____________
+
+data = {'pod_unready_grace_seconds': -1}
+config_file = <function config_file.<locals>.write at 0x000002327872F2E0>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+_____________ test_invalid_shapes_and_values_are_rejected[data11] _____________
+
+data = {'pvc_pending_grace_seconds': inf}
+config_file = <function config_file.<locals>.write at 0x000002327872F560>
+
+    @pytest.mark.parametrize("data", [
+        [], None, {"thresholds": []}, {"thresholds": {"pod_restart_count": 1.5}},
+        {"thresholds": {"warning_events_max": True}},
+        {"thresholds": {"pod_restart_count": -1}},
+        {"thresholds": {"typo": 1}}, {"control_plane_namespace": ""},
+        {"allow_noschedule_taints": "one"}, {"allow_noschedule_taints": [1]},
+        {"pod_unready_grace_seconds": -1}, {"pvc_pending_grace_seconds": float("inf")},
+    ])
+    def test_invalid_shapes_and_values_are_rejected(data, config_file):
+>       with pytest.raises(ValueError):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_config_validation.py:39: Failed
+______________________ test_grace_defaults_and_overrides ______________________
+
+config_file = <function config_file.<locals>.write at 0x000002327872EAC0>
+
+    def test_grace_defaults_and_overrides(config_file):
+        cfg = load_config(None)
+>       assert (cfg.pod_unready_grace_seconds, cfg.pod_pending_grace_seconds,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                cfg.pvc_pending_grace_seconds) == (120, 300, 300)
+E       AttributeError: 'InspectorConfig' object has no attribute 'pod_unready_grace_seconds'
+
+tests\test_config_validation.py:45: AttributeError
+___________ test_cli_invalid_config_does_not_initialize_kubernetes ____________
+
+config_file = <function config_file.<locals>.write at 0x000002327872E520>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000023278668920>
+capsys = <_pytest.capture.CaptureFixture object at 0x00000232786689E0>
+
+    def test_cli_invalid_config_does_not_initialize_kubernetes(config_file, monkeypatch, capsys):
+        def forbidden_connection(**kwargs):
+            pytest.fail("invalid config must not initialize Kubernetes")
+        monkeypatch.setattr("k8s_inspector.cli.load_kube", forbidden_connection)
+>       result = main(["run", "--config", str(config_file({"thresholds": {"pod_restart_count": -1}}))])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_config_validation.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\cli.py:249: in main
+    return cmd_run(args)
+           ^^^^^^^^^^^^^
+k8s_inspector\cli.py:145: in cmd_run
+    kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+kwargs = {'kubeconfig': None, 'context': None, 'in_cluster': False}
+
+    def forbidden_connection(**kwargs):
+>       pytest.fail("invalid config must not initialize Kubernetes")
+E       Failed: invalid config must not initialize Kubernetes
+
+tests\test_config_validation.py:53: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_config_validation.py::test_invalid_cpu_ratio_is_rejected[nan]
+FAILED tests/test_config_validation.py::test_invalid_cpu_ratio_is_rejected[inf]
+FAILED tests/test_config_validation.py::test_invalid_cpu_ratio_is_rejected[-0.1]
+FAILED tests/test_config_validation.py::test_invalid_cpu_ratio_is_rejected[1.1]
+FAILED tests/test_config_validation.py::test_invalid_cpu_ratio_is_rejected[True]
+FAILED tests/test_config_validation.py::test_invalid_cpu_ratio_is_rejected[0.8]
+FAILED tests/test_config_validation.py::test_unknown_config_key_is_rejected
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data0]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[None]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data2]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data3]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data4]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data5]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data6]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data7]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data8]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data9]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data10]
+FAILED tests/test_config_validation.py::test_invalid_shapes_and_values_are_rejected[data11]
+FAILED tests/test_config_validation.py::test_grace_defaults_and_overrides - A...
+FAILED tests/test_config_validation.py::test_cli_invalid_config_does_not_initialize_kubernetes
+21 failed in 5.88s
