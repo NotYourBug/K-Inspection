@@ -10,6 +10,8 @@
 
 **Spec:** [设计基准](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/specs/2026-10-02-remediation-design.md)；[总计划](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/plans/2026-10-02-remediation-roadmap.md)。
 
+**2026-10-15实施补充：** B1–B7离线实现完成，审查发现的有序通知、A→B→A、严格app成功码、人工处置和备份目录持久性纳入一轮TDD修复。schema3为顺序/周期成员增加迁移；DeliveryTarget增加可选cycle_keys。连续重复规则以设计补充为准。实际PVC/Pod恢复、promtool/amtool/kustomize和供应商窗口仍待E2/E5，不能将离线完成当成生产G2通过。
+
 ## Global Constraints
 
 - 默认固定群，不按 groupKey/alertname/critical 创建、邀请或重命名群。

@@ -82,8 +82,9 @@ class FeishuAppClient:
         resp = self._client.im.v1.message.create(req)
         raw = getattr(resp, "raw", None)
         status = getattr(raw, "status_code", None)
-        if not resp.success() or status is None or not 200 <= status < 300:
-            raise ProviderError(resp.code, status=status, unknown=resp.code is None,
+        if (type(resp.code) is not int or resp.code != 0 or not resp.success()
+                or status is None or not 200 <= status < 300):
+            raise ProviderError(resp.code, status=status, unknown=type(resp.code) is not int,
                                 retry_after=retry_after_seconds(getattr(raw, "headers", {})))
         return getattr(getattr(resp, "data", None), "message_id", None)
 

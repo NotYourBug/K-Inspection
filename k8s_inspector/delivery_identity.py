@@ -19,6 +19,11 @@ def identity_quality(alert: Alert) -> tuple[str, ...]:
                                            ("missing_starts_at", alert.starts_at)) if not present)
 
 
+def alert_cycle_ids(source_id: str, batch: AlertBatch) -> tuple[str, ...]:
+    return tuple(sorted({hashlib.sha256(canonical_json(alert_cycle_key(source_id, alert)).encode()).hexdigest()
+                         for alert in batch.alerts}))
+
+
 def canonical_content_hash(batch: AlertBatch) -> str:
     alerts = []
     for alert in batch.alerts:

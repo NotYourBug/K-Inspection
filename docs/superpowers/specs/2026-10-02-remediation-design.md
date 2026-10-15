@@ -67,6 +67,7 @@ MCP 按最新 AGENTS.md 保持自包含部署；先用契约 fixtures 保证与�
 | 通知内容去重窗口 | 300s | 窗口内重试复用，窗口外相同活动状态允许再次提醒 |
 | 投递 lease / provider timeout | 60s / 10s | 单 worker 首版；lease 使用 token 防止旧 worker 提交新 lease 的结果 |
 | 投递尝试 | 首次 + 最多 5 次重试 | 基准延迟 5、15、45、120、300 秒加抖动；Retry-After 若存在则尊重且受总上限约束 |
+| 投递重试总预算 | 首次claim起900秒 | 持久保存，重启不重置；首次尝试前排队时间不占预算 |
 | 已发送 inbox/outbox 保留 | 30 天 | 未发送、未知和待处理 dead 不能静默 GC |
 | 人工事件恢复观察 / 复开窗口 | 10 分钟 / 30 分钟 | 必须有同范围新鲜有效健康证据；独立于 Alertmanager repeat_interval |
 | 人工建群预算 | 每小时 2 个；活跃事件群 5 个 | 可配置，触顶仍可绑定已有群或在固定群处理；自动建群为关闭 |
@@ -99,6 +100,8 @@ MCP 按最新 AGENTS.md 保持自包含部署；先用契约 fixtures 保证与�
 
 通知内容 hash：排序后的告警状态、完整标签、影响展示的 annotations、fingerprint、startsAt；resolved 含 endsAt，firing 的滚动 endsAt 不参与去重。相同告警的 severity/summary 变化产生新内容；排序变化不产生新内容。目的地与 source_id 参与任务身份。窗口内同内容重试或活动 pending job 复用；已发送内容超过窗口可创建新 generation，不能永久压掉 repeat 提醒。
 
+2026-10-15实施审查补充：重复复用指连续相同内容；同周期有中间B更新的A→B→A必须产生末次A（包括旧A仍pending），无关周期交错仍可去重。DeliveryTarget在原三字段后增加可选cycle_keys；schema3保存逐目的地周期和事务入队顺序，同source+destination自动发送FIFO，其他目的地独立。该取舍有队首阻塞成本，必须监控积压，不承诺整个队列900秒内完成。
+
 ## 7. 可靠通知流程
 
 ```mermaid
@@ -120,6 +123,8 @@ flowchart LR
 投递状态 PENDING → SENDING → SENT / RETRY_WAIT / DEAD；结果不明作为独立结果标志留存。lease 到期可恢复消息投递，但旧 lease token 不能覆写新任务结果。永久错误进入待处理状态，不能无限重试或泄漏凭据。
 
 Bridge 至少提供 /healthz 存活、/readyz 接收能力、/metrics 投递质量；就绪需要状态库可写且 worker 活跃。dead、积压年龄、worker 停止和磁盘不足通过独立监控通知，不能只依赖正在故障的同一发送链。
+
+2026-10-15实施审查补充：本地维护提供带必填原因的resolve-dead、acknowledge-unknown，追加审计，不改写为SENT或抹除历史；后续新失败/未知重新计入未处置。已确认未知的SENT仍保留30天维护审计。备份在报告成功前完成文件和目标目录项持久发布；原始未知/DEAD保留与人工处置状态分开。
 
 ## 8. 巡检与监控契约
 

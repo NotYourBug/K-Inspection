@@ -42,6 +42,7 @@ def render_metrics(store: DeliveryStore | None, worker_last_heartbeat: datetime 
         jobs.labels(state=state).set(count)
     gauge("oldest_pending_age_seconds", "Age of oldest active delivery", stats.oldest_pending_age)
     gauge("unknown_jobs", "Jobs retaining unresolved unknown-result evidence", stats.unknown_count)
+    gauge("unhandled_dead_jobs", "Dead jobs without a subsequent explicit handling event", stats.dead_count)
     gauge("backlog_ratio", "Uncompleted jobs including unhandled dead divided by capacity", stats.backlog_count / store.max_backlog)
     gauge("last_commit_timestamp_seconds", "Last persisted receipt or delivery event", epoch(stats.last_commit) if stats.last_commit else 0)
     return generate_latest(registry)

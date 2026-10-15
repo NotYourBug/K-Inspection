@@ -37,7 +37,7 @@ from .notify import send_feishu_text
 from .bridge_auth import AuthenticationError, SourceCredential, authenticate, load_sources, validate_sources
 from .bridge_store import BacklogFull, DeliveryStore, StorageUnavailable
 from .delivery_adapter import DeliveryAdapter
-from .delivery_identity import canonical_content_hash, identity_quality
+from .delivery_identity import alert_cycle_ids, canonical_content_hash, identity_quality
 from .delivery_models import AcceptResult, DeliveryTarget
 from .delivery_worker import DeliveryWorker
 from .bridge_observability import bridge_ready, render_metrics
@@ -340,7 +340,8 @@ def handle_alert_request(source_id: str, payload: object, store: DeliveryStore,
         else:
             destination_id = destination
             content = {"mode": "webhook", "text": "\n".join(lines), "identity_quality": quality}
-        targets.append(DeliveryTarget(destination_id, canonical_content_hash(notification), content))
+        targets.append(DeliveryTarget(destination_id, canonical_content_hash(notification), content,
+                                      alert_cycle_ids(source_id, notification)))
     return store.accept(source_id, batch, tuple(targets), now)
 
 

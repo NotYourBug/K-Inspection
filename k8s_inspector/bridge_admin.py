@@ -18,6 +18,10 @@ def main(argv=None) -> int:
     requeue = sub.add_parser("requeue")
     requeue.add_argument("--delivery-id", required=True)
     requeue.add_argument("--reason", required=True)
+    for name in ("resolve-dead", "acknowledge-unknown"):
+        action = sub.add_parser(name)
+        action.add_argument("--delivery-id", required=True)
+        action.add_argument("--reason", required=True)
     backup = sub.add_parser("backup")
     backup.add_argument("--destination", required=True)
     prune = sub.add_parser("prune")
@@ -44,6 +48,10 @@ def main(argv=None) -> int:
             result = {"requeued": args.delivery_id}
         elif args.command == "backup":
             result = {"backup": str(store.backup(Path(args.destination)))}
+        elif args.command in {"resolve-dead", "acknowledge-unknown"}:
+            action = store.resolve_dead if args.command == "resolve-dead" else store.acknowledge_unknown
+            action(args.delivery_id, args.reason, now)
+            result = {"disposition": args.command, "delivery_id": args.delivery_id}
         else:
             if args.retention_days < 30:
                 raise ValueError("retention must be at least30 days")

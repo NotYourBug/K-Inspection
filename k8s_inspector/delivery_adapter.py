@@ -27,12 +27,14 @@ class DeliveryAdapter:
 
     def send(self, job: DeliveryJob) -> DeliveryResult:
         try:
+            receipt = (f"通知接收时间(UTC): {job.created_at.isoformat()}\n"
+                       f"状态描述该批次接收内容；重试或人工重投可能延后。\ndelivery_id: {job.delivery_id}")
             if job.payload.get("mode") == "app":
                 if self.feishu_app is None:
                     return DeliveryResult(False, error_kind="configuration")
                 card = copy.deepcopy(job.payload["card"])
                 card.setdefault("elements", []).append({"tag": "div", "text": {
-                    "tag": "plain_text", "content": f"delivery_id: {job.delivery_id}"}})
+                    "tag": "plain_text", "content": receipt}})
                 external_id = self.feishu_app.send_card_message(
                     job.payload["chat_id"], card, message_uuid=job.delivery_id)
                 return DeliveryResult(True, external_id=external_id)
@@ -40,7 +42,7 @@ class DeliveryAdapter:
                 url = self.webhooks.get(job.destination_id)
                 if not url:
                     return DeliveryResult(False, error_kind="configuration")
-                send_feishu_text(url, f"{job.payload['text']}\ndelivery_id: {job.delivery_id}", timeout_s=10)
+                send_feishu_text(url, f"{job.payload['text']}\n{receipt}", timeout_s=10)
                 return DeliveryResult(True)
             return DeliveryResult(False, error_kind="configuration")
         except ProviderError as exc:

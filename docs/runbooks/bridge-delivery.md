@@ -47,7 +47,9 @@ Alertmanager v0.27.0的 [`http_config.authorization.credentials_file` 文档](ht
 
 ## 重试、结果不明与死信
 
-每个目的地独立任务。相同内容的活动/DEAD任务持续复用；SENT后年龄<300秒复用，>=300秒允许新generation。路由改变到新目的地产生新任务。最大backlog10000，含未处置DEAD；重复请求复用不占新job额度。
+每个目的地独立任务。连续重复的活动/DEAD任务复用；SENT后年龄<300秒复用，>=300秒允许新generation。同一告警周期出现A→B→A时，末次A产生新一代有序更新，即使旧A仍pending；无关告警交错不破坏HA去重。路由改到新目的地产生新任务。最大backlog10000，含未处置DEAD；重复复用不占新job额度。
+
+自动发送按同一source+destination的持久入队顺序执行，防止恢复通知越过旧firing重试。其他目的地独立推进。代价是同一通道存在队首阻塞，前序重试会延后后续通知；不能把单任务900秒预算当成整个队列的延迟上限。通知显示原始接收时间及delivery_id，人工重投的历史内容也不能被当作实时状态。不同上游已经乱序的事件仍须D批次按可信周期/证据处理，不自动据此结案。
 
 lease60秒，provider每次HTTP连接/读取超时10秒；获取token和发消息可有两次HTTP操作。首次加5次重试，延迟5/15/45/120/300秒加0–10%抖动，尊重Retry-After但不越过首次claim起900秒的持久预算。重启不重置预算；尚未首次尝试的排队时间不计入预算。永久错误立即DEAD，其他错误有界重试。
 
@@ -59,9 +61,13 @@ lease60秒，provider每次HTTP连接/读取超时10秒；获取token和发消�
 python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db inspect
 python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db inspect --delivery-id DELIVERY_UUID --include-payload
 python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db requeue --delivery-id DELIVERY_UUID --reason '已核对群成员权限并修复'
+python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db resolve-dead --delivery-id DELIVERY_UUID --reason '已核验旧目的地取消，批准停止此任务投递'
+python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db acknowledge-unknown --delivery-id DELIVERY_UUID --reason '已核对供应商历史并确认最终结果和重复影响'
 ```
 
 先核对目的地、错误码、外部message_id和操作历史，再修复凭据/权限/内容。只有DEAD可人工重投，必须说明原因；重置尝试预算但保留旧错误和每次操作事件，沿用原UUID。DEAD不等于已处理。未知结果需人工核对供应商记录，不能直接删库或把群创建也套用此重试机制。
+
+`resolve-dead`仅登记DEAD已处置，释放未处理容量；保留原始DEAD和错误，不伪造SENT，不代表消息已送达。`acknowledge-unknown`只允许终态DEAD/SENT，经人工核验后登记未知结果已确认，保留曾发生unknown的历史事实。两者分别对应未处理dead和未确认unknown指标；处置dead不会自动确认unknown。再次重投后失败/结果不明会重新进入未处置计数。原因必填，权限由容器/文件系统限制，细粒度actor授权仍归D5。
 
 ## 监控和保留
 
@@ -82,7 +88,7 @@ promtool test rules tests/prometheus/bridge-rules.test.yml
 python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db prune --retention-days 30
 ```
 
-保留所有unsent、DEAD以及结果曾不明但未核实的SENT审计。重投不抹旧事件。监控备份/磁盘增长，未知证据长期保留须纳入容量规划；不得用删未处理记录解决容量告警。
+保留所有unsent、DEAD以及结果曾不明但未核实的SENT审计。人工确认后的SENT还要保留至少30天维护审计才可清理；已处置DEAD继续保留，未处理计数/容量不再包含它。state标签记录物理历史状态，`unhandled_dead_jobs`/`unknown_jobs`记录尚未处置项。重投不抹旧事件。监控备份/磁盘增长，长期审计须纳入容量规划；不得用删未处理记录解决容量告警。
 
 ## 一致备份、迁移、恢复和回退
 
@@ -90,9 +96,9 @@ python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db prune --r
 python -m k8s_inspector.bridge_admin --db /var/lib/inspector/bridge.db backup --destination /backup/bridge-UNIQUE_UTC.db
 ```
 
-使用SQLite backup API包含WAL已提交内容，10秒备份期限；在目标目录先生成临时快照、校验完整性和fsync，再以不覆盖已有文件的原子hard-link发布。备份目录也必须在支持这些语义的本地/块文件系统上；不支持时备份失败。定期将已校验的关闭快照用受控备份系统复制到独立加密存储，不能运行中只拷贝bridge.db漏掉WAL。
+备份目录须预先存在并经过验证；不自动创建未同步的新父目录。SQLite backup API包含WAL已提交内容，复制设置10秒期限；先生成临时快照、校验完整性和fsync，再不覆盖已有文件发布。POSIX使用hard-link并fsync父目录；Windows使用不带REPLACE_EXISTING的MoveFileExW WRITE_THROUGH。发布同步失败返回失败并阻止迁移继续；若磁盘上已有完整文件，先核验并用新名称重试，不覆盖它。依据：[Linux fsync目录要求](https://man7.org/linux/man-pages/man2/fsync.2.html)、[Windows MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw)。这仍不替代真实卷断电演练。定期将已校验的关闭快照用受控备份系统复制到独立加密存储，不能运行中只拷贝bridge.db漏掉WAL。
 
-当前schema=2。启动拒绝更新或残缺schema；v1→v2升级前创建 `bridge.db.pre-v2-UUID.bak`，迁移事务失败回滚，备份保留。**升级前停止所有Bridge writer**；首次v1→v2启动也必须满足此前提。失败先保存原库/备份/镜像，再用受支持版本核验，禁止手改schema_version冒充迁移成功。
+当前schema=3，新增持久顺序和告警周期成员。v1/v2是本次未发布的中间格式；升级前创建 `bridge.db.pre-v3-UUID.bak`，迁移事务失败回滚，备份保留；启动拒绝更新或残缺schema。历史v2没有逐路由周期索引，按原完整receipt保守回填，可能导致额外刷新，避免漏掉新变化。**升级前停止所有Bridge writer**；首次自动升级启动也须满足此前提。失败先保存原库/备份/镜像，再用受支持版本核验，禁止手改schema_version冒充迁移成功。
 
 恢复步骤：停止入口流量并留在上游/独立接收器；停止旧Pod和所有writer；备份当前库；在**新空目录/新验证卷**放入完整快照，校验schema、integrity和待投任务；启动同版本单实例，观察pending恢复和lease后的SENDING重试，再恢复入口。不要把恢复文件覆盖到仍有原WAL/SHM的活跃路径。保留旧目录以供核对。
 

@@ -45,16 +45,18 @@ def test_backup_never_overwrites_existing_destination_or_source(store, tmp_path)
 
 def downgrade_fixture_to_v1(store):
     with sqlite3.connect(store.path) as db:
+        db.execute("drop table if exists delivery_members")
+        db.execute("drop table if exists delivery_order")
         db.execute("drop table if exists migration_history")
         db.execute("update schema_version set version=1")
 
 
 def test_migration_backups_before_transactional_upgrade(store):
     downgrade_fixture_to_v1(store)
-    storage.migrate(store.path, 2)
+    storage.migrate(store.path, storage.SCHEMA_VERSION)
     restored = DeliveryStore(store.path)
     assert len(restored.list_jobs()) == 1
-    backups = list(store.path.parent.glob("bridge.db.pre-v2-*.bak"))
+    backups = list(store.path.parent.glob(f"bridge.db.pre-v{storage.SCHEMA_VERSION}-*.bak"))
     assert len(backups) == 1
     with sqlite3.connect(backups[0]) as db:
         assert db.execute("select version from schema_version").fetchone()[0] == 1
@@ -70,11 +72,11 @@ def test_interrupted_migration_rolls_back_and_can_retry(store, monkeypatch):
     with monkeypatch.context() as scoped:
         scoped.setitem(storage.MIGRATIONS, 2, interrupted)
         with pytest.raises(StorageUnavailable):
-            storage.migrate(store.path, 2)
+            storage.migrate(store.path, storage.SCHEMA_VERSION)
     with sqlite3.connect(store.path) as db:
         assert db.execute("select version from schema_version").fetchone()[0] == 1
         assert not db.execute("select name from sqlite_master where name='incomplete'").fetchall()
-    storage.migrate(store.path, 2)
+    storage.migrate(store.path, storage.SCHEMA_VERSION)
     assert len(DeliveryStore(store.path).list_jobs()) == 1
 
 
@@ -84,7 +86,7 @@ def test_newer_or_incomplete_schema_fails_closed(store):
     with pytest.raises(UnsupportedSchema):
         DeliveryStore(store.path)
     with pytest.raises(UnsupportedSchema):
-        storage.migrate(store.path, 2)
+        storage.migrate(store.path, storage.SCHEMA_VERSION)
     with sqlite3.connect(store.path) as db:
         db.execute("update schema_version set version=?", (storage.SCHEMA_VERSION,))
         db.execute("drop table inbox_jobs")

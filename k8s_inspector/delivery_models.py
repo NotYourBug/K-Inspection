@@ -10,6 +10,7 @@ class DeliveryTarget:
     destination_id: str
     content_hash: str
     payload: dict[str, object]
+    cycle_keys: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

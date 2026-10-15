@@ -4,7 +4,7 @@ evaluation_interval: 1m
 tests:
   - interval: 1m
     input_series:
-      - series: 'inspector_bridge_jobs{state="DEAD"}'
+      - series: 'inspector_bridge_unhandled_dead_jobs'
         values: '1+0x10'
       - series: 'inspector_bridge_oldest_pending_age_seconds'
         values: '301+0x10'
@@ -18,7 +18,7 @@ tests:
       - eval_time: 6m
         alertname: InspectorBridgeDeadDeliveries
         exp_alerts:
-          - exp_labels: {state: DEAD, severity: critical, notification_channel: independent}
+          - exp_labels: {severity: critical, notification_channel: independent}
             exp_annotations: {summary: Bridge has unhandled dead deliveries}
       - eval_time: 6m
         alertname: InspectorBridgeBacklogOld
@@ -37,7 +37,7 @@ tests:
             exp_annotations: {summary: Bridge delivery database is not writable}
   - interval: 1m
     input_series:
-      - series: 'inspector_bridge_jobs{state="DEAD"}'
+      - series: 'inspector_bridge_unhandled_dead_jobs'
         values: '0+0x10'
       - series: 'inspector_bridge_oldest_pending_age_seconds'
         values: '300+0x10'

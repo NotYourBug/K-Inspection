@@ -4,7 +4,7 @@ groups:
   - name: inspector-bridge-delivery
     rules:
       - alert: InspectorBridgeDeadDeliveries
-        expr: inspector_bridge_jobs{state="DEAD"} > 0
+        expr: inspector_bridge_unhandled_dead_jobs > 0
         for: 1m
         labels:
           severity: critical
