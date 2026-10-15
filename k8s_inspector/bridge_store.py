@@ -125,7 +125,8 @@ class DeliveryStore:
                 row = db.execute("""SELECT * FROM outbox WHERE source_id=? AND destination_id=?
                     AND content_hash=? ORDER BY generation DESC LIMIT 1""",
                     (source_id, target.destination_id, target.content_hash)).fetchone()
-                if row is not None and row["state"] != "SENT":
+                if row is not None and (row["state"] != "SENT" or
+                    (row["sent_at"] is not None and stamp - row["sent_at"] < self.dedup_seconds)):
                     delivery_id = row["delivery_id"]
                     reused.append(delivery_id)
                 else:

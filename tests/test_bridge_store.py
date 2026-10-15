@@ -63,3 +63,35 @@ def test_rejects_naive_time_and_newer_schema(tmp_path):
         db.execute("update schema_version set version=999")
     with pytest.raises(api().UnsupportedSchema):
         api().DeliveryStore(store.path)
+
+
+@pytest.mark.parametrize("age,new_generation", [(299, False), (300, True), (301, True)])
+def test_sent_repeat_window(tmp_path, age, new_generation):
+    store = api().DeliveryStore(tmp_path / "bridge.db")
+    first = store.accept("am", batch(), (target(),), NOW)
+    with sqlite3.connect(store.path) as db:
+        db.execute("update outbox set state='SENT',sent_at=?", (NOW.timestamp(),))
+    second = store.accept("am", batch(), (target(),), NOW + timedelta(seconds=age))
+    assert bool(second.new_job_ids) == new_generation
+    assert len(store.list_jobs()) == (2 if new_generation else 1)
+    if new_generation:
+        assert store.get_job(second.new_job_ids[0]).generation == 2
+
+
+@pytest.mark.parametrize("state", ["PENDING", "SENDING", "RETRY_WAIT", "DEAD"])
+def test_active_or_dead_job_never_resets_from_repeat(tmp_path, state):
+    store = api().DeliveryStore(tmp_path / "bridge.db")
+    first = store.accept("am", batch(), (target(),), NOW)
+    with sqlite3.connect(store.path) as db:
+        db.execute("update outbox set state=?,attempt_count=5", (state,))
+    second = store.accept("am", batch(), (target(),), NOW + timedelta(days=2))
+    assert second.reused_job_ids == first.new_job_ids
+    assert store.list_jobs()[0].attempt_count == 5
+
+
+def test_new_destination_and_source_are_not_suppressed(tmp_path):
+    store = api().DeliveryStore(tmp_path / "bridge.db")
+    for source, destination in (("am", "a"), ("am", "b"), ("other", "a")):
+        assert len(store.accept(source, batch(), (target(destination),), NOW).new_job_ids) == 1
+    # HA replicas bind to the same logical source, regardless of group key.
+    assert len(store.accept("am", batch(group_key="replica2"), (target("a"),), NOW).reused_job_ids) == 1
