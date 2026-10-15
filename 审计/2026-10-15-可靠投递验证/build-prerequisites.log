@@ -1,0 +1,10 @@
+Collecting setuptools>=68
+  Downloading setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+Collecting wheel
+  Downloading wheel-0.48.0-py3-none-any.whl.metadata (2.3 kB)
+Requirement already satisfied: packaging>=24.0 in c:\users\23033\desktop\cluster-stability-inspector\.venv\lib\site-packages (from wheel) (26.3)
+Downloading setuptools-84.0.0-py3-none-any.whl (818 kB)
+   ---------------------------------------- 818.2/818.2 kB 2.2 MB/s eta 0:00:00
+Downloading wheel-0.48.0-py3-none-any.whl (33 kB)
+Installing collected packages: wheel, setuptools
+Successfully installed setuptools-84.0.0 wheel-0.48.0

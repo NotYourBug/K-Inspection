@@ -1,0 +1,264 @@
+FFFFFFFFFF                                                               [100%]
+================================== FAILURES ===================================
+____________ test_stopped_or_stale_worker_is_not_ready[None-False] ____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_stopped_or_stale_worker_i0')
+heartbeat = None, expected = False
+
+    @pytest.mark.parametrize("heartbeat,expected", [(None, False), (-31, False), (-30, True), (0, True), (1, False)])
+    def test_stopped_or_stale_worker_is_not_ready(tmp_path, heartbeat, expected):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        hb = NOW + timedelta(seconds=heartbeat) if heartbeat is not None else None
+>       assert obs().bridge_ready(store, hb, NOW) == expected
+               ^^^^^
+
+tests\test_bridge_observability.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_observability.py:16: in obs
+    return importlib.import_module("k8s_inspector.bridge_observability")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_observability'
+import_ = <function _gcd_import at 0x00000216B4E880E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_observability'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+____________ test_stopped_or_stale_worker_is_not_ready[-31-False] _____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_stopped_or_stale_worker_i1')
+heartbeat = -31, expected = False
+
+    @pytest.mark.parametrize("heartbeat,expected", [(None, False), (-31, False), (-30, True), (0, True), (1, False)])
+    def test_stopped_or_stale_worker_is_not_ready(tmp_path, heartbeat, expected):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        hb = NOW + timedelta(seconds=heartbeat) if heartbeat is not None else None
+>       assert obs().bridge_ready(store, hb, NOW) == expected
+               ^^^^^
+
+tests\test_bridge_observability.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_observability.py:16: in obs
+    return importlib.import_module("k8s_inspector.bridge_observability")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_observability'
+import_ = <function _gcd_import at 0x00000216B4E880E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_observability'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____________ test_stopped_or_stale_worker_is_not_ready[-30-True] _____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_stopped_or_stale_worker_i2')
+heartbeat = -30, expected = True
+
+    @pytest.mark.parametrize("heartbeat,expected", [(None, False), (-31, False), (-30, True), (0, True), (1, False)])
+    def test_stopped_or_stale_worker_is_not_ready(tmp_path, heartbeat, expected):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        hb = NOW + timedelta(seconds=heartbeat) if heartbeat is not None else None
+>       assert obs().bridge_ready(store, hb, NOW) == expected
+               ^^^^^
+
+tests\test_bridge_observability.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_observability.py:16: in obs
+    return importlib.import_module("k8s_inspector.bridge_observability")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_observability'
+import_ = <function _gcd_import at 0x00000216B4E880E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_observability'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______________ test_stopped_or_stale_worker_is_not_ready[0-True] ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_stopped_or_stale_worker_i3')
+heartbeat = 0, expected = True
+
+    @pytest.mark.parametrize("heartbeat,expected", [(None, False), (-31, False), (-30, True), (0, True), (1, False)])
+    def test_stopped_or_stale_worker_is_not_ready(tmp_path, heartbeat, expected):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        hb = NOW + timedelta(seconds=heartbeat) if heartbeat is not None else None
+>       assert obs().bridge_ready(store, hb, NOW) == expected
+               ^^^^^
+
+tests\test_bridge_observability.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_observability.py:16: in obs
+    return importlib.import_module("k8s_inspector.bridge_observability")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_observability'
+import_ = <function _gcd_import at 0x00000216B4E880E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_observability'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____________ test_stopped_or_stale_worker_is_not_ready[1-False] ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_stopped_or_stale_worker_i4')
+heartbeat = 1, expected = False
+
+    @pytest.mark.parametrize("heartbeat,expected", [(None, False), (-31, False), (-30, True), (0, True), (1, False)])
+    def test_stopped_or_stale_worker_is_not_ready(tmp_path, heartbeat, expected):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        hb = NOW + timedelta(seconds=heartbeat) if heartbeat is not None else None
+>       assert obs().bridge_ready(store, hb, NOW) == expected
+               ^^^^^
+
+tests\test_bridge_observability.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_observability.py:16: in obs
+    return importlib.import_module("k8s_inspector.bridge_observability")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_observability'
+import_ = <function _gcd_import at 0x00000216B4E880E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_observability'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____________ test_ready_requires_writable_database_and_capacity ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_ready_requires_writable_d0')
+
+    def test_ready_requires_writable_database_and_capacity(tmp_path):
+        store = DeliveryStore(tmp_path / "bridge.db", max_backlog=1)
+        with sqlite3.connect(store.path) as db:
+>           db.execute("""create trigger readonly_probe before insert on store_health
+                       begin select raise(ABORT,'secret-token'); end""")
+E           sqlite3.OperationalError: no such table: main.store_health
+
+tests\test_bridge_observability.py:40: OperationalError
+_________ test_prune_retains_unhandled_dead_pending_and_sent_unknown __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_prune_retains_unhandled_d0')
+
+    def test_prune_retains_unhandled_dead_pending_and_sent_unknown(tmp_path):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        old = NOW - timedelta(days=31)
+        ids = {}
+        for state in ("DEAD", "PENDING", "SENT_UNKNOWN", "SENT"):
+            delivery_id = store.accept("am", batch(), (target(state),), old).new_job_ids[0]
+            ids[state] = delivery_id
+            if state != "PENDING":
+                job = store.claim_due(old)
+>               assert job.delivery_id == delivery_id
+E               AssertionError: assert '5eaed3fa-21d...-b82e3a5b97aa' == 'eff6c792-ab5...-c03e85efe8fd'
+E                 
+E                 - eff6c792-ab5a-4873-92ef-c03e85efe8fd
+E                 + 5eaed3fa-21da-4ede-add8-b82e3a5b97aa
+
+tests\test_bridge_observability.py:59: AssertionError
+__________ test_stats_track_backlog_age_dead_unknown_and_last_commit __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_stats_track_backlog_age_d0')
+
+    def test_stats_track_backlog_age_dead_unknown_and_last_commit(tmp_path):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        store.accept("am", batch(), (target(),), NOW)
+        job = store.claim_due(NOW)
+        store.finish(job.delivery_id, job.lease_token, DeliveryResult(False, result_unknown=True), NOW)
+        store.accept("am", batch(), (target("b"),), NOW)
+>       stats = store.stats(NOW + timedelta(seconds=10))
+                ^^^^^^^^^^^
+E       AttributeError: 'DeliveryStore' object has no attribute 'stats'
+
+tests\test_bridge_observability.py:75: AttributeError
+_________ test_requeue_requires_reason_and_retains_old_attempt_audit __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_requeue_requires_reason_a0')
+capsys = <_pytest.capture.CaptureFixture object at 0x00000216B88B2C30>
+
+    def test_requeue_requires_reason_and_retains_old_attempt_audit(tmp_path, capsys):
+>       admin = importlib.import_module("k8s_inspector.bridge_admin")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_observability.py:82: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_admin'
+import_ = <function _gcd_import at 0x00000216B4E880E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_admin'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______ test_probe_and_metrics_distinguish_liveness_readiness_and_redact _______
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1431/test_probe_and_metrics_disting0')
+
+    def test_probe_and_metrics_distinguish_liveness_readiness_and_redact(tmp_path):
+        with serve(tmp_path) as (server, _, _):
+            assert get(server, "/healthz")[0] == 200
+>           assert get(server, "/readyz")[0] == 503
+E           assert 404 == 503
+
+tests\test_bridge_observability.py:104: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_observability.py::test_stopped_or_stale_worker_is_not_ready[None-False]
+FAILED tests/test_bridge_observability.py::test_stopped_or_stale_worker_is_not_ready[-31-False]
+FAILED tests/test_bridge_observability.py::test_stopped_or_stale_worker_is_not_ready[-30-True]
+FAILED tests/test_bridge_observability.py::test_stopped_or_stale_worker_is_not_ready[0-True]
+FAILED tests/test_bridge_observability.py::test_stopped_or_stale_worker_is_not_ready[1-False]
+FAILED tests/test_bridge_observability.py::test_ready_requires_writable_database_and_capacity
+FAILED tests/test_bridge_observability.py::test_prune_retains_unhandled_dead_pending_and_sent_unknown
+FAILED tests/test_bridge_observability.py::test_stats_track_backlog_age_dead_unknown_and_last_commit
+FAILED tests/test_bridge_observability.py::test_requeue_requires_reason_and_retains_old_attempt_audit
+FAILED tests/test_bridge_observability.py::test_probe_and_metrics_distinguish_liveness_readiness_and_redact
+10 failed in 1.80s

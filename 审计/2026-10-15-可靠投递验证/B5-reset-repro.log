@@ -1,0 +1,180 @@
+F.                                                                       [100%]
+================================== FAILURES ===================================
+_____________________ test_body_limit_and_invalid_payload _____________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1424/test_body_limit_and_invalid_pa0')
+
+    def test_body_limit_and_invalid_payload(tmp_path):
+        with serve(tmp_path) as (server, _, _):
+            assert post(server, {"alerts": []})[0] == 400
+>           assert post(server, "x" * (1024 * 1024))[0] == 413
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_ingress.py:56: in post
+    resp = conn.getresponse()
+           ^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1478: in getresponse
+    response.begin()
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:343: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:304: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <socket.SocketIO object at 0x0000015730614430>
+b = <memory at 0x000001573208C700>
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        while True:
+            try:
+>               return self._sock.recv_into(b)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+E               ConnectionAbortedError: [WinError 10053] ��������е�������ֹ��һ���ѽ��������ӡ�
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\socket.py:720: ConnectionAbortedError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_ingress.py::test_body_limit_and_invalid_payload - Co...
+1 failed, 1 passed, 9 deselected in 1.21s
+F.                                                                       [100%]
+================================== FAILURES ===================================
+_____________________ test_body_limit_and_invalid_payload _____________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1425/test_body_limit_and_invalid_pa0')
+
+    def test_body_limit_and_invalid_payload(tmp_path):
+        with serve(tmp_path) as (server, _, _):
+            assert post(server, {"alerts": []})[0] == 400
+>           assert post(server, "x" * (1024 * 1024))[0] == 413
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_ingress.py:56: in post
+    resp = conn.getresponse()
+           ^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1478: in getresponse
+    response.begin()
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:343: in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:304: in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <socket.SocketIO object at 0x0000025D9C4407F0>
+b = <memory at 0x0000025D9C700640>
+
+    def readinto(self, b):
+        """Read up to len(b) bytes into the writable buffer *b* and return
+        the number of bytes read.  If the socket is non-blocking and no bytes
+        are available, None is returned.
+    
+        If *b* is non-empty, a 0 return value indicates that the connection
+        was shutdown at the other end.
+        """
+        self._checkClosed()
+        self._checkReadable()
+        if self._timeout_occurred:
+            raise OSError("cannot read from timed out object")
+        while True:
+            try:
+>               return self._sock.recv_into(b)
+                       ^^^^^^^^^^^^^^^^^^^^^^^
+E               ConnectionAbortedError: [WinError 10053] ��������е�������ֹ��һ���ѽ��������ӡ�
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\socket.py:720: ConnectionAbortedError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_ingress.py::test_body_limit_and_invalid_payload - Co...
+1 failed, 1 passed, 9 deselected in 1.22s
+.F                                                                       [100%]
+================================== FAILURES ===================================
+____________ test_concurrency_limit_returns_503_before_new_handler ____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1426/test_concurrency_limit_returns0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002DAC23BF740>
+
+    def test_concurrency_limit_returns_503_before_new_handler(tmp_path, monkeypatch):
+        entered, release = threading.Event(), threading.Event()
+        original = getattr(bridge, "handle_alert_request", None)
+        def blocking(*args, **kwargs):
+            entered.set()
+            assert release.wait(3)
+            return original(*args, **kwargs)
+        monkeypatch.setattr(bridge, "handle_alert_request", blocking, raising=False)
+        with serve(tmp_path, max_requests=1) as (server, _, _):
+            result = []
+            first = threading.Thread(target=lambda: result.append(post(server)))
+            first.start()
+            try:
+                assert entered.wait(2)
+>               assert post(server)[0] == 503
+                       ^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_ingress.py:55: in post
+    conn.request("POST", "/alert", body, hdr)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1386: in request
+    self._send_request(method, url, body, headers, encode_chunked)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1432: in _send_request
+    self.endheaders(body, encode_chunked=encode_chunked)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1381: in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1180: in _send_output
+    self.send(chunk)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <http.client.HTTPConnection object at 0x000002DAC220FB90>
+data = b'{"source_id": "untrusted", "alerts": [{"status": "firing", "fingerprint": "f1", "startsAt": "2026-10-15T00:00:00Z", ... "fingerprint": "f2", "startsAt": "2026-10-15T00:00:00Z", "labels": {}, "annotations": {"summary": "fallback-only"}}]}'
+
+    def send(self, data):
+        """Send `data' to the server.
+        ``data`` can be a string object, a bytes object, an array object, a
+        file-like object that supports a .read() method, or an iterable object.
+        """
+    
+        if self.sock is None:
+            if self.auto_open:
+                self.connect()
+            else:
+                raise NotConnected()
+    
+        if self.debuglevel > 0:
+            print("send:", repr(data))
+        if hasattr(data, "read") :
+            if self.debuglevel > 0:
+                print("sending a readable")
+            encode = self._is_textIO(data)
+            if encode and self.debuglevel > 0:
+                print("encoding file using iso-8859-1")
+            while datablock := data.read(self.blocksize):
+                if encode:
+                    datablock = datablock.encode("iso-8859-1")
+                sys.audit("http.client.send", self, datablock)
+                self.sock.sendall(datablock)
+            return
+        sys.audit("http.client.send", self, data)
+        try:
+>           self.sock.sendall(data)
+E           ConnectionAbortedError: [WinError 10053] ��������е�������ֹ��һ���ѽ��������ӡ�
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\http\client.py:1105: ConnectionAbortedError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_ingress.py::test_concurrency_limit_returns_503_before_new_handler
+1 failed, 1 passed, 9 deselected in 1.29s

@@ -1,0 +1,26 @@
+* Getting build dependencies for wheel...
+
+TIP pass --env-dir and --sdist-extract-dir to keep the build environment and sources, then see https://build.pypa.io/en/stable/how-to/troubleshooting.html#debug-a-failed-build for help debugging a failed build
+Traceback (most recent call last):
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pyproject_hooks\_impl.py", line 423, in _call_hook
+    raise BackendUnavailable(
+pyproject_hooks._impl.BackendUnavailable: Cannot import 'setuptools.build_meta'
+ERROR Backend 'setuptools.build_meta' is not available.
+
+Traceback:
+Traceback (most recent call last):
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pyproject_hooks\_in_process\_in_process.py", line 75, in _build_backend
+    obj = import_module(mod_path)
+          ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\23033\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1310, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1324, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'setuptools'
+

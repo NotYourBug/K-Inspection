@@ -1,0 +1,26 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+______________ test_delayed_delivery_shows_original_receipt_time ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1442/test_delayed_delivery_shows_or0')
+
+    def test_delayed_delivery_shows_original_receipt_time(tmp_path):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        job_id = accept(store, content()).new_job_ids[0]
+        messages = []
+        class Provider:
+            def send_card_message(self, chat_id, card, message_uuid=None):
+                messages.append(card)
+                return "om_confirmed"
+        assert DeliveryAdapter(feishu_app=Provider()).send(store.get_job(job_id)).success
+>       assert NOW.isoformat() in json.dumps(messages)
+E       assert '2026-10-15T00:00:00+00:00' in '[{"elements": [{"tag": "div", "text": {"tag": "plain_text", "content": "delivery_id: e1799f4d-30f9-4566-938a-7620d2b1a260"}}]}]'
+E        +  where '2026-10-15T00:00:00+00:00' = <built-in method isoformat of datetime.datetime object at 0x0000029E9FB66310>()
+E        +    where <built-in method isoformat of datetime.datetime object at 0x0000029E9FB66310> = datetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc).isoformat
+E        +  and   '[{"elements": [{"tag": "div", "text": {"tag": "plain_text", "content": "delivery_id: e1799f4d-30f9-4566-938a-7620d2b1a260"}}]}]' = <function dumps at 0x0000029E9DA0FF60>([{'elements': [{'tag': 'div', 'text': {'tag': 'plain_text', 'content': 'delivery_id: e1799f4d-30f9-4566-938a-7620d2b1a260'}}]}])
+E        +    where <function dumps at 0x0000029E9DA0FF60> = json.dumps
+
+tests\test_delivery_review_regressions.py:170: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_review_regressions.py::test_delayed_delivery_shows_original_receipt_time
+1 failed, 12 deselected in 1.13s

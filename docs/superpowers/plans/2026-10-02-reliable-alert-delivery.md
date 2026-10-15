@@ -83,11 +83,11 @@ def test_pending_jobs_survive_reopen(tmp_path, batch, targets, now):
 
 StorageUnavailable、BacklogFull、UnsupportedSchema 在 bridge_store.py 定义为不同异常；数据库原始错误不直接暴露 HTTP body。fail_second_insert 通过内部事务执行封装注入失败，不修改生产事务保证。
 
-- [ ] 写原子提交、重开恢复、并发两次 accept 只形成一组 jobs 的测试。
-- [ ] 运行 python -m pytest tests/test_bridge_store.py -q，确认没有事务/唯一约束时失败。
-- [ ] 实现 schema、accept、读取与容量计数；提交后才返回 AcceptResult。
-- [ ] 运行同文件测试；用真实 SQLite 并发连接检查锁与事务，不仅用 mock。
-- [ ] 审查多目的地部分失败和凭据存储，提交。
+- [x] 写原子提交、重开恢复、并发两次 accept 只形成一组 jobs 的测试。
+- [x] 运行 python -m pytest tests/test_bridge_store.py -q，确认没有事务/唯一约束时失败。
+- [x] 实现 schema、accept、读取与容量计数；提交后才返回 AcceptResult。
+- [x] 运行同文件测试；用真实 SQLite 并发连接检查锁与事务，不仅用 mock。
+- [x] 审查多目的地部分失败和凭据存储，提交。
 
 ## B2：稳定身份、内容去重与周期提醒
 
@@ -120,11 +120,11 @@ def test_new_destination_is_not_suppressed(store, batch, now):
 
 追加 test_alert_order_is_irrelevant、test_annotation_change_is_new_content、test_resolved_end_changes_hash、test_sent_repeat_after_window_gets_new_generation、test_pending_repeat_reuses_job_after_window、test_ha_replicas_share_logical_source。SENT fixture 使用 B4 的 finish 接口，B2 初期以测试事务 helper 标记，不新增生产捷径。
 
-- [ ] 写 hash 与窗口边界测试，时间固定，无真实 sleep。
-- [ ] 运行 python -m pytest tests/test_delivery_identity.py tests/test_bridge_store.py -q。
-- [ ] 实现规范排序与 generation 事务；记录缺少指纹/startsAt 的质量标志。
-- [ ] 再运行以上测试；核对 299s/300s/301s 窗口约定：年龄 <300s 抑制，>=300s 可提醒。
-- [ ] 审查 route reload/source 迁移说明，提交。
+- [x] 写 hash 与窗口边界测试，时间固定，无真实 sleep。
+- [x] 运行 python -m pytest tests/test_delivery_identity.py tests/test_bridge_store.py -q。
+- [x] 实现规范排序与 generation 事务；记录缺少指纹/startsAt 的质量标志。
+- [x] 再运行以上测试；核对 299s/300s/301s 窗口约定：年龄 <300s 抑制，>=300s 可提醒。
+- [x] 审查 route reload/source 迁移说明，提交。
 
 ## B3：统一供应商结果、超时与消息 uuid
 
@@ -158,11 +158,11 @@ def test_timeout_records_unknown_result(adapter, job, provider):
 
 provider fixture 是本地 fake server/SDK response，不发真实消息。增加 test_same_delivery_reuses_sdk_uuid、test_invalid_chat_is_permanent、test_credentials_are_redacted、test_provider_timeout_reaches_http_transport。
 
-- [ ] 写 adapter 结果与真实 timeout 配置断言。
-- [ ] 运行 python -m pytest tests/test_delivery_adapter.py tests/test_notify.py -q。
-- [ ] 实现类型化结果、可验证 timeout 和版本明确的 SDK UUID builder 调用。
-- [ ] 跑 adapter/notify/Bridge 旧测试，保持同步模式兼容。
-- [ ] 记录供应商 uuid 的未验证窗口为 E5 验收项，不宣称消除全部重复，提交。
+- [x] 写 adapter 结果与真实 timeout 配置断言。
+- [x] 运行 python -m pytest tests/test_delivery_adapter.py tests/test_notify.py -q。
+- [x] 实现类型化结果、可验证 timeout 和版本明确的 SDK UUID builder 调用。
+- [x] 跑 adapter/notify/Bridge 旧测试，保持同步模式兼容。
+- [x] 记录供应商 uuid 的未验证窗口为 E5 验收项，不宣称消除全部重复，提交。
 
 ## B4：投递 worker、重试、lease 与崩溃恢复
 
@@ -201,11 +201,11 @@ def test_external_success_before_local_commit_is_recoverable(store, worker, prov
 
 fake provider 分别模拟“支持 UUID 去重”和“webhook 不去重”，后一分支允许重复外部发送但要求稳定 delivery_id、未知结果记录与重试次数可追溯。增加 test_partial_destination_failure_does_not_block_other_job、test_permanent_error_goes_dead、test_sixth_failure_exhausts_budget、test_restart_claims_pending、test_shutdown_preserves_inflight。
 
-- [ ] 写 lease、部分失败、崩溃窗口和预算测试。
-- [ ] 运行 python -m pytest tests/test_delivery_worker.py -q。
-- [ ] 实现 claim/finish 与可注入 clock/jitter；不要在事务持锁期间调用飞书。
-- [ ] 跑 store/identity/adapter/worker 测试；确认没有真实时间等待。
-- [ ] 审查至少一次边界、在途退出和 dead 处理，提交。
+- [x] 写 lease、部分失败、崩溃窗口和预算测试。
+- [x] 运行 python -m pytest tests/test_delivery_worker.py -q。
+- [x] 实现 claim/finish 与可注入 clock/jitter；不要在事务持锁期间调用飞书。
+- [x] 跑 store/identity/adapter/worker 测试；确认没有真实时间等待。
+- [x] 审查至少一次边界、在途退出和 dead 处理，提交。
 
 ## B5：鉴权、有限并发、背压与异步 HTTP 契约
 
@@ -240,11 +240,11 @@ def test_202_means_persisted_not_sent(http_bridge, authenticated_payload, store,
 
 增加 test_missing_token_is_401、test_body_cannot_override_source、test_concurrency_limit_returns_503、test_body_limit_is_413、test_route_jobs_commit_together。HTTP fake 用本地随机端口，不依赖外网。
 
-- [ ] 写鉴权/ACK/容量测试。
-- [ ] 运行 python -m pytest tests/test_bridge_ingress.py tests/test_alertmanager_bridge.py -q。
-- [ ] 实现受控 HTTP 入口与 async 模式；AM 通过其 http_config 传认证，按实际版本核验字段。
-- [ ] 再跑 HTTP 测试，确认旧 sync 成功/失败契约仍成立。
-- [ ] 记录切换配置、token 轮换与回退，提交。
+- [x] 写鉴权/ACK/容量测试。
+- [x] 运行 python -m pytest tests/test_bridge_ingress.py tests/test_alertmanager_bridge.py -q。
+- [x] 实现受控 HTTP 入口与 async 模式；AM 通过其 http_config 传认证，按实际版本核验字段。
+- [x] 再跑 HTTP 测试，确认旧 sync 成功/失败契约仍成立。
+- [x] 记录切换配置、token 轮换与回退，提交。
 
 ## B6：就绪、自监控、保留与死信维护
 
@@ -273,11 +273,11 @@ def test_prune_retains_unhandled_dead_and_unknown(store, now):
 
 本任务定义 StoreStats、seed_old_jobs；对 SENT 且历史存在未知结果但未人工确认的任务，仍需保留审计事件，不能因最终 SENT 删除未知操作记录。指标异常通过独立接收渠道/值班监控接入，当前同一飞书链失效时不作为唯一兜底。
 
-- [ ] 写探针、保留和低基数测试。
-- [ ] 运行 python -m pytest tests/test_bridge_observability.py -q。
-- [ ] 实现 /healthz、/readyz、/metrics 与本地维护；不要把自监控递归写入自己的失败队列。
+- [x] 写探针、保留和低基数测试。
+- [x] 运行 python -m pytest tests/test_bridge_observability.py -q。
+- [x] 实现 /healthz、/readyz、/metrics 与本地维护；不要把自监控递归写入自己的失败队列。
 - [ ] 用规则测试验证 dead/backlog/worker/状态库异常，HTTP 测试验证不泄漏敏感信息。
-- [ ] 记录值班处理步骤、保留期限与“dead 不等于已处理”，提交。
+- [x] 记录值班处理步骤、保留期限与“dead 不等于已处理”，提交。
 
 ## B7：持久部署、备份、schema 迁移与恢复演练
 
@@ -307,8 +307,14 @@ def test_newer_schema_is_rejected(tmp_path):
         DeliveryStore(path)
 ~~~
 
-- [ ] 写备份/迁移/新版本拒绝测试，模拟迁移中断。
-- [ ] 运行 python -m pytest tests/test_bridge_migrations.py -q。
-- [ ] 实现一致快照与 schema 门槛；编写状态 PVC 和回退操作文档。
+- [x] 写备份/迁移/新版本拒绝测试，模拟迁移中断。
+- [x] 运行 python -m pytest tests/test_bridge_migrations.py -q。
+- [x] 实现一致快照与 schema 门槛；编写状态 PVC 和回退操作文档。
 - [ ] 在测试环境执行 Pod 替换后 pending 恢复、备份到新卷恢复；没有真实存储时记为待验，不能用 mock 宣布生产通过。
-- [ ] 审查 G2 与部署前提，提交。回退 sync 前先保存并处置未完成 jobs，不能静默遗弃。
+- [x] 审查 G2 与部署前提，提交。回退 sync 前先保存并处置未完成 jobs，不能静默遗弃。
+
+### 执行证据（2026-10-15）
+
+离线最终343 passed，2项SDK上游DeprecationWarnings；独立审查121 passed、5项Important，作者单轮RED→GREEN修复，未复审。详见审计/13-可靠告警交付实施记录-2026-10-15.md、审计/14-可靠告警交付独立审查-2026-10-15.md 和审计/15-可靠告警交付执行台账-2026-10-15.md。
+
+上面仍未勾选项是明确的发布验收门槛：规则fixtures已提供但promtool未运行；真实PVC/Pod替换/新卷恢复未演练。amtool/kustomize、独立监控接入、供应商UUID窗口及运行环境矩阵也仍需E2/E5，不宣称生产G2/G3通过。

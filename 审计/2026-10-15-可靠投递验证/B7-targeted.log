@@ -1,0 +1,408 @@
+F.FF.FF..................................                                [100%]
+================================== FAILURES ===================================
+_______ test_backup_restore_preserves_pending_and_schema_including_wal ________
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_backup_restore_preserves_0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_backup_restore_preserves_0/backup.db')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+>               os.fsync(stream.fileno())
+E               OSError: [Errno 9] Bad file descriptor
+
+k8s_inspector\bridge_store.py:101: OSError
+
+The above exception was the direct cause of the following exception:
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_backup_restore_preserves_0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_backup_restore_preserves_0/backup.db')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+                os.fsync(stream.fileno())
+            os.link(temporary, destination)
+            return destination
+        except (OSError, sqlite3.Error) as exc:
+>           raise StorageUnavailable("delivery backup unavailable") from exc
+E           k8s_inspector.bridge_store.StorageUnavailable: delivery backup unavailable
+
+k8s_inspector\bridge_store.py:105: StorageUnavailable
+
+During handling of the above exception, another exception occurred:
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x0000017D68E94E90>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_backup_restore_preserves_0')
+
+    def test_backup_restore_preserves_pending_and_schema_including_wal(store, tmp_path):
+        # Keep an independent live reader so committed data can still reside in WAL.
+        reader = sqlite3.connect(store.path)
+        try:
+            reader.execute("BEGIN")
+            reader.execute("select * from outbox").fetchall()
+            store.accept("am", batch(), (target("b"),), NOW)
+>           backup = store.backup(tmp_path / "backup.db")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_migrations.py:26: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\bridge_store.py:390: in backup
+    return _backup_sqlite(self.path, destination)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\bridge_store.py:107: in _backup_sqlite
+    temporary.unlink(missing_ok=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_backup_restore_preserves_0/backup.db.202fae8434824c6c867425312c8bf00e.tmp')
+missing_ok = True
+
+    def unlink(self, missing_ok=False):
+        """
+        Remove this file or link.
+        If the path is a directory, use rmdir() instead.
+        """
+        try:
+>           os.unlink(self)
+E           PermissionError: [WinError 32] ��һ����������ʹ�ô��ļ��������޷����ʡ�: 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1435\\test_backup_restore_preserves_0\\backup.db.202fae8434824c6c867425312c8bf00e.tmp'
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1342: PermissionError
+_____________ test_migration_backups_before_transactional_upgrade _____________
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_migration_backups_before_0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_migration_backups_before_0/bridge.db.pre-v2-0b4a47c72b2c4fa5bdd96b7de30836a7.bak')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+>               os.fsync(stream.fileno())
+E               OSError: [Errno 9] Bad file descriptor
+
+k8s_inspector\bridge_store.py:101: OSError
+
+The above exception was the direct cause of the following exception:
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_migration_backups_before_0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_migration_backups_before_0/bridge.db.pre-v2-0b4a47c72b2c4fa5bdd96b7de30836a7.bak')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+                os.fsync(stream.fileno())
+            os.link(temporary, destination)
+            return destination
+        except (OSError, sqlite3.Error) as exc:
+>           raise StorageUnavailable("delivery backup unavailable") from exc
+E           k8s_inspector.bridge_store.StorageUnavailable: delivery backup unavailable
+
+k8s_inspector\bridge_store.py:105: StorageUnavailable
+
+During handling of the above exception, another exception occurred:
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x0000017D6931FF80>
+
+    def test_migration_backups_before_transactional_upgrade(store):
+        downgrade_fixture_to_v1(store)
+>       storage.migrate(store.path, 2)
+
+tests\test_bridge_migrations.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\bridge_store.py:133: in migrate
+    backup = _backup_sqlite(path, path.with_name(f"{path.name}.pre-v{target_version}-{uuid.uuid4().hex}.bak"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\bridge_store.py:107: in _backup_sqlite
+    temporary.unlink(missing_ok=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_migration_backups_before_0/bridge.db.pre-v2-0b4a47c72b2c4fa5bdd96b7de30836a7.bak.a0b1ad7206cc41069161695bca04cc7f.tmp')
+missing_ok = True
+
+    def unlink(self, missing_ok=False):
+        """
+        Remove this file or link.
+        If the path is a directory, use rmdir() instead.
+        """
+        try:
+>           os.unlink(self)
+E           PermissionError: [WinError 32] ��һ����������ʹ�ô��ļ��������޷����ʡ�: 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1435\\test_migration_backups_before_0\\bridge.db.pre-v2-0b4a47c72b2c4fa5bdd96b7de30836a7.bak.a0b1ad7206cc41069161695bca04cc7f.tmp'
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1342: PermissionError
+_____________ test_interrupted_migration_rolls_back_and_can_retry _____________
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_interrupted_migration_rol0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_interrupted_migration_rol0/bridge.db.pre-v2-93c56f96e0464349ae0552d049f0822a.bak')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+>               os.fsync(stream.fileno())
+E               OSError: [Errno 9] Bad file descriptor
+
+k8s_inspector\bridge_store.py:101: OSError
+
+The above exception was the direct cause of the following exception:
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_interrupted_migration_rol0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_interrupted_migration_rol0/bridge.db.pre-v2-93c56f96e0464349ae0552d049f0822a.bak')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+                os.fsync(stream.fileno())
+            os.link(temporary, destination)
+            return destination
+        except (OSError, sqlite3.Error) as exc:
+>           raise StorageUnavailable("delivery backup unavailable") from exc
+E           k8s_inspector.bridge_store.StorageUnavailable: delivery backup unavailable
+
+k8s_inspector\bridge_store.py:105: StorageUnavailable
+
+During handling of the above exception, another exception occurred:
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x0000017D6931F140>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000017D6931F200>
+
+    def test_interrupted_migration_rolls_back_and_can_retry(store, monkeypatch):
+        downgrade_fixture_to_v1(store)
+        def interrupted(db, backup):
+            db.execute("create table incomplete (value TEXT)")
+            raise sqlite3.OperationalError("interrupted")
+        with monkeypatch.context() as scoped:
+            scoped.setitem(storage.MIGRATIONS, 2, interrupted)
+            with pytest.raises(StorageUnavailable):
+>               storage.migrate(store.path, 2)
+
+tests\test_bridge_migrations.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\bridge_store.py:133: in migrate
+    backup = _backup_sqlite(path, path.with_name(f"{path.name}.pre-v{target_version}-{uuid.uuid4().hex}.bak"))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\bridge_store.py:107: in _backup_sqlite
+    temporary.unlink(missing_ok=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_interrupted_migration_rol0/bridge.db.pre-v2-93c56f96e0464349ae0552d049f0822a.bak.473c1ead76b0463aa86a7892a8969414.tmp')
+missing_ok = True
+
+    def unlink(self, missing_ok=False):
+        """
+        Remove this file or link.
+        If the path is a directory, use rmdir() instead.
+        """
+        try:
+>           os.unlink(self)
+E           PermissionError: [WinError 32] ��һ����������ʹ�ô��ļ��������޷����ʡ�: 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1435\\test_interrupted_migration_rol0\\bridge.db.pre-v2-93c56f96e0464349ae0552d049f0822a.bak.473c1ead76b0463aa86a7892a8969414.tmp'
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1342: PermissionError
+_______ test_restoring_old_backup_can_replay_a_confirmed_external_send ________
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_restoring_old_backup_can_0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_restoring_old_backup_can_0/pending-backup.db')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+>               os.fsync(stream.fileno())
+E               OSError: [Errno 9] Bad file descriptor
+
+k8s_inspector\bridge_store.py:101: OSError
+
+The above exception was the direct cause of the following exception:
+
+path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_restoring_old_backup_can_0/bridge.db')
+destination = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_restoring_old_backup_can_0/pending-backup.db')
+
+    def _backup_sqlite(path: Path, destination: Path) -> Path:
+        destination = Path(destination)
+        temporary = destination.with_name(destination.name + "." + uuid.uuid4().hex + ".tmp")
+        try:
+            if destination.resolve() == path.resolve() or os.path.lexists(destination):
+                raise ValueError("backup destination must be a new file")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            deadline = time.monotonic() + 10
+            def progress(_status, _remaining, _total):
+                if time.monotonic() > deadline:
+                    raise StorageUnavailable("backup deadline exceeded")
+            with sqlite3.connect(path.resolve().as_uri() + "?mode=ro", uri=True, timeout=2) as source:
+                with sqlite3.connect(temporary) as output:
+                    source.backup(output, pages=128, progress=progress, sleep=.05)
+                    if output.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+                        raise StorageUnavailable("backup integrity check failed")
+            # Publish without overwriting another backup; hard link is atomic on the
+            # verified local/block filesystems supported by this deployment.
+            with temporary.open("rb") as stream:
+                os.fsync(stream.fileno())
+            os.link(temporary, destination)
+            return destination
+        except (OSError, sqlite3.Error) as exc:
+>           raise StorageUnavailable("delivery backup unavailable") from exc
+E           k8s_inspector.bridge_store.StorageUnavailable: delivery backup unavailable
+
+k8s_inspector\bridge_store.py:105: StorageUnavailable
+
+During handling of the above exception, another exception occurred:
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x0000017D6932C890>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_restoring_old_backup_can_0')
+
+    def test_restoring_old_backup_can_replay_a_confirmed_external_send(store, tmp_path):
+>       backup = store.backup(tmp_path / "pending-backup.db")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_migrations.py:96: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\bridge_store.py:390: in backup
+    return _backup_sqlite(self.path, destination)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\bridge_store.py:107: in _backup_sqlite
+    temporary.unlink(missing_ok=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_restoring_old_backup_can_0/pending-backup.db.29b2fefdab5942cba1f12733c0a1bddd.tmp')
+missing_ok = True
+
+    def unlink(self, missing_ok=False):
+        """
+        Remove this file or link.
+        If the path is a directory, use rmdir() instead.
+        """
+        try:
+>           os.unlink(self)
+E           PermissionError: [WinError 32] ��һ����������ʹ�ô��ļ��������޷����ʡ�: 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1435\\test_restoring_old_backup_can_0\\pending-backup.db.29b2fefdab5942cba1f12733c0a1bddd.tmp'
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\pathlib.py:1342: PermissionError
+______________ test_local_admin_backup_uses_consistent_snapshot _______________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x0000017D6931FE00>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1435/test_local_admin_backup_uses_c0')
+capsys = <_pytest.capture.CaptureFixture object at 0x0000017D6931FDA0>
+
+    def test_local_admin_backup_uses_consistent_snapshot(store, tmp_path, capsys):
+        from k8s_inspector.bridge_admin import main
+        backup = tmp_path / "admin-backup.db"
+>       assert main(["--db", str(store.path), "backup", "--destination", str(backup)]) == 0
+E       AssertionError: assert 1 == 0
+E        +  where 1 = <function main at 0x0000017D6A661620>(['--db', 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1435\\test_local_admin_backup_uses_c0\\bridg...:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1435\\test_local_admin_backup_uses_c0\\admin-backup.db'])
+
+tests\test_bridge_migrations.py:107: AssertionError
+---------------------------- Captured stdout call -----------------------------
+{"error": "maintenance failed; check database, arguments and local access"}
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_migrations.py::test_backup_restore_preserves_pending_and_schema_including_wal
+FAILED tests/test_bridge_migrations.py::test_migration_backups_before_transactional_upgrade
+FAILED tests/test_bridge_migrations.py::test_interrupted_migration_rolls_back_and_can_retry
+FAILED tests/test_bridge_migrations.py::test_restoring_old_backup_can_replay_a_confirmed_external_send
+FAILED tests/test_bridge_migrations.py::test_local_admin_backup_uses_consistent_snapshot
+5 failed, 36 passed in 8.37s

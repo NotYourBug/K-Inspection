@@ -1,0 +1,315 @@
+FFFFFFFF............                                                     [100%]
+================================== FAILURES ===================================
+______ test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport _______
+
+job = DeliveryJob(delivery_id='c9c8805e-537e-47bd-b769-7ad7f3eeaab3', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6A560D940>
+
+    def test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport(job, monkeypatch):
+        from lark_oapi.core.token.manager import TokenManager
+        from lark_oapi.core.http import transport
+        seen = []
+        monkeypatch.setattr(TokenManager, "get_self_tenant_token", lambda _cfg: "fake-token")
+        def request(*args, **kwargs):
+            seen.append(kwargs)
+            return SimpleNamespace(status_code=200, headers={}, content=b'{"code":0,"data":{"message_id":"om_confirmed"}}')
+        monkeypatch.setattr(transport.requests, "request", request)
+        client = FeishuAppClient(FeishuAppConfig("app", "secret"))
+>       sender = adapter(feishu_app=client)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______ test_business_or_http_failure_is_never_success[230002-400-False] _______
+
+job = DeliveryJob(delivery_id='0a2f9f82-ca54-4491-a4a1-072fefa804cf', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE80AF60>
+code = 230002, status = 400, retryable = False
+
+    @pytest.mark.parametrize("code,status,retryable", [(230002, 400, False), (99991672, 400, False),
+        (99991400, 200, True), (999, 200, True), (999, 503, True)])
+    def test_business_or_http_failure_is_never_success(job, monkeypatch, code, status, retryable):
+        from k8s_inspector import feishu_app
+        client = FeishuAppClient.__new__(FeishuAppClient)
+        client._client = SimpleNamespace(im=SimpleNamespace(v1=SimpleNamespace(message=SimpleNamespace(
+            create=lambda _req: SimpleNamespace(success=lambda: False, code=code, msg="secret-token",
+                raw=SimpleNamespace(status_code=status, headers={"Retry-After": "45"}))))))
+>       result = adapter(feishu_app=client).send(job)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____ test_business_or_http_failure_is_never_success[99991672-400-False] ______
+
+job = DeliveryJob(delivery_id='29067302-2ba4-486c-982e-0be8fbb3d889', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE80BE00>
+code = 99991672, status = 400, retryable = False
+
+    @pytest.mark.parametrize("code,status,retryable", [(230002, 400, False), (99991672, 400, False),
+        (99991400, 200, True), (999, 200, True), (999, 503, True)])
+    def test_business_or_http_failure_is_never_success(job, monkeypatch, code, status, retryable):
+        from k8s_inspector import feishu_app
+        client = FeishuAppClient.__new__(FeishuAppClient)
+        client._client = SimpleNamespace(im=SimpleNamespace(v1=SimpleNamespace(message=SimpleNamespace(
+            create=lambda _req: SimpleNamespace(success=lambda: False, code=code, msg="secret-token",
+                raw=SimpleNamespace(status_code=status, headers={"Retry-After": "45"}))))))
+>       result = adapter(feishu_app=client).send(job)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______ test_business_or_http_failure_is_never_success[99991400-200-True] ______
+
+job = DeliveryJob(delivery_id='0b1ffc3a-eac0-4fed-af7b-1def74b8055f', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE80AFC0>
+code = 99991400, status = 200, retryable = True
+
+    @pytest.mark.parametrize("code,status,retryable", [(230002, 400, False), (99991672, 400, False),
+        (99991400, 200, True), (999, 200, True), (999, 503, True)])
+    def test_business_or_http_failure_is_never_success(job, monkeypatch, code, status, retryable):
+        from k8s_inspector import feishu_app
+        client = FeishuAppClient.__new__(FeishuAppClient)
+        client._client = SimpleNamespace(im=SimpleNamespace(v1=SimpleNamespace(message=SimpleNamespace(
+            create=lambda _req: SimpleNamespace(success=lambda: False, code=code, msg="secret-token",
+                raw=SimpleNamespace(status_code=status, headers={"Retry-After": "45"}))))))
+>       result = adapter(feishu_app=client).send(job)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________ test_business_or_http_failure_is_never_success[999-200-True] _________
+
+job = DeliveryJob(delivery_id='00c9f608-e627-4a1b-862a-1757bfc137b7', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE8B1C70>
+code = 999, status = 200, retryable = True
+
+    @pytest.mark.parametrize("code,status,retryable", [(230002, 400, False), (99991672, 400, False),
+        (99991400, 200, True), (999, 200, True), (999, 503, True)])
+    def test_business_or_http_failure_is_never_success(job, monkeypatch, code, status, retryable):
+        from k8s_inspector import feishu_app
+        client = FeishuAppClient.__new__(FeishuAppClient)
+        client._client = SimpleNamespace(im=SimpleNamespace(v1=SimpleNamespace(message=SimpleNamespace(
+            create=lambda _req: SimpleNamespace(success=lambda: False, code=code, msg="secret-token",
+                raw=SimpleNamespace(status_code=status, headers={"Retry-After": "45"}))))))
+>       result = adapter(feishu_app=client).send(job)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________ test_business_or_http_failure_is_never_success[999-503-True] _________
+
+job = DeliveryJob(delivery_id='247abe3c-fd90-4f3d-be18-123a5cf6fc1f', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE80BEF0>
+code = 999, status = 503, retryable = True
+
+    @pytest.mark.parametrize("code,status,retryable", [(230002, 400, False), (99991672, 400, False),
+        (99991400, 200, True), (999, 200, True), (999, 503, True)])
+    def test_business_or_http_failure_is_never_success(job, monkeypatch, code, status, retryable):
+        from k8s_inspector import feishu_app
+        client = FeishuAppClient.__new__(FeishuAppClient)
+        client._client = SimpleNamespace(im=SimpleNamespace(v1=SimpleNamespace(message=SimpleNamespace(
+            create=lambda _req: SimpleNamespace(success=lambda: False, code=code, msg="secret-token",
+                raw=SimpleNamespace(status_code=status, headers={"Retry-After": "45"}))))))
+>       result = adapter(feishu_app=client).send(job)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____ test_webhook_business_failure_timeout_and_credentials_are_redacted ______
+
+job = DeliveryJob(delivery_id='607f6ac0-890d-4d2f-ac00-93f570d869d1', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE80A690>
+
+    def test_webhook_business_failure_timeout_and_credentials_are_redacted(job, monkeypatch):
+        from k8s_inspector import notify
+        job = replace(job, payload={"mode": "webhook", "text": "alert"})
+>       sender = adapter(webhooks={job.destination_id: "https://example.invalid/secret-token"})
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_adapter.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+____________ test_webhook_http_rate_limit_and_missing_credentials _____________
+
+job = DeliveryJob(delivery_id='1cf0f19a-e233-4190-8608-a8773bb51139', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001E6AE8207D0>
+
+    def test_webhook_http_rate_limit_and_missing_credentials(job, monkeypatch):
+        from k8s_inspector import notify
+        job = replace(job, payload={"mode": "webhook", "text": "alert"})
+>       assert adapter().send(job).error_kind == "configuration"
+               ^^^^^^^^^
+
+tests\test_delivery_adapter.py:86: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_adapter.py:17: in adapter
+    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_adapter'
+import_ = <function _gcd_import at 0x000001E6A1E580E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_adapter'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+============================== warnings summary ===============================
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py:35: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+FAILED tests/test_delivery_adapter.py::test_business_or_http_failure_is_never_success[230002-400-False]
+FAILED tests/test_delivery_adapter.py::test_business_or_http_failure_is_never_success[99991672-400-False]
+FAILED tests/test_delivery_adapter.py::test_business_or_http_failure_is_never_success[99991400-200-True]
+FAILED tests/test_delivery_adapter.py::test_business_or_http_failure_is_never_success[999-200-True]
+FAILED tests/test_delivery_adapter.py::test_business_or_http_failure_is_never_success[999-503-True]
+FAILED tests/test_delivery_adapter.py::test_webhook_business_failure_timeout_and_credentials_are_redacted
+FAILED tests/test_delivery_adapter.py::test_webhook_http_rate_limit_and_missing_credentials
+8 failed, 12 passed, 2 warnings in 118.03s (0:01:58)

@@ -1,0 +1,22 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_ test_retry_deadline_survives_restart_but_does_not_expire_queued_first_attempt _
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001F806F69490>
+
+    def test_retry_deadline_survives_restart_but_does_not_expire_queued_first_attempt(store):
+        clock, provider = Clock(), Provider(DeliveryResult(False, True))
+        clock.advance(2000)  # Backlog waiting is not part of a not-yet-started retry budget.
+        assert worker(store, provider, clock).run_once()
+        assert len(provider.calls) == 1
+        clock.advance(901)
+        assert worker(DeliveryStore(store.path), provider, clock).run_once()
+>       assert len(provider.calls) == 1
+E       AssertionError: assert 2 == 1
+E        +  where 2 = len(['4eb1738d-1745-4620-b9e6-588e8d8cc6f3', '4eb1738d-1745-4620-b9e6-588e8d8cc6f3'])
+E        +    where ['4eb1738d-1745-4620-b9e6-588e8d8cc6f3', '4eb1738d-1745-4620-b9e6-588e8d8cc6f3'] = <tests.test_delivery_worker.Provider object at 0x000001F806F47F50>.calls
+
+tests\test_delivery_worker.py:154: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_worker.py::test_retry_deadline_survives_restart_but_does_not_expire_queued_first_attempt
+1 failed, 10 deselected in 1.26s
