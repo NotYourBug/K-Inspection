@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import csv
 import json
+import io
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -19,12 +22,31 @@ def _ensure_dir(p: Path) -> None:
     p.mkdir(parents=True, exist_ok=True)
 
 
+def atomic_write_text(path: Path, text: str) -> None:
+    """Publish a complete file, keeping the previous version on failure."""
+    path = Path(path)
+    _ensure_dir(path.parent)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="",
+                                         dir=path.parent, prefix=f".{path.name}.",
+                                         suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def write_json(report: Report, out_dir: str) -> Path:
     """Write report.json with full structured results."""
     p = Path(out_dir)
     _ensure_dir(p)
     fp = p / "report.json"
-    fp.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+    atomic_write_text(fp, json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
     return fp
 
 
@@ -33,11 +55,12 @@ def write_csv(report: Report, out_dir: str) -> Path:
     p = Path(out_dir)
     _ensure_dir(p)
     fp = p / "report.csv"
-    with fp.open("w", encoding="utf-8", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["generated_at", "cluster", "check", "status", "summary", "duration_ms"])
-        for r in report.results:
-            w.writerow([report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""])
+    buffer = io.StringIO(newline="")
+    w = csv.writer(buffer)
+    w.writerow(["generated_at", "cluster", "check", "status", "summary", "duration_ms"])
+    for r in report.results:
+        w.writerow([report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""])
+    atomic_write_text(fp, buffer.getvalue())
     return fp
 
 
@@ -100,7 +123,7 @@ def write_html(report: Report, out_dir: str) -> Path:
 </body>
 </html>
 """
-    fp.write_text(html, encoding="utf-8")
+    atomic_write_text(fp, html)
     return fp
 
 

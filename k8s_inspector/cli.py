@@ -12,7 +12,9 @@ import argparse
 import logging
 import os
 import shutil
+import stat
 import sys
+from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -28,11 +30,11 @@ logger = logging.getLogger(__name__)
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds")
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def _now_dt() -> datetime:
-    return datetime.now(timezone.utc).astimezone()
+    return datetime.now(timezone.utc)
 
 
 def _should_persist(report: Report, persist_level: str) -> bool:
@@ -49,11 +51,21 @@ def _resolve_output_dir(base_out_dir: str, archive: str, now: datetime) -> str:
     if a in {"none", "flat"}:
         return base_out_dir
     p = Path(base_out_dir)
-    if a == "hourly":
-        return str(p / now.strftime("%Y%m%d%H"))
-    if a == "daily":
-        return str(p / now.strftime("%Y%m%d"))
+    now = now.astimezone(timezone.utc)
+    if a in {"hourly", "daily"}:
+        bucket = now.strftime("%Y%m%d%H" if a == "hourly" else "%Y%m%d")
+        return str(p / bucket / (now.strftime("%Y%m%dT%H%M%SZ") + "_" + uuid4().hex))
     return base_out_dir
+
+
+def _output_locations(base: Path, profile: str, archive: str) -> tuple[Path, Path]:
+    """Accept both a general output root and the deployed canonical paths."""
+    if base.name == profile and base.parent.name == "latest":
+        root = base.parent.parent
+        return base, (root / "archive" / archive if archive != "none" else base)
+    if archive != "none" and base.name == archive and base.parent.name == "archive":
+        return base.parent.parent / "latest" / profile, base
+    return base / "latest" / profile, (base / "archive" / archive if archive != "none" else base)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -86,7 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--persist-level",
         default="all",
         choices=["all", "issue", "none"],
-        help="Persistence level: all=always write; issue=only on WARN/FAIL; none=never",
+        help="Extra output/archive policy; canonical latest JSON is always refreshed",
     )
     run.add_argument(
         "--archive",
@@ -136,6 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cleanup.add_argument("--hourly-days", default=7, type=int, help="Hourly archive retention days (default 7)")
     cleanup.add_argument("--daily-days", default=30, type=int, help="Daily archive retention days (default 30)")
+    cleanup.add_argument("--dry-run", action="store_true", help="List expired archives without deleting")
 
     return p
 
@@ -172,9 +185,11 @@ def cmd_run(args: argparse.Namespace) -> int:
     )
 
     formats = {f.strip().lower() for f in str(args.formats).split(",") if f.strip()}
+    latest, extra_base = _output_locations(Path(args.output_dir), args.profile, args.archive)
+    write_json(report, str(latest))
     if _should_persist(report, str(args.persist_level)):
-        out_dir = _resolve_output_dir(str(args.output_dir), str(args.archive), now)
-        if "json" in formats:
+        out_dir = _resolve_output_dir(str(extra_base), str(args.archive), now)
+        if "json" in formats and Path(out_dir) != latest:
             write_json(report, out_dir)
         if "csv" in formats:
             write_csv(report, out_dir)
@@ -212,12 +227,41 @@ def cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
-def _cleanup_subdirs(root: Path, keep_days: int, fmt: str) -> int:
+def _is_reparse(path: Path) -> bool:
+    info = path.lstat()
+    return stat.S_ISLNK(info.st_mode) or bool(getattr(info, "st_file_attributes", 0) & 0x400)
+
+
+def _safe_archive(root: Path, target: Path) -> None:
+    if _is_reparse(root) or _is_reparse(target):
+        raise ValueError("Refusing symlink/reparse archive target")
+    resolved_root, resolved_target = root.resolve(), target.resolve()
+    resolved_target.relative_to(resolved_root)
+    if resolved_target == resolved_root or resolved_target.parent != resolved_root:
+        raise ValueError("Archive target is not a direct child of root")
+    def walk_error(exc: OSError) -> None:
+        raise exc
+    for parent, directories, filenames in os.walk(target, followlinks=False, onerror=walk_error):
+        for name in directories + filenames:
+            child = Path(parent) / name
+            if _is_reparse(child):
+                raise ValueError("Refusing archive containing symlink/reparse entries")
+            child.resolve().relative_to(resolved_root)
+
+
+def _cleanup_subdirs(root: Path, keep_days: int, fmt: str, *, dry_run: bool = False,
+                     error_sink: list[str] | None = None) -> int:
+    errors = error_sink if error_sink is not None else []
+    if keep_days < 0:
+        raise ValueError("Retention days must be non-negative")
     if keep_days <= 0:
         return 0
     if not root.exists():
         return 0
-    now = _now_dt().replace(minute=0, second=0, microsecond=0)
+    if _is_reparse(root):
+        errors.append(f"Refusing symlink/reparse root: {root}")
+        return 0
+    now = _now_dt().astimezone(timezone.utc).replace(minute=0, second=0, microsecond=0)
     cutoff = now - timedelta(days=keep_days)
     removed = 0
     for p in root.iterdir():
@@ -230,10 +274,20 @@ def _cleanup_subdirs(root: Path, keep_days: int, fmt: str) -> int:
             dt = datetime.strptime(name, fmt)
         except Exception:
             continue
-        dt = dt.replace(tzinfo=_now_dt().tzinfo)
+        if dt.strftime(fmt) != name:
+            continue
+        dt = dt.replace(tzinfo=timezone.utc)
         if dt < cutoff:
-            shutil.rmtree(p, ignore_errors=True)
-            removed += 1
+            try:
+                _safe_archive(root, p)
+                if dry_run:
+                    logger.info("Would remove archive: %s", p)
+                else:
+                    shutil.rmtree(p)
+                    removed += 1
+            except (OSError, ValueError) as exc:
+                errors.append(f"Archive removal failed: {p}: {type(exc).__name__}")
+                logger.error("%s", errors[-1])
     return removed
 
 
@@ -241,10 +295,19 @@ def cmd_cleanup(args: argparse.Namespace) -> int:
     root = Path(str(args.root))
     hourly = root / "hourly"
     daily = root / "daily"
-    removed_hourly = _cleanup_subdirs(hourly, int(args.hourly_days), "%Y%m%d%H")
-    removed_daily = _cleanup_subdirs(daily, int(args.daily_days), "%Y%m%d")
+    errors: list[str] = []
+    try:
+        if root.exists() and _is_reparse(root):
+            raise ValueError("Refusing symlink/reparse archive root")
+        removed_hourly = _cleanup_subdirs(hourly, int(args.hourly_days), "%Y%m%d%H",
+                                          dry_run=args.dry_run, error_sink=errors)
+        removed_daily = _cleanup_subdirs(daily, int(args.daily_days), "%Y%m%d",
+                                         dry_run=args.dry_run, error_sink=errors)
+    except (OSError, ValueError) as exc:
+        logger.error("Cleanup failed: %s", exc)
+        return 1
     logger.info("cleanup done: hourly_removed=%d daily_removed=%d", removed_hourly, removed_daily)
-    return 0
+    return 1 if errors else 0
 
 
 def main(argv: list[str] | None = None) -> int:
