@@ -16,7 +16,7 @@ from k8s_inspector.checks import (
 )
 from k8s_inspector.config import InspectorConfig
 from k8s_inspector.models import Status
-from tests.factories import pod as make_sdk_pod, container_status
+from tests.factories import pod as make_sdk_pod, container_status, pvc as make_pvc, storage_class
 
 
 @pytest.fixture
@@ -152,13 +152,12 @@ class TestCheckPendingPvcs:
 
     def test_pending_pvc_is_fail(self, cfg):
         core = MagicMock()
-        pvc = MagicMock()
-        pvc.status.phase = "Pending"
-        pvc.metadata.namespace = "ns"
-        pvc.metadata.name = "stuck-pvc"
+        pvc = make_pvc("stuck-pvc", phase="Pending", storage_class="immediate")
         core.list_persistent_volume_claim_for_all_namespaces.return_value.items = [pvc]
-
-        result = check_pending_pvcs(core)
+        core.list_pod_for_all_namespaces.return_value.items = []
+        storage = MagicMock()
+        storage.list_storage_class.return_value.items = [storage_class("immediate")]
+        result = check_pending_pvcs(core, cfg, storage)
         assert result.status == Status.FAIL
         assert len(result.data["pending"]) == 1
 

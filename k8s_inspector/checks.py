@@ -160,32 +160,86 @@ def check_nodes(
         )
 
 
-def check_pending_pvcs(core: client.CoreV1Api) -> CheckResult:
-    """PVC inspection: FAIL if any PVC is stuck in Pending phase."""
+def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = None,
+                       storage: client.StorageV1Api | None = None, *,
+                       now: datetime | None = None) -> CheckResult:
+    """Distinguish Lost, stale Pending, and expected delayed binding."""
     t0 = time.perf_counter()
     name = "pvcs"
+    cfg = cfg or InspectorConfig()
+    now = now or datetime.now(timezone.utc)
     try:
         pvcs = core.list_persistent_volume_claim_for_all_namespaces().items
-        pending: list[dict[str, str]] = []
+        pending: list[dict[str, Any]] = []
+        lost: list[dict[str, str]] = []
+        unknown: list[dict[str, str]] = []
+        candidates: list[Any] = []
+        errors: list[str] = []
+        within_grace = 0
+        waiting = 0
         for pvc in pvcs:
             phase = pvc.status.phase if pvc.status else ""
+            identity = {"namespace": pvc.metadata.namespace if pvc.metadata else "",
+                        "name": pvc.metadata.name if pvc.metadata else ""}
+            if phase == "Lost":
+                lost.append(identity)
             if phase == "Pending":
-                ns = pvc.metadata.namespace if pvc.metadata else ""
-                n = pvc.metadata.name if pvc.metadata else ""
-                pending.append({"namespace": ns, "name": n})
-        if pending:
-            return CheckResult(
-                name=name,
-                status=Status.FAIL,
-                summary=f"Pending PVCs: {len(pending)}",
-                data={"pending": pending},
-                duration_ms=_duration_ms(t0),
-            )
+                age = _elapsed(pvc.metadata.creation_timestamp if pvc.metadata else None, now)
+                if age is None:
+                    unknown.append(identity)
+                elif age < cfg.pvc_pending_grace_seconds:
+                    within_grace += 1
+                else:
+                    candidates.append(pvc)
+            elif phase not in {"Bound", "Lost"}:
+                unknown.append(identity)
+        classes: dict[str, Any] = {}
+        consumers: dict[tuple[str, str], list[str]] = {}
+        associations_ok = storage is not None
+        if candidates and storage is not None:
+            try:
+                classes = {sc.metadata.name: sc for sc in storage.list_storage_class().items}
+                pods = core.list_pod_for_all_namespaces(watch=False).items
+                for p in pods:
+                    if not p.metadata or not p.spec or p.metadata.deletion_timestamp:
+                        continue
+                    if p.status and p.status.phase in {"Succeeded", "Failed"}:
+                        continue
+                    for volume in p.spec.volumes or []:
+                        claim = volume.persistent_volume_claim
+                        if claim:
+                            consumers.setdefault((p.metadata.namespace, claim.claim_name), []).append(
+                                p.metadata.name)
+            except Exception as exc:
+                errors.append(f"PVC association unavailable: {type(exc).__name__}")
+                associations_ok = False
+        elif candidates:
+            errors.append("PVC association unavailable: storage client not supplied")
+        for pvc in candidates:
+            identity = {"namespace": pvc.metadata.namespace, "name": pvc.metadata.name}
+            sc_name = pvc.spec.storage_class_name if pvc.spec else None
+            sc = classes.get(sc_name)
+            if not associations_ok or (sc is None and sc_name != ""):
+                unknown.append(identity)
+                continue
+            mode = (sc.volume_binding_mode or "Immediate") if sc else "Static"
+            pod_names = consumers.get((pvc.metadata.namespace, pvc.metadata.name), [])
+            if mode == "WaitForFirstConsumer" and not pod_names:
+                waiting += 1
+                continue
+            pending.append({**identity, "binding_mode": mode,
+                            "storage_class": sc_name, "consumers": sorted(set(pod_names))})
+        status = Status.FAIL if lost or pending else (
+            Status.WARN if unknown or errors else Status.PASS)
         return CheckResult(
             name=name,
-            status=Status.PASS,
-            summary=f"PVCs bound: {len(pvcs)}",
-            data={"count": len(pvcs)},
+            status=status,
+            summary=(f"PVCs: lost={len(lost)} stuck_pending={len(pending)} "
+                     f"waiting_for_consumer={waiting} unknown={len(unknown)}"),
+            data={"count": len(pvcs), "pending": pending, "lost": lost,
+                  "lost_count": len(lost), "waiting_for_consumer": waiting,
+                  "within_grace": within_grace, "unknown": unknown,
+                  "collection_errors": errors},
             duration_ms=_duration_ms(t0),
         )
     except Exception as e:
@@ -587,7 +641,7 @@ def run_all(
         return [
             check_nodes(core, custom, cfg, include_metrics=False),
             check_pods(core, cfg),
-            check_pending_pvcs(core),
+            check_pending_pvcs(core, cfg, storage),
         ]
     if p in {"10m", "controlplane-10m", "controlplane"}:
         return [check_control_plane(core, api_client, cfg)]
@@ -596,14 +650,14 @@ def run_all(
             check_control_plane(core, api_client, cfg),
             check_nodes(core, custom, cfg, include_metrics=True),
             check_pods(core, cfg),
-            check_pending_pvcs(core),
+            check_pending_pvcs(core, cfg, storage),
         ]
     if p in {"daily", "1d", "full"}:
         return [
             check_control_plane(core, api_client, cfg),
             check_nodes(core, custom, cfg, include_metrics=True),
             check_pods(core, cfg),
-            check_pending_pvcs(core),
+            check_pending_pvcs(core, cfg, storage),
             check_warning_events(core, cfg),
             check_kube_system_addons(core, cfg),
         ]
@@ -618,7 +672,7 @@ def run_all(
         check_control_plane(core, api_client, cfg),
         check_nodes(core, custom, cfg, include_metrics=True),
         check_pods(core, cfg),
-        check_pending_pvcs(core),
+        check_pending_pvcs(core, cfg, storage),
         check_warning_events(core, cfg),
         check_kube_system_addons(core, cfg),
     ]
