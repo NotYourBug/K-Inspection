@@ -1,0 +1,4 @@
+# These audit artifacts are hashed as captured. Keep their original bytes on
+# every checkout; platform newline conversion would invalidate the manifest.
+/审计/2026-10-15-可靠投递验证/** -text
+/审计/1[345]-* -text
