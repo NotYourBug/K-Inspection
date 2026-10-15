@@ -134,6 +134,8 @@ class TestPodIssue:
 
     def test_terminated_oom_killed(self):
         cs = self._cs(terminated_reason="OOMKilled")
+        # The current termination is a fault; last_state alone is historical.
+        cs.state, cs.last_state = cs.last_state, None
         assert pod_issue([cs], "Running", 0) == "terminated=OOMKilled"
 
     def test_restart_threshold(self):

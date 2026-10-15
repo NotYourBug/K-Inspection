@@ -16,6 +16,7 @@ from k8s_inspector.checks import (
 )
 from k8s_inspector.config import InspectorConfig
 from k8s_inspector.models import Status
+from tests.factories import pod as make_sdk_pod, container_status
 
 
 @pytest.fixture
@@ -174,26 +175,12 @@ class TestCheckPendingPvcs:
 
 
 def _make_pod(name, ns, phase="Running", container_statuses=None):
-    pod = MagicMock()
-    pod.metadata.name = name
-    pod.metadata.namespace = ns
-    pod.status.phase = phase
-    pod.status.container_statuses = container_statuses or []
-    return pod
+    return make_sdk_pod(name, namespace=ns, phase=phase,
+                        container_statuses=container_statuses or [])
 
 
 def _make_cs(waiting_reason=None, restart_count=0):
-    cs = MagicMock()
-    cs.restart_count = restart_count
-    if waiting_reason:
-        cs.state = MagicMock()
-        cs.state.waiting = MagicMock()
-        cs.state.waiting.reason = waiting_reason
-        cs.last_state = None
-    else:
-        cs.state = None
-        cs.last_state = None
-    return cs
+    return container_status(waiting=waiting_reason, restarts=restart_count)
 
 
 class TestCheckPods:

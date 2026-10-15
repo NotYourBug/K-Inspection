@@ -124,8 +124,8 @@ def pod_issue(container_statuses: list[Any], phase: str, restart_threshold: int)
     for cs in container_statuses:
         if cs.state and cs.state.waiting and cs.state.waiting.reason in BAD_POD_REASONS:
             return f"waiting={cs.state.waiting.reason}"
-        if cs.last_state and cs.last_state.terminated and cs.last_state.terminated.reason in BAD_POD_REASONS:
-            return f"terminated={cs.last_state.terminated.reason}"
+        if cs.state and cs.state.terminated and cs.state.terminated.reason in BAD_POD_REASONS:
+            return f"terminated={cs.state.terminated.reason}"
 
     if restart_threshold > 0:
         for cs in container_statuses:

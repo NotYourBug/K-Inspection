@@ -10,6 +10,7 @@ Conventions:
 from __future__ import annotations
 
 import time
+from datetime import datetime, timezone
 from typing import Any
 
 from kubernetes import client
@@ -208,6 +209,90 @@ def _pod_issue_from_obj(pod: client.V1Pod, restart_threshold: int) -> str | None
     )
 
 
+def _elapsed(timestamp: datetime | None, now: datetime) -> float | None:
+    if not isinstance(timestamp, datetime) or timestamp.tzinfo is None:
+        return None
+    seconds = (now - timestamp).total_seconds()
+    return seconds if seconds >= 0 else None
+
+
+def evaluate_pod_state(pod: client.V1Pod, cfg: InspectorConfig,
+                       now: datetime) -> dict[str, Any]:
+    """Separate present failures, historical instability and unknown readiness."""
+    if now.tzinfo is None:
+        raise ValueError("Observation time must be timezone-aware")
+    current: list[dict[str, Any]] = []
+    history: list[dict[str, Any]] = []
+    result: dict[str, Any] = {
+        "current_issues": current, "historical_issues": history,
+        "readiness": "UNKNOWN", "observed_at": now.astimezone(timezone.utc).isoformat(),
+    }
+    status, metadata = pod.status, pod.metadata
+    if not status:
+        return result
+    if metadata and metadata.deletion_timestamp:
+        result["readiness"] = "TERMINATING"
+        return result
+    phase = status.phase or ""
+    if phase == "Succeeded":
+        result["readiness"] = "COMPLETED"
+        return result
+    if phase in {"Failed", "Unknown"}:
+        current.append({"reason": f"Pod{phase}", "phase": phase})
+
+    for is_init, statuses in ((False, status.container_statuses or []),
+                              (True, status.init_container_statuses or [])):
+        for cs in statuses:
+            state = cs.state
+            if state and state.waiting and state.waiting.reason in BAD_POD_REASONS:
+                current.append({"reason": state.waiting.reason, "container": cs.name,
+                                "init": is_init})
+            if state and state.terminated and state.terminated.exit_code != 0:
+                current.append({"reason": "InitContainerFailed" if is_init else "ContainerFailed",
+                                "container": cs.name, "exit_code": state.terminated.exit_code,
+                                "termination_reason": state.terminated.reason})
+            last = cs.last_state.terminated if cs.last_state else None
+            if last and last.reason:
+                history.append({"reason": last.reason, "container": cs.name,
+                                "init": is_init,
+                                "finished_at": last.finished_at.isoformat()
+                                if last.finished_at else None})
+            if cfg.thresholds.pod_restart_count > 0 and (
+                    cs.restart_count or 0) >= cfg.thresholds.pod_restart_count:
+                history.append({"reason": "RestartCountHigh", "container": cs.name,
+                                "init": is_init, "restart_count": cs.restart_count})
+
+    if phase == "Pending":
+        age = _elapsed(metadata.creation_timestamp if metadata else None, now)
+        if age is None:
+            return result
+        if age < cfg.pod_pending_grace_seconds:
+            result["readiness"] = "GRACE"
+            return result
+        scheduled = next((c for c in status.conditions or []
+                          if c.type == "PodScheduled" and c.status == "False"), None)
+        current.append({"reason": (scheduled.reason or "PodPending") if scheduled else "PodPending",
+                        "message": scheduled.message if scheduled else None})
+        result["readiness"] = "UNHEALTHY"
+        return result
+    if current:
+        result["readiness"] = "UNHEALTHY"
+        return result
+    ready = next((c for c in status.conditions or [] if c.type == "Ready"), None)
+    if phase == "Running" and ready and ready.status == "True":
+        result["readiness"] = "HEALTHY"
+    elif phase == "Running" and ready and ready.status == "False":
+        elapsed = _elapsed(ready.last_transition_time, now)
+        if elapsed is not None:
+            if elapsed >= cfg.pod_unready_grace_seconds:
+                current.append({"reason": "PodNotReady", "message": ready.message,
+                                "unready_seconds": elapsed})
+                result["readiness"] = "UNHEALTHY"
+            else:
+                result["readiness"] = "GRACE"
+    return result
+
+
 def check_pods(core: client.CoreV1Api, cfg: InspectorConfig) -> CheckResult:
     """
     Pod inspection:
@@ -220,38 +305,37 @@ def check_pods(core: client.CoreV1Api, cfg: InspectorConfig) -> CheckResult:
         pods = core.list_pod_for_all_namespaces(watch=False).items
         bad: list[dict[str, str]] = []
         restart_heavy: list[dict[str, str]] = []
+        history: list[dict[str, Any]] = []
+        unknown: list[dict[str, str]] = []
+        observing: list[dict[str, str]] = []
+        now = datetime.now(timezone.utc)
         for p in pods:
             ns = p.metadata.namespace if p.metadata else ""
             pn = p.metadata.name if p.metadata else ""
-            issue = _pod_issue_from_obj(p, restart_threshold=0)
-            if issue:
-                bad.append({"namespace": ns, "name": pn, "issue": issue})
-                continue
-            issue2 = _pod_issue_from_obj(p, restart_threshold=cfg.thresholds.pod_restart_count)
-            if issue2 == f"restart_count>={cfg.thresholds.pod_restart_count}":
-                restart_heavy.append({"namespace": ns, "name": pn, "issue": issue2})
-
-        if bad:
-            return CheckResult(
-                name=name,
-                status=Status.FAIL,
-                summary=f"Abnormal Pods: {len(bad)}",
-                data={"bad": bad},
-                duration_ms=_duration_ms(t0),
-            )
-        if restart_heavy:
-            return CheckResult(
-                name=name,
-                status=Status.WARN,
-                summary=f"Pod restart count high: {len(restart_heavy)}",
-                data={"restart_heavy": restart_heavy, "restart_threshold": cfg.thresholds.pod_restart_count},
-                duration_ms=_duration_ms(t0),
-            )
+            identity = {"namespace": ns, "name": pn}
+            state = evaluate_pod_state(p, cfg, now)
+            if state["current_issues"]:
+                bad.append({**identity,
+                            "issue": "; ".join(x["reason"] for x in state["current_issues"])})
+            if state["historical_issues"]:
+                history.append({**identity, "issues": state["historical_issues"]})
+            if any(x["reason"] == "RestartCountHigh" for x in state["historical_issues"]):
+                restart_heavy.append({**identity,
+                                      "issue": f"restart_count>={cfg.thresholds.pod_restart_count}"})
+            if state["readiness"] == "UNKNOWN":
+                unknown.append(identity)
+            elif state["readiness"] in {"GRACE", "TERMINATING"}:
+                observing.append(identity)
+        status = Status.FAIL if bad else (
+            Status.WARN if restart_heavy or history or unknown else Status.PASS)
         return CheckResult(
             name=name,
-            status=Status.PASS,
-            summary=f"Pods healthy: {len(pods)}",
-            data={"count": len(pods)},
+            status=status,
+            summary=(f"Pods: current_failures={len(bad)} historical={len(history)} "
+                     f"unknown={len(unknown)} observing={len(observing)} total={len(pods)}"),
+            data={"count": len(pods), "bad": bad, "restart_heavy": restart_heavy,
+                  "restart_threshold": cfg.thresholds.pod_restart_count,
+                  "history": history, "unknown": unknown, "observing": observing},
             duration_ms=_duration_ms(t0),
         )
     except Exception as e:
