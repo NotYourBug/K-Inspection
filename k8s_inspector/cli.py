@@ -12,6 +12,7 @@ import argparse
 import logging
 import os
 import shutil
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -140,7 +141,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def cmd_run(args: argparse.Namespace) -> int:
-    cfg = load_config(args.config)
+    try:
+        cfg = load_config(args.config)
+    except (ValueError, OSError, RuntimeError) as exc:
+        print(f"Configuration error: {exc}", file=sys.stderr)
+        return 1
 
     kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
 
