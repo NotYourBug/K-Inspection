@@ -144,7 +144,7 @@ allow_noschedule_taints:
 
 ## 容器化与 CronJob
 
-配置中的未知字段、错误类型、非有限数值和无效范围会在连接集群前报错。重启阈值仍为累计计数；历史 OOM 不再冒充当前故障。Ready=False 的观察期使用 condition.lastTransitionTime；时间缺失为未知。正常 WaitForFirstConsumer 无消费者和宽限期内 Pending 单独记录，Lost 与超时绑定异常保留证据。
+配置中的未知字段、错误类型、非有限数值和无效范围会在连接集群前报错。重启阈值仍为累计计数；历史 OOM 不再冒充当前故障。Ready=False 的观察期使用 condition.lastTransitionTime；时间缺失为未知。WaitForFirstConsumer 结合消费者创建与调度转换时间计算绑定宽限；消费者因CPU等原因未调度时单独记录阻塞原因，不直接归咎于存储。缺少调度时间为未知，Lost 与已确认超时绑定保留故障证据。
 
 Addon 期望副本需要读取配置 namespace 内的 Deployment/DaemonSet；deploy/rbac.yaml 增加了 kube-system 内的只读 Role。若 control_plane_namespace 改为其他 namespace，应同步调整该 Role/RoleBinding。
 

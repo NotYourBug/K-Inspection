@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from datetime import timedelta
 from unittest.mock import MagicMock
 
 from kubernetes import client
@@ -41,6 +42,9 @@ def test_old_pending_with_failed_consumer_has_evidence():
     volume = client.V1Volume(name="data", persistent_volume_claim=
                              client.V1PersistentVolumeClaimVolumeSource(claim_name="data"))
     consumer = pod("app", phase="Pending", ready=False, volumes=[volume])
+    consumer.spec.node_name = "n1"
+    consumer.status.conditions.append(client.V1PodCondition(
+        type="PodScheduled", status="True", last_transition_time=NOW - timedelta(seconds=600)))
     core, storage = apis([pvc("data", phase="Pending", storage_class="delayed")],
                          [consumer], [storage_class("delayed", "WaitForFirstConsumer")])
     result = inspect(core, storage)

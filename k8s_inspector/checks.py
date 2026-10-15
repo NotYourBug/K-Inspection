@@ -74,6 +74,8 @@ def check_nodes(core: client.CoreV1Api, custom: client.CustomObjectsApi,
                 ("memory", "mem_utilization", cfg.thresholds.node_memory_utilization, "over_memory")):
                 row[key] = None
                 try:
+                    if usage[resource] is None or not str(usage[resource]).strip():
+                        raise ValueError("missing usage")
                     numerator = parse_quantity(usage[resource])
                     denominator = parse_quantity(capacity[name][resource])
                     if not math.isfinite(numerator) or not math.isfinite(denominator) or numerator < 0 or denominator <= 0:
@@ -112,6 +114,7 @@ def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = Non
         errors: list[str] = []
         within_grace = 0
         waiting = 0
+        blocked_by_consumers: list[dict[str, str]] = []
         for pvc in pvcs:
             phase = pvc.status.phase if pvc.status else ""
             identity = {"namespace": pvc.metadata.namespace if pvc.metadata else "",
@@ -129,7 +132,7 @@ def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = Non
             elif phase not in {"Bound", "Lost"}:
                 unknown.append(identity)
         classes: dict[str, Any] = {}
-        consumers: dict[tuple[str, str], list[str]] = {}
+        consumers: dict[tuple[str, str], list[Any]] = {}
         associations_ok = storage is not None
         if candidates and storage is not None:
             try:
@@ -143,8 +146,7 @@ def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = Non
                     for volume in p.spec.volumes or []:
                         claim = volume.persistent_volume_claim
                         if claim:
-                            consumers.setdefault((p.metadata.namespace, claim.claim_name), []).append(
-                                p.metadata.name)
+                            consumers.setdefault((p.metadata.namespace, claim.claim_name), []).append(p)
             except Exception as exc:
                 errors.append(f"PVC association unavailable: {type(exc).__name__}")
                 associations_ok = False
@@ -158,10 +160,39 @@ def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = Non
                 unknown.append(identity)
                 continue
             mode = (sc.volume_binding_mode or "Immediate") if sc else "Static"
-            pod_names = consumers.get((pvc.metadata.namespace, pvc.metadata.name), [])
-            if mode == "WaitForFirstConsumer" and not pod_names:
-                waiting += 1
-                continue
+            consumer_pods = consumers.get((pvc.metadata.namespace, pvc.metadata.name), [])
+            pod_names = [p.metadata.name for p in consumer_pods]
+            if mode == "WaitForFirstConsumer":
+                binding_expired = False
+                binding_unknown = False
+                in_grace = False
+                for p in consumer_pods:
+                    age = _elapsed(p.metadata.creation_timestamp, now)
+                    scheduled = next((c for c in (p.status.conditions or [])
+                                      if c.type == "PodScheduled"), None) if p.status else None
+                    if age is not None and age < cfg.pvc_pending_grace_seconds:
+                        in_grace = True
+                    elif scheduled and scheduled.status == "False":
+                        blocked_by_consumers.append({
+                            **identity, "pod": p.metadata.name,
+                            "reason": scheduled.reason or "NotScheduled"})
+                    elif scheduled and scheduled.status == "True":
+                        since_scheduled = _elapsed(scheduled.last_transition_time, now)
+                        if since_scheduled is None or age is None:
+                            binding_unknown = True
+                        elif min(since_scheduled, age) < cfg.pvc_pending_grace_seconds:
+                            in_grace = True
+                        else:
+                            binding_expired = True
+                    else:
+                        binding_unknown = True
+                if not binding_expired:
+                    if binding_unknown:
+                        unknown.append(identity)
+                    else:
+                        waiting += 1
+                        within_grace += int(in_grace)
+                    continue
             pending.append({**identity, "binding_mode": mode,
                             "storage_class": sc_name, "consumers": sorted(set(pod_names))})
         status = Status.FAIL if lost or pending else (
@@ -174,6 +205,7 @@ def check_pending_pvcs(core: client.CoreV1Api, cfg: InspectorConfig | None = Non
             data={"count": len(pvcs), "pending": pending, "lost": lost,
                   "lost_count": len(lost), "waiting_for_consumer": waiting,
                   "within_grace": within_grace, "unknown": unknown,
+                  "blocked_by_consumers": blocked_by_consumers,
                   "collection_errors": errors},
             duration_ms=_duration_ms(t0),
         )
@@ -251,6 +283,9 @@ def evaluate_pod_state(pod: client.V1Pod, cfg: InspectorConfig,
                 history.append({"reason": "RestartCountHigh", "container": cs.name,
                                 "init": is_init, "restart_count": cs.restart_count})
 
+    if current:
+        result["readiness"] = "UNHEALTHY"
+        return result
     if phase == "Pending":
         age = _elapsed(metadata.creation_timestamp if metadata else None, now)
         if age is None:
@@ -262,9 +297,6 @@ def evaluate_pod_state(pod: client.V1Pod, cfg: InspectorConfig,
                           if c.type == "PodScheduled" and c.status == "False"), None)
         current.append({"reason": (scheduled.reason or "PodPending") if scheduled else "PodPending",
                         "message": scheduled.message if scheduled else None})
-        result["readiness"] = "UNHEALTHY"
-        return result
-    if current:
         result["readiness"] = "UNHEALTHY"
         return result
     ready = next((c for c in status.conditions or [] if c.type == "Ready"), None)
@@ -392,7 +424,8 @@ def check_control_plane(core: client.CoreV1Api, api_client: client.ApiClient,
         health = {"ok": None, "error_kind": type(exc).__name__}
         errors.append("API health collection unavailable")
     cp: dict[str, Any] = {"apiserver_healthz": health, "components": {},
-                          "collection_errors": errors, "capability": "COMPLETE"}
+                          "collection_errors": errors, "capability": "COMPLETE",
+                          "unknown": []}
     unhealthy = health.get("ok") is False
     warning = health.get("ok") is not True
     now = datetime.now(timezone.utc)
@@ -402,14 +435,17 @@ def check_control_plane(core: client.CoreV1Api, api_client: client.ApiClient,
                                              label_selector=f"component={component}").items
             states = [(p, evaluate_pod_state(p, cfg, now)) for p in pods]
             bad = [{"name": p.metadata.name, "issues": state["current_issues"]}
-                   for p, state in states if state["current_issues"]]
+                   for p, state in states if state["current_issues"]
+                   or state["readiness"] == "COMPLETED"]
             historical = sum(bool(s["historical_issues"]) for _, s in states)
             ready = sum(s["readiness"] == "HEALTHY" for _, s in states)
             cp["components"][component] = {"found": len(pods), "ready": ready, "bad": bad}
             unhealthy = unhealthy or bool(bad)
             warning = warning or not pods or ready < len(pods) or historical > 0
-            if not pods:
+            if not pods or any(state["readiness"] == "UNKNOWN" for _, state in states):
                 cp["capability"] = "PARTIAL"
+                cp["unknown"].append({"component": component,
+                                      "reason": "NotVisible" if not pods else "UnknownReadiness"})
         except Exception as exc:
             errors.append(f"{component} collection unavailable: {type(exc).__name__}")
             cp["components"][component] = {"found": None, "ready": None}
@@ -429,7 +465,7 @@ def check_kube_system_addons(core: client.CoreV1Api, cfg: InspectorConfig,
     t0 = time.perf_counter()
     errors: list[str] = []
     out: dict[str, Any] = {"namespace": cfg.control_plane_namespace, "addons": {},
-                           "collection_errors": errors}
+                           "collection_errors": errors, "unknown": []}
     try:
         apps = apps if apps is not None else client.AppsV1Api(core.api_client)
     except Exception as exc:
@@ -450,6 +486,9 @@ def check_kube_system_addons(core: client.CoreV1Api, cfg: InspectorConfig,
                             "issues": state["current_issues"]}
                            for p, state in states if state["readiness"] != "HEALTHY"]
             warning = warning or not pods or bool(item["bad"])
+            if not pods or any(s["readiness"] == "UNKNOWN" for _, s in states):
+                out["unknown"].append({"addon": addon,
+                                       "reason": "NotVisible" if not pods else "UnknownReadiness"})
         except Exception as exc:
             errors.append(f"{addon} Pods unavailable: {type(exc).__name__}")
             warning = True
@@ -462,9 +501,14 @@ def check_kube_system_addons(core: client.CoreV1Api, cfg: InspectorConfig,
                                                           label_selector=selector).items
             if not deployments and not daemonsets:
                 warning = True
+                out["unknown"].append({"addon": addon, "reason": "ControllerExpectationsUnavailable"})
                 continue
             expected = sum(1 if d.spec.replicas is None else d.spec.replicas for d in deployments)
-            expected += sum(d.status.desired_number_scheduled or 0 for d in daemonsets)
+            if any(not d.status or d.status.desired_number_scheduled is None for d in daemonsets):
+                out["unknown"].append({"addon": addon, "reason": "DesiredReplicasUnknown"})
+                warning = True
+                continue
+            expected += sum(d.status.desired_number_scheduled for d in daemonsets)
             item["expected_replicas"] = expected
             warning = warning or item["ready"] is None or item["ready"] < expected
         except Exception as exc:
