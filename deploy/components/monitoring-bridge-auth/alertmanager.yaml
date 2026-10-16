@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      securityContext:
+        fsGroup: 65534
+      containers:
+      - name: alertmanager
+        volumeMounts:
+        - name: bridge-auth
+          mountPath: /etc/bridge-auth
+          readOnly: true
+      volumes:
+      - name: bridge-auth
+        secret:
+          secretName: inspector-bridge-auth
+          defaultMode: 288

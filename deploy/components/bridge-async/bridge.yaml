@@ -10,27 +10,27 @@ spec:
   template:
     spec:
       securityContext:
-        fsGroup: 65534
+        fsGroup: 10001
       containers:
-        - name: bridge
-          env:
-            - name: BRIDGE_DELIVERY_MODE
-              value: async
-            - name: BRIDGE_STATE_DB
-              value: /var/lib/inspector/bridge.db
-            - name: BRIDGE_SOURCES_FILE
-              value: /etc/bridge-auth/sources.json
-          volumeMounts:
-            - name: bridge-state
-              mountPath: /var/lib/inspector
-            - name: bridge-auth
-              mountPath: /etc/bridge-auth
-              readOnly: true
-      volumes:
+      - name: bridge
+        env:
+        - name: BRIDGE_DELIVERY_MODE
+          value: async
+        - name: BRIDGE_STATE_DB
+          value: /var/lib/inspector/bridge.db
+        - name: BRIDGE_SOURCES_FILE
+          value: /etc/bridge-auth/sources.json
+        volumeMounts:
         - name: bridge-state
-          persistentVolumeClaim:
-            claimName: k8s-inspector-bridge-state
+          mountPath: /var/lib/inspector
         - name: bridge-auth
-          secret:
-            secretName: inspector-bridge-auth
-            defaultMode: 0440
+          mountPath: /etc/bridge-auth
+          readOnly: true
+      volumes:
+      - name: bridge-state
+        persistentVolumeClaim:
+          claimName: k8s-inspector-bridge-state
+      - name: bridge-auth
+        secret:
+          secretName: inspector-bridge-auth
+          defaultMode: 288

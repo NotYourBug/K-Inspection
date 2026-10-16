@@ -1,0 +1,366 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-prometheus-data
+  namespace: kube-system
+  labels:
+    inspector.storage: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-report-sc
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-prometheus-config
+  namespace: kube-system
+data:
+  prometheus.yml: "global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\n\
+    rule_files:\n  - /etc/prometheus/rules/*.yaml\n\nalerting:\n  alertmanagers:\n\
+    \    - static_configs:\n        - targets:\n            - alertmanager:9093\n\n\
+    scrape_configs:\n  - job_name: prometheus\n    static_configs:\n      - targets:\
+    \ [\"127.0.0.1:9090\"]\n\n  - job_name: pushgateway\n    honor_labels: true\n\
+    \    static_configs:\n      - targets: [\"pushgateway:9091\"]\n"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-prometheus-rules
+  namespace: kube-system
+data:
+  k8s-inspector-rules.yaml: "groups:\n  - name: k8s-inspector\n    rules:\n      -\
+    \ alert: K8sInspectorStale\n        expr: |\n          (\n            time() -\
+    \ max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"5m\"})\n\
+    \          ) > 900\n          or\n          (\n            time() - max by (cluster,\
+    \ profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"})\n          ) >\
+    \ 1800\n          or\n          (\n            time() - max by (cluster, profile)\
+    \ (k8s_inspector_last_run_timestamp{profile=\"hourly\"})\n          ) > 7200\n\
+    \          or\n          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
+    daily|full\"})\n          ) > 129600\n        for: 5m\n        labels:\n     \
+    \     severity: critical\n        annotations:\n          summary: \"\u5DE1\u68C0\
+    \u4EFB\u52A1\u672A\u6309\u9884\u671F\u8FD0\u884C\uFF08stale\uFF09\"\n        \
+    \  description: \"k8s-inspector \u5728\u5BF9\u5E94 profile \u7684 last_run \u8D85\
+    \u8FC7\u9608\u503C\u672A\u66F4\u65B0\"\n\n      - alert: K8sInspectorHasFail\n\
+    \        expr: |\n          (\n            max by (cluster, profile) (k8s_inspector_report_summary{status=\"\
+    fail\",profile=\"5m\"}) > 0\n          )\n          and on (cluster, profile)\n\
+    \          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile) (k8s_inspector_report_summary{status=\"fail\",profile=\"10m\"}) > 0\n\
+    \          )\n          and on (cluster, profile)\n          (\n            time()\
+    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"\
+    }) < 1800\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile) (k8s_inspector_report_summary{status=\"fail\",profile=\"hourly\"})\
+    \ > 0\n          )\n          and on (cluster, profile)\n          (\n       \
+    \     time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    hourly\"}) < 7200\n          )\n          or\n          (\n            max by\
+    \ (cluster, profile) (k8s_inspector_report_summary{status=\"fail\",profile=~\"\
+    daily|full\"}) > 0\n          )\n          and on (cluster, profile)\n       \
+    \   (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
+    daily|full\"}) < 129600\n          )\n        for: 1m\n        labels:\n     \
+    \     severity: critical\n        annotations:\n          summary: \"\u5DE1\u68C0\
+    \u53D1\u73B0 FAIL\"\n          description: \"k8s-inspector report_summary{status=fail}\
+    \ > 0\"\n\n      - alert: K8sInspectorHasWarn\n        expr: |\n          (\n\
+    \            max by (cluster, profile) (k8s_inspector_report_summary{status=\"\
+    warn\",profile=\"5m\"}) > 0\n          )\n          and on (cluster, profile)\n\
+    \          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile) (k8s_inspector_report_summary{status=\"warn\",profile=\"10m\"}) > 0\n\
+    \          )\n          and on (cluster, profile)\n          (\n            time()\
+    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"\
+    }) < 1800\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile) (k8s_inspector_report_summary{status=\"warn\",profile=\"hourly\"})\
+    \ > 0\n          )\n          and on (cluster, profile)\n          (\n       \
+    \     time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    hourly\"}) < 7200\n          )\n          or\n          (\n            max by\
+    \ (cluster, profile) (k8s_inspector_report_summary{status=\"warn\",profile=~\"\
+    daily|full\"}) > 0\n          )\n          and on (cluster, profile)\n       \
+    \   (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
+    daily|full\"}) < 129600\n          )\n        for: 5m\n        labels:\n     \
+    \     severity: warning\n        annotations:\n          summary: \"\u5DE1\u68C0\
+    \u53D1\u73B0 WARN\"\n          description: \"k8s-inspector report_summary{status=warn}\
+    \ > 0\"\n\n      - alert: K8sInspectorCheckFail\n        expr: |\n          (\n\
+    \            max by (cluster, profile, check) (k8s_inspector_check_status{profile=\"\
+    5m\"}) == 2\n          )\n          and on (cluster, profile)\n          (\n \
+    \           time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile, check) (k8s_inspector_check_status{profile=\"10m\"}) == 2\n       \
+    \   )\n          and on (cluster, profile)\n          (\n            time() -\
+    \ max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"\
+    }) < 1800\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile, check) (k8s_inspector_check_status{profile=\"hourly\"}) == 2\n    \
+    \      )\n          and on (cluster, profile)\n          (\n            time()\
+    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"hourly\"\
+    }) < 7200\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile, check) (k8s_inspector_check_status{profile=~\"daily|full\"}) == 2\n\
+    \          )\n          and on (cluster, profile)\n          (\n            time()\
+    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"daily|full\"\
+    }) < 129600\n          )\n        for: 1m\n        labels:\n          severity:\
+    \ critical\n        annotations:\n          summary: \"\u68C0\u67E5\u9879 FAIL\"\
+    \n          description: \"check={{ $labels.check }} \u8FD4\u56DE FAIL\uFF082\uFF09\
+    \"\n\n      - alert: K8sInspectorPendingPVC\n        expr: |\n          (\n  \
+    \          max by (cluster, profile) (k8s_inspector_check_issue_count{check=\"\
+    pvcs\",issue=\"pending\",profile=\"5m\"}) > 0\n          )\n          and on (cluster,\
+    \ profile)\n          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile) (k8s_inspector_check_issue_count{check=\"pvcs\",issue=\"pending\",profile=\"\
+    10m\"}) > 0\n          )\n          and on (cluster, profile)\n          (\n \
+    \           time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    10m\"}) < 1800\n          )\n          or\n          (\n            max by (cluster,\
+    \ profile) (k8s_inspector_check_issue_count{check=\"pvcs\",issue=\"pending\",profile=\"\
+    hourly\"}) > 0\n          )\n          and on (cluster, profile)\n          (\n\
+    \            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
+    hourly\"}) < 7200\n          )\n          or\n          (\n            max by\
+    \ (cluster, profile) (k8s_inspector_check_issue_count{check=\"pvcs\",issue=\"\
+    pending\",profile=~\"daily|full\"}) > 0\n          )\n          and on (cluster,\
+    \ profile)\n          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
+    daily|full\"}) < 129600\n          )\n        for: 1m\n        labels:\n     \
+    \     severity: critical\n        annotations:\n          summary: \"\u5B58\u5728\
+    \ Pending PVC\"\n          description: \"pending pvc > 0\"\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.53.0
+        args:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention.time=45d
+        ports:
+        - name: http
+          containerPort: 9090
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus/prometheus.yml
+          subPath: prometheus.yml
+        - name: rules
+          mountPath: /etc/prometheus/rules
+        - name: data
+          mountPath: /prometheus
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: config
+        configMap:
+          name: k8s-inspector-prometheus-config
+      - name: rules
+        configMap:
+          name: k8s-inspector-prometheus-rules
+      - name: data
+        persistentVolumeClaim:
+          claimName: k8s-inspector-prometheus-data
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+  strategy:
+    type: Recreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - name: http
+    port: 9090
+    targetPort: http
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-alertmanager-data
+  namespace: kube-system
+  labels:
+    inspector.storage: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-report-sc
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-alertmanager-config
+  namespace: kube-system
+data:
+  alertmanager.yml: "route:\n  receiver: feishu-bridge\n  # \u901A\u77E5\u805A\u5408\
+    \u4E0E\u4E8B\u4EF6\u8EAB\u4EFD\u5206\u5F00\uFF1BBridge \u6309\u6BCF\u6761\u544A\
+    \u8B66\u6807\u7B7E\u8DEF\u7531\u5230\u5DF2\u6709\u7FA4\u3002\n  group_by: [\"\
+    cluster\"]\n  group_wait: 30s\n  group_interval: 5m\n  repeat_interval: 2h\n\n\
+    inhibit_rules:\n  - source_matchers:\n      - alertname=\"K8sInspectorStale\"\n\
+    \    target_matchers:\n      - alertname=~\"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC\"\
+    \n    equal: [\"cluster\", \"profile\"]\n\nreceivers:\n  - name: feishu-bridge\n\
+    \    webhook_configs:\n      - url: http://k8s-inspector-alert-bridge:8000/alert\n\
+    \        send_resolved: true\n        # Async cutover: enable only after mounting\
+    \ the matching Secret in\n        # both processes. See docs/runbooks/bridge-delivery.md.\n\
+    \        # http_config:\n        #   authorization:\n        #     type: Bearer\n\
+    \        #     credentials_file: /etc/bridge-auth/token\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - name: alertmanager
+        image: prom/alertmanager:v0.27.0
+        args:
+        - --config.file=/etc/alertmanager/alertmanager.yml
+        - --storage.path=/alertmanager
+        ports:
+        - name: http
+          containerPort: 9093
+        volumeMounts:
+        - name: config
+          mountPath: /etc/alertmanager/alertmanager.yml
+          subPath: alertmanager.yml
+        - name: data
+          mountPath: /alertmanager
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: config
+        configMap:
+          name: k8s-inspector-alertmanager-config
+      - name: data
+        persistentVolumeClaim:
+          claimName: k8s-inspector-alertmanager-data
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+  strategy:
+    type: Recreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: kube-system
+spec:
+  selector:
+    app: alertmanager
+  ports:
+  - name: http
+    port: 9093
+    targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pushgateway
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pushgateway
+  template:
+    metadata:
+      labels:
+        app: pushgateway
+    spec:
+      containers:
+      - name: pushgateway
+        image: prom/pushgateway:v1.8.0
+        ports:
+        - name: http
+          containerPort: 9091
+        args:
+        - --web.listen-address=:9091
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+  strategy:
+    type: Recreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushgateway
+  namespace: kube-system
+spec:
+  selector:
+    app: pushgateway
+  ports:
+  - name: http
+    port: 9091
+    targetPort: http

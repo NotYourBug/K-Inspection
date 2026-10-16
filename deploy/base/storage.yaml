@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-out
+  namespace: kube-system
+  labels:
+    inspector.storage: report
+spec:
+  accessModes:
+  - ReadWriteMany
+  volumeMode: Filesystem
+  storageClassName: replace-with-report-sc
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-state-5m
+  namespace: kube-system
+  labels:
+    inspector.storage: state
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-verified-block-sc
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-state-10m
+  namespace: kube-system
+  labels:
+    inspector.storage: state
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-verified-block-sc
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-state-hourly
+  namespace: kube-system
+  labels:
+    inspector.storage: state
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-verified-block-sc
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-state-daily
+  namespace: kube-system
+  labels:
+    inspector.storage: state
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: replace-with-verified-block-sc
+  resources:
+    requests:
+      storage: 1Gi
