@@ -1,7 +1,7 @@
 """Shared pure evidence construction; never collects resources."""
 from .observation_models import (
     CheckEvaluation, CheckExecution, Coverage, ExecutionStatus as E,
-    ObservationHealth as H, ResourceRef, RuleObservation,
+    ObservationHealth as H, ResourceRef, RuleObservation, Severity,
 )
 
 
@@ -28,10 +28,11 @@ def evaluation(snapshot, rule_id, keys, findings=(), *, unknown=False, unsupport
         status = E.OK
     else:
         status = E.PARTIAL if any(c.items for c in collections) else E.ERROR
-    health = H.UNHEALTHY if findings else H.HEALTHY
+    faults = tuple(f for f in findings if f.severity in (Severity.WARN, Severity.FAIL))
+    health = H.UNHEALTHY if faults else H.HEALTHY
     observations = [RuleObservation(rule_id, snapshot.cluster_id, 'cluster', None,
         health if complete else H.UNKNOWN, timestamp, complete, snapshot.run_id)]
-    resources = resources or tuple((f.resource, H.UNHEALTHY) for f in findings)
+    resources = resources or tuple((f.resource, H.UNHEALTHY) for f in faults)
     seen_resources = set()
     for ref, resource_health in resources:
         if ref.uid and (ref.namespace, ref.uid) not in seen_resources:

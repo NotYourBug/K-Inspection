@@ -16,7 +16,7 @@ def _elapsed(timestamp: datetime | None, now: datetime) -> float | None:
 
 
 def evaluate_pod_state(pod: client.V1Pod, cfg: InspectorConfig,
-                       now: datetime) -> dict[str, Any]:
+                       now: datetime, *, include_history: bool = True) -> dict[str, Any]:
     """Separate present failures, historical instability and unknown readiness."""
     if now.tzinfo is None:
         raise ValueError("Observation time must be timezone-aware")
@@ -50,16 +50,17 @@ def evaluate_pod_state(pod: client.V1Pod, cfg: InspectorConfig,
                 current.append({"reason": "InitContainerFailed" if is_init else "ContainerFailed",
                                 "container": cs.name, "exit_code": state.terminated.exit_code,
                                 "termination_reason": state.terminated.reason})
-            last = cs.last_state.terminated if cs.last_state else None
-            if last and last.reason:
-                history.append({"reason": last.reason, "container": cs.name,
-                                "init": is_init,
-                                "finished_at": last.finished_at.isoformat()
-                                if last.finished_at else None})
-            if cfg.thresholds.pod_restart_count > 0 and (
-                    cs.restart_count or 0) >= cfg.thresholds.pod_restart_count:
-                history.append({"reason": "RestartCountHigh", "container": cs.name,
-                                "init": is_init, "restart_count": cs.restart_count})
+            if include_history:
+                last = cs.last_state.terminated if cs.last_state else None
+                if last and last.reason:
+                    history.append({"reason": last.reason, "container": cs.name,
+                                    "init": is_init,
+                                    "finished_at": last.finished_at.isoformat()
+                                    if last.finished_at else None})
+                if cfg.thresholds.pod_restart_count > 0 and (
+                        cs.restart_count or 0) >= cfg.thresholds.pod_restart_count:
+                    history.append({"reason": "RestartCountHigh", "container": cs.name,
+                                    "init": is_init, "restart_count": cs.restart_count})
 
     if current:
         result["readiness"] = "UNHEALTHY"
@@ -93,24 +94,35 @@ def evaluate_pod_state(pod: client.V1Pod, cfg: InspectorConfig,
 
 
 
-def evaluate_pods(snapshot, cfg):
+def _evaluate_pods(snapshot, cfg, *, history):
     collection = snapshot.collections.get('pods')
-    current, history, resources = [], [], []
-    unknown = False
+    findings, resources, unknown = [], [], False
+    rule_id = 'pods.history' if history else 'pods.current'
     for pod in collection.items if collection else ():
         ref = resource_ref(pod, 'Pod')
-        state = evaluate_pod_state(pod, cfg, snapshot.started_at)
-        health = (H.UNHEALTHY if state['current_issues'] else H.HEALTHY
-                  if state['readiness'] in ('HEALTHY', 'COMPLETED') else H.UNKNOWN)
-        unknown |= health == H.UNKNOWN
-        resources.append((ref, health))
-        for issue in state['current_issues']:
-            current.append(make_finding('pods.current', snapshot.cluster_id,
-                replace(ref, container=issue.get('container')), Severity.FAIL,
-                issue['reason'], 'Current Pod failure', issue, collection.observed_at))
-        for issue in state['historical_issues']:
-            history.append(make_finding('pods.history', snapshot.cluster_id,
-                replace(ref, container=issue.get('container')), Severity.WARN,
-                issue['reason'], 'Historical container instability', issue, collection.observed_at))
-    return (evaluation(snapshot, 'pods.current', ('pods',), current, unknown=unknown, resources=resources),
-            evaluation(snapshot, 'pods.history', ('pods',), history))
+        state = evaluate_pod_state(pod, cfg, snapshot.started_at, include_history=history)
+        issues = state['historical_issues' if history else 'current_issues']
+        health = (H.UNHEALTHY if issues else H.HEALTHY if history
+                  or state['readiness'] in ('HEALTHY','COMPLETED') else H.UNKNOWN)
+        unknown |= health==H.UNKNOWN
+        resources.append((ref,health))
+        for issue in issues:
+            findings.append(make_finding(rule_id,snapshot.cluster_id,replace(ref,container=issue.get('container')),
+                Severity.WARN if history else Severity.FAIL,issue['reason'],
+                'Historical container instability' if history else 'Current Pod failure',issue,collection.observed_at))
+    return evaluation(snapshot,rule_id,('pods',),findings,unknown=unknown,resources=resources)
+
+
+def evaluate_current(snapshot,cfg):
+    return _evaluate_pods(snapshot,cfg,history=False)
+
+
+def evaluate_history(snapshot,cfg):
+    return _evaluate_pods(snapshot,cfg,history=True)
+
+
+EVALUATORS = {'pods.current':evaluate_current,'pods.history':evaluate_history}
+
+
+def evaluate_pods(snapshot,cfg):
+    return evaluate_current(snapshot,cfg),evaluate_history(snapshot,cfg)

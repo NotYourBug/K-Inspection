@@ -444,15 +444,4 @@ def run_all(core, storage, custom, api_client, cfg, profile="full") -> list[Chec
     report = run_inspection(SimpleNamespace(core=core, storage=storage, custom=custom,
         api_client=api_client), cfg, profile, cluster_id=cfg.cluster_id or 'legacy',
         now=datetime.now(timezone.utc), monotonic=time.monotonic)
-    groups = {'nodes': ('nodes.',), 'pods': ('pods.',), 'pvcs': ('pvc.',),
-              'control-plane': ('control.',), 'events': ('events.',), 'kube-system-addons': ('addons.',)}
-    results = []
-    for name, prefixes in groups.items():
-        members = [r for r in report.results if r.name.startswith(prefixes)]
-        if not members:
-            continue
-        status = next((st for st in (Status.FAIL, Status.WARN, Status.PASS, Status.SKIP)
-                       if any(r.status == st for r in members)), Status.SKIP)
-        results.append(CheckResult(name, status, '; '.join(r.summary for r in members),
-            {'rules': [r.to_dict() for r in members]}, sum(r.duration_ms or 0 for r in members)))
-    return results
+    return report.results

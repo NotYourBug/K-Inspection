@@ -166,6 +166,9 @@ def cmd_run(args: argparse.Namespace) -> int:
     except (ValueError, OSError, RuntimeError) as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         return 1
+    if args.in_cluster and not cfg.cluster_id:
+        print('Configuration error: in-cluster runs require --cluster or INSPECTOR_CLUSTER (or config cluster_id)', file=sys.stderr)
+        return 1
     formats = {f.strip().lower() for f in str(args.formats).split(",") if f.strip()}
     if not formats or formats - {"json", "csv", "html"}:
         print("Configuration error: formats must contain json, csv or html", file=sys.stderr)
@@ -190,14 +193,15 @@ def _cmd_run_locked(args, cfg, formats):
         nonlocal last_valid, baseline, confirmed
         last_valid = store.read()
         confirmed = store.read_confirmed()
-        baseline = store.event_baseline(cluster_id=cfg.cluster_id or kube.display_name, profile=cfg.profile)
+        baseline = store.event_baseline(cluster_id=cluster_id, profile=cfg.profile)
     kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
+    cluster_id = cfg.cluster_id or getattr(kube, 'cluster_identity', None) or kube.display_name
     state_outcomes = run_sinks({'observation_state_read': read_state}, frozenset({'observation_state_read'}))
 
     kube.event_baseline = baseline
     now = _now_dt()
     args.profile = cfg.profile
-    report = run_inspection(kube, cfg, cfg.profile, cluster_id=cfg.cluster_id or kube.display_name,
+    report = run_inspection(kube, cfg, cfg.profile, cluster_id=cluster_id,
                             now=now, monotonic=time.monotonic)
     logger.info('Effective inspection configuration: profile=%s cluster=%s timeouts=%s deadline=%s output_policy=%s',
                 cfg.profile, report.cluster, cfg.timeouts, cfg.deadlines[cfg.profile], cfg.output_policy)

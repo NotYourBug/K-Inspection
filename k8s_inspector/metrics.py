@@ -119,13 +119,15 @@ def populate_registry(report: Report, profile: str, registry: Any, *,
     ts = _parse_iso_to_epoch(report.generated_at)
     g_last_run.labels(report.cluster, profile).set(ts)
 
-    summary = report.to_dict().get("summary", {})
+    from .compatibility import legacy_results
+    legacy = legacy_results(report)
+    summary = dict(total=len(legacy), **{status.value.lower():sum(r.status==status for r in legacy) for status in Status})
     for k in ["total", "pass", "warn", "fail", "skip"]:
         v = summary.get(k)
         if isinstance(v, int):
             g_summary.labels(report.cluster, profile, k).set(v)
 
-    for r in report.results:
+    for r in legacy:
         g_check_status.labels(report.cluster, profile, r.name).set(_status_to_number(r.status))
         if r.duration_ms is not None:
             g_check_duration.labels(report.cluster, profile, r.name).set(r.duration_ms)
@@ -149,6 +151,8 @@ def _extract_issue_counts(check_name: str, data: dict[str, Any]) -> dict[str, in
     if not isinstance(data, dict):
         return out
 
+    if '_issue_counts' in data:
+        return {k:v for k,v in data['_issue_counts'].items() if type(v) is int and v>=0}
     if check_name == "nodes":
         out["not_ready"] = len(data.get("not_ready") or [])
         out["noschedule_taints"] = len(data.get("noschedule_taints") or [])
@@ -270,12 +274,15 @@ def _populate_quality(report, profile, registry, last_valid, sink_results, confi
         'Durable positive finding evidence; zero requires valid complete healthy observation.', rule_labels, registry=registry)
     from .observation_models import Severity
     for rule_id in active_rules:
-        candidates = [c.failure_count for c in confirmed if c.cluster_id == report.cluster
-                      and c.profile == profile and c.rule_id == rule_id and c.scope == 'cluster']
-        current = {f.fingerprint for f in report.findings if f.rule_id == rule_id and f.severity in (Severity.FAIL,Severity.WARN)}
+        valid_states = [s for s in last_valid if s.cluster_id==report.cluster and s.profile==profile
+                        and s.rule_id==rule_id and s.scope=='cluster']
+        healthy_after = max((s.observed_at for s in valid_states if s.health==H.HEALTHY),default=None)
+        candidates = [c.failure_count for c in confirmed if c.cluster_id==report.cluster and c.profile==profile
+            and c.rule_id==rule_id and c.scope=='cluster' and (healthy_after is None or c.observed_at>=healthy_after)]
+        current = {f.fingerprint for f in report.findings if f.rule_id==rule_id
+            and f.severity in (Severity.FAIL,Severity.WARN) and (healthy_after is None or f.observed_at>=healthy_after)}
         if current:
             candidates.append(len(current))
-        candidates += [s.failure_count for s in last_valid if s.cluster_id == report.cluster
-                       and s.profile == profile and s.rule_id == rule_id and s.scope == 'cluster']
+        candidates += [s.failure_count for s in valid_states]
         if candidates:
             positive.labels(report.cluster,profile,rule_id,'cluster').set(max(candidates))

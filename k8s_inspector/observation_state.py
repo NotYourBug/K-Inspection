@@ -104,6 +104,7 @@ class ObservationStateStore:
                         or type(cursor['count']) is not int or cursor['count'] < 0):
                     raise ValueError('invalid event cursor state')
                 utc(datetime.fromisoformat(cursor['observed_at']))
+                utc(datetime.fromisoformat(cursor.get('sampled_at', cursor['observed_at'])))
             confirmed = tuple(ConfirmedRuleState(**dict(item,
                 observed_at=datetime.fromisoformat(item['observed_at']))) for item in data.get('confirmed', ()))
             if len({_key(c) for c in confirmed}) != len(confirmed):
@@ -152,8 +153,10 @@ class ObservationStateStore:
                 if findings:
                     state = ConfirmedRuleState(execution.rule_id, report.cluster, report.profile,
                         'cluster', len({f.fingerprint for f in findings}),
-                        min(f.observed_at for f in findings), report.run_id)
-                    if key not in confirmed or confirmed[key].observed_at <= state.observed_at:
+                        max(f.observed_at for f in findings), report.run_id)
+                    valid = states.get(key)
+                    newer_healthy = valid and valid.health==H.HEALTHY and valid.observed_at > max(f.observed_at for f in findings)
+                    if not newer_healthy and (key not in confirmed or confirmed[key].observed_at <= state.observed_at):
                         confirmed[key] = state
                 elif key in updated_healthy:
                     if key in confirmed and confirmed[key].observed_at <= states[key].observed_at:
@@ -162,13 +165,18 @@ class ObservationStateStore:
             for finding in report.findings:
                 if finding.rule_id == 'events.warning' and type(finding.evidence.get('count')) is int:
                     c = finding.evidence
-                    cursors[(report.cluster, report.profile, c['event_uid'])] = {'uid': c['event_uid'], 'count': c['count'],
-                        'cluster_id': report.cluster, 'profile': report.profile,
-                        'observed_at': c['event_observed_at']}
+                    key = (report.cluster, report.profile, c['event_uid'])
+                    incoming = {'uid':c['event_uid'],'count':c['count'],'cluster_id':report.cluster,
+                        'profile':report.profile,'observed_at':c['event_observed_at'],
+                        'sampled_at':c.get('sampled_at',finding.observed_at.isoformat())}
+                    old = cursors.get(key)
+                    if not old or utc(datetime.fromisoformat(incoming['sampled_at'])) > utc(
+                            datetime.fromisoformat(old.get('sampled_at',old['observed_at']))):
+                        cursors[key] = incoming
             # Event API normally expires old objects; retain only the relevant window.
             generated = utc(datetime.fromisoformat(report.generated_at.replace('Z', '+00:00')))
             cursors = tuple(c for c in cursors.values()
-                            if (generated - utc(datetime.fromisoformat(c['observed_at']))).total_seconds() <= 7200)
+                            if (generated - utc(datetime.fromisoformat(c.get('sampled_at', c['observed_at'])))).total_seconds() <= 7200)
             current = tuple(states[k] for k in sorted(states))
             data = {'schema_version': 1, 'states': to_json_value(current), 'event_cursors': cursors,
                     'confirmed': to_json_value(tuple(confirmed[k] for k in sorted(confirmed)))}

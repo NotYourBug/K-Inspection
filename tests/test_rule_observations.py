@@ -167,7 +167,7 @@ def test_event_count_increment_is_not_a_replayed_series():
     baseline = [{'uid': 'event-uid', 'count': 21, 'observed_at': NOW.isoformat()}]
     ev = event(series=True)
     result = evaluate_events(snapshot(events=[ev], event_baseline=baseline), cfg)[0]
-    assert not result.findings
+    assert not [f for f in result.findings if f.severity in (Severity.WARN, Severity.FAIL)]
     ev.series.count = 22
     result = evaluate_events(snapshot(events=[ev], event_baseline=baseline), cfg)[0]
     assert result.findings[0].evidence['occurrence_delta'] == 1

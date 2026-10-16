@@ -10,6 +10,10 @@ Purpose:
 from __future__ import annotations
 
 import time
+import hashlib
+import json
+import os
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Any
 
@@ -29,6 +33,7 @@ class KubeContext:
     storage: client.StorageV1Api
     custom: client.CustomObjectsApi
     event_baseline: tuple[dict[str, Any], ...] = ()
+    cluster_identity: str | None = None
 
 
 def load_kube(
@@ -42,22 +47,54 @@ def load_kube(
     - in_cluster=True: uses the Pod ServiceAccount token (for CronJob runs).
     - in_cluster=False: reads a local kubeconfig file.
     """
+    identity = None
     if in_cluster:
         config.load_incluster_config()
         display = "in-cluster"
     else:
         config.load_kube_config(config_file=kubeconfig, context=context)
-        display = context or "kubeconfig"
+        contexts, active = config.list_kube_config_contexts(config_file=kubeconfig)
+        selected = next((c for c in contexts or () if c['name'] == context), None) if context else active
+        if not selected:
+            raise ValueError('selected kubeconfig context is unavailable')
+        display = selected['name']
+        from kubernetes.config.kube_config import KUBE_CONFIG_DEFAULT_LOCATION
+        sources = kubeconfig or KUBE_CONFIG_DEFAULT_LOCATION
+        binding = {'sources': [str(Path(p).expanduser().resolve()) for p in sources.split(os.pathsep)],
+                   'context': display, 'cluster': selected['context']['cluster'],
+                   'server': client.Configuration.get_default_copy().host.rstrip('/')}
+        identity = 'kube-' + hashlib.sha256(json.dumps(binding, sort_keys=True).encode()).hexdigest()[:24]
 
     # All API clients share one ApiClient so they reuse the same connection pool.
-    api_client = client.ApiClient()
+    configuration = client.Configuration.get_default_copy()
+    # The collector owns the sole retry budget. urllib3 defaults retry reads too.
+    configuration.retries = 0
+    if hasattr(configuration, "client_go_retries"):
+        configuration.client_go_retries = False
+    api_client = client.ApiClient(configuration=configuration)
     return KubeContext(
         display_name=display,
+        cluster_identity=identity,
         api_client=api_client,
         core=client.CoreV1Api(api_client),
         storage=client.StorageV1Api(api_client),
         custom=client.CustomObjectsApi(api_client),
     )
+
+
+def _healthz_response(api_client, timeout_s):
+    """Adapt the two supported SDK call APIs without dropping authentication."""
+    if callable(getattr(type(api_client), 'param_serialize', None)):
+        params = api_client.param_serialize('GET', '/healthz', auth_settings=['BearerToken'])
+        response = api_client.call_api(*params, _request_timeout=timeout_s)
+        try:
+            data = response.response.read(4096) if response.status==200 else b''
+            return data.decode('utf-8', errors='replace'), response.status, response.headers
+        finally:
+            response.response.close()
+            response.response.release_conn()
+    return api_client.call_api('/healthz', 'GET', response_type='str', auth_settings=['BearerToken'],
+        _request_timeout=timeout_s, _preload_content=True)
 
 
 def apiserver_healthz(api_client: ApiClient, timeout_s: float = 2.0) -> dict[str, Any]:
@@ -72,14 +109,7 @@ def apiserver_healthz(api_client: ApiClient, timeout_s: float = 2.0) -> dict[str
     """
     t0 = time.perf_counter()
     try:
-        data, status_code, _headers = api_client.call_api(
-            "/healthz",
-            "GET",
-            response_type="str",
-            auth_settings=["BearerToken"],
-            _request_timeout=timeout_s,
-            _preload_content=True,
-        )
+        data, status_code, _headers = _healthz_response(api_client, timeout_s)
         latency_ms = int((time.perf_counter() - t0) * 1000)
         ok = (status_code == 200) and (str(data).strip().lower() == "ok")
         return {

@@ -59,10 +59,15 @@ def write_csv(report: Report, out_dir: str) -> Path:
     w = csv.writer(buffer)
     columns = ["generated_at", "cluster", "check", "status", "summary", "duration_ms"]
     if report.schema_version == 2:
-        columns += ['schema_version', 'run_id', 'execution_status', 'observed_at', 'coverage_complete',
+        columns += ['schema_version', 'run_id', 'rule_id', 'execution_status', 'observed_at', 'coverage_complete',
                     'resource_kind', 'namespace', 'resource_name', 'resource_uid', 'container', 'reason', 'evidence']
     w.writerow(columns)
-    for r in report.results:
+    rows = report.results
+    if report.schema_version==2:
+        from .observation_models import CheckEvaluation, to_legacy_result
+        rows = [to_legacy_result(CheckEvaluation(e,tuple(f for f in report.findings if f.rule_id==e.rule_id),
+            tuple(o for o in report.observations if o.rule_id==e.rule_id))) for e in report.executions]
+    for r in rows:
         base = [report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""]
         if report.schema_version != 2:
             w.writerow(base)
@@ -71,7 +76,7 @@ def write_csv(report: Report, out_dir: str) -> Path:
         finding_rows = [f for f in report.findings if f.rule_id == r.name] or [None]
         for f in finding_rows:
             resource = f.resource if f else None
-            extra = [2, report.run_id, execution.execution_status.value if execution else '',
+            extra = [2, report.run_id, r.name, execution.execution_status.value if execution else '',
                 execution.observed_at.isoformat() if execution else '',
                 execution.coverage.complete if execution else '',
                 resource.kind if resource else '', resource.namespace if resource else '',

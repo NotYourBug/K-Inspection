@@ -44,6 +44,10 @@ class KubeCollector:
                 if not isinstance(page, (list, tuple)) or (next_token is not None and not isinstance(next_token, str)):
                     raise ValueError('INVALID_RESPONSE')
                 items.extend(page)
+                if self.clock() >= self.deadline:
+                    status = E.PARTIAL if items else E.ERROR
+                    error_kind, reason = 'DEADLINE', f'{key}: DEADLINE'
+                    break
                 retries = 0
                 if not next_token:
                     break
@@ -103,13 +107,21 @@ class KubeCollector:
         raise ValueError(f'unknown collection key: {key}')
 
     def _health_page(self, **kwargs):
-        data, status, _ = self.context.api_client.call_api(
-            '/healthz', 'GET', response_type='str', auth_settings=['BearerToken'],
-            _request_timeout=kwargs['_request_timeout'], _preload_content=True)
-        if status != 200:
-            from kubernetes.client.exceptions import ApiException
+        from kubernetes.client.exceptions import ApiException
+        try:
+            from .kube import _healthz_response
+            data, status, _ = _healthz_response(self.context.api_client, kwargs['_request_timeout'])
+        except ApiException as exc:
+            # A health endpoint 5xx is positive failure evidence; auth/capability
+            # and transport errors cannot prove the cluster healthy or unhealthy.
+            if isinstance(exc.status, int) and 500 <= exc.status < 600:
+                data, status = None, exc.status
+            else:
+                raise
+        if status != 200 and not (isinstance(status, int) and 500 <= status < 600):
             raise ApiException(status=status)
-        return {'items': [{'ok': str(data).strip().lower() == 'ok', 'status_code': status}], 'metadata': {}}
+        return {'items': [{'ok': status == 200 and str(data).strip().lower() == 'ok',
+                            'status_code': status}], 'metadata': {}}
 
     def snapshot(self, required: frozenset[str], run_id: str, cluster_id: str):
         for key in sorted(required):

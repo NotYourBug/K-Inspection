@@ -1,6 +1,6 @@
 # C：巡检模型与监控治理 Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox ('- [ ]') syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox ('- [x]') syntax for tracking.
 
 **Goal:** 让执行质量、业务故障、覆盖范围和恢复证据分别可见，降低 API 压力和重复告警。
 
@@ -62,11 +62,11 @@ def test_legacy_report_root_fields_are_preserved():
 
 增加 test_partial_with_failure_keeps_fail、test_unknown_coverage_denominator_stays_null、test_naive_observation_time_is_rejected。observation_factories 明确提供 healthy_observation、failed_evaluation、error_evaluation 与真实 UID/scope/run_id。
 
-- [ ] 写身份、序列化与兼容测试。
-- [ ] 运行 python -m pytest tests/test_models.py tests/test_observation_models.py -q。
-- [ ] 实现模型/转换，不把 SDK 对象直接放入 evidence。
-- [ ] 再跑模型测试，验证旧 JSON 消费者 fixtures 不变。
-- [ ] 审查字段类型与 B/D 引用一致，提交。
+- [x] 写身份、序列化与兼容测试。
+- [x] 运行 python -m pytest tests/test_models.py tests/test_observation_models.py -q。
+- [x] 实现模型/转换，不把 SDK 对象直接放入 evidence。
+- [x] 再跑模型测试，验证旧 JSON 消费者 fixtures 不变。
+- [x] 审查字段类型与 B/D 引用一致，提交。
 
 ## C2：有期限的采集、分页、错误分类与快照复用
 
@@ -99,11 +99,11 @@ def test_snapshot_reuses_node_metrics(collector, sdk_metrics):
 
 page/forbidden/SDK mock factory 在本任务定义。增加 test_deadline_stops_next_page、test_forbidden_is_not_retried、test_410_does_not_mix_snapshots、test_5m_does_not_collect_metrics。不要只做线程超时测试，断言底层 timeout 参数和剩余期限。
 
-- [ ] 写分页、期限、分类、复用测试。
-- [ ] 运行 python -m pytest tests/test_collector.py tests/test_snapshot.py -q。
-- [ ] 实现采集层并先接一条 Node 规则，其他保持旧路径到 C4。
-- [ ] 跑 collector 与 kube 回归，断言请求数随页数而非规则数增长。
-- [ ] 审查 deadline 和部分覆盖声明，提交。
+- [x] 写分页、期限、分类、复用测试。
+- [x] 运行 python -m pytest tests/test_collector.py tests/test_snapshot.py -q。
+- [x] 实现采集层并先接一条 Node 规则，其他保持旧路径到 C4。
+- [x] 跑 collector 与 kube 回归，断言请求数随页数而非规则数增长。
+- [x] 审查 deadline 和部分覆盖声明，提交。
 
 ## C3：规则/profile 注册表、运行编排与配置优先级
 
@@ -136,11 +136,11 @@ def test_cli_default_does_not_override_file_config():
 
 增加 test_explicit_cli_wins、test_run_deadline_marks_remaining_rules_unknown、test_known_failure_survives_later_rule_error、test_profile_collections_match_existing_frequency_contract。规则主 profile 初始：nodes.ready/pods.current/pvc.binding=5m；control.api/control.components=10m；nodes.utilization/nodes.pressure=hourly；events.warning/addons.ready=daily。full 输出所有规则但不重复主告警。
 
-- [ ] 写配置优先级/profile/截止期限测试。
-- [ ] 运行 python -m pytest tests/test_runner.py tests/test_effective_config.py -q。
-- [ ] 实现注册表、编排、脱敏有效配置输出与兼容 facade。
-- [ ] 跑 CLI/checks 兼容测试，核对 profile 的 API 预算。
-- [ ] 审查注册表是唯一来源，E3/C7 消费同一数据，提交。
+- [x] 写配置优先级/profile/截止期限测试。
+- [x] 运行 python -m pytest tests/test_runner.py tests/test_effective_config.py -q。
+- [x] 实现注册表、编排、脱敏有效配置输出与兼容 facade。
+- [x] 跑 CLI/checks 兼容测试，核对 profile 的 API 预算。
+- [x] 审查注册表是唯一来源，E3/C7 消费同一数据，提交。
 
 ## C4：逐领域迁移纯规则与可信观察
 
@@ -173,11 +173,11 @@ def test_old_event_is_not_current_warning(event_snapshot, cfg):
 
 增加 test_historical_oom_is_separate_rule、test_managed_component_absence_is_unsupported、test_addon_requires_ready_replicas、test_new_uid_does_not_resolve_old_resource。先实现 Node，再 Pod/PVC，最后 control/events；每域一次独立回归，不机械搬动全部函数。
 
-- [ ] 写当前域 failing test 并运行 python -m pytest tests/test_rule_observations.py -q。
-- [ ] 实现该域纯规则并接 catalog，删除该域重复判断。
-- [ ] 跑该域 A 批次 fixtures 与兼容报告测试，逐域重复以上两步。
-- [ ] 完成所有既有域后跑 python -m pytest tests/ -q。
-- [ ] 审查纯规则无 SDK/文件/网络调用，提交并标记 F1 尚未扩展的覆盖项。
+- [x] 写当前域 failing test 并运行 python -m pytest tests/test_rule_observations.py -q。
+- [x] 实现该域纯规则并接 catalog，删除该域重复判断。
+- [x] 跑该域 A 批次 fixtures 与兼容报告测试，逐域重复以上两步。
+- [x] 完成所有既有域后跑 python -m pytest tests/ -q。
+- [x] 审查纯规则无 SDK/文件/网络调用，提交并标记 F1 尚未扩展的覆盖项。
 
 ## C5：Report v2、证据展示、run_id 与输出结果
 
@@ -208,11 +208,11 @@ def test_html_escapes_untrusted_evidence(report_with_script, tmp_path):
 
 增加 test_v2_preserves_v1_root_fields、test_unknown_is_visible_in_html、test_snapshot_scope_mismatch_omits_details、test_manifest_failure_does_not_overwrite_report。
 
-- [ ] 写 v2、转义、作用域、run_id 与输出 manifest 测试。
-- [ ] 运行 python -m pytest tests/test_report_v2.py -q。
-- [ ] 实现输出与布局，迁移已有 latest 读取端并记录 schema 兼容。
-- [ ] 跑 report/sink/Bridge 快照测试。
-- [ ] 审查敏感证据与归档同秒冲突，提交。
+- [x] 写 v2、转义、作用域、run_id 与输出 manifest 测试。
+- [x] 运行 python -m pytest tests/test_report_v2.py -q。
+- [x] 实现输出与布局，迁移已有 latest 读取端并记录 schema 兼容。
+- [x] 跑 report/sink/Bridge 快照测试。
+- [x] 审查敏感证据与归档同秒冲突，提交。
 
 ## C6：指标区分未知，持久保留最后有效故障
 
@@ -247,11 +247,11 @@ def test_valid_healthy_observation_clears_previous_failure(state_store, fail_rep
 
 sample helper 明确按 cluster/profile/rule_id/scope 选样本。增加 test_unknown_without_history_has_no_healthy_sample、test_state_loss_is_visible、test_metrics_labels_have_bounded_cardinality、test_always0_still_exports_run_failure。历史状态无法读取时报告质量故障，不能自造0。
 
-- [ ] 写 FAIL→ERROR→PASS 与状态丢失测试。
-- [ ] 运行 python -m pytest tests/test_metrics_quality.py -q。
-- [ ] 实现 last-valid store 与指标，状态提交失败属于必需 sink 错误；依赖 profile CronJob 禁止并发且验证互斥。
-- [ ] 跑 metrics/runner/sink 测试；核对 Pushgateway 不残留旧 label 集。
-- [ ] 记录指标迁移、state 卷与清理策略，提交。
+- [x] 写 FAIL→ERROR→PASS 与状态丢失测试。
+- [x] 运行 python -m pytest tests/test_metrics_quality.py -q。
+- [x] 实现 last-valid store 与指标，状态提交失败属于必需 sink 错误；依赖 profile CronJob 禁止并发且验证互斥。
+- [x] 跑 metrics/runner/sink 测试；核对 Pushgateway 不残留旧 label 集。
+- [x] 记录指标迁移、state 卷与清理策略，提交。
 
 ## C7：独立目标清单、单一告警来源与规则测试
 
@@ -284,15 +284,22 @@ def test_monitoring_generation_is_reproducible(catalog, targets, tmp_path):
 
 promtool fixtures 必须验证：expected 存在但 run 不存在→TargetNeverRan；Pushgateway 清空→TelemetryMissing；FAIL→ERROR→业务故障继续/质量失明可见；FAIL→完整健康→故障解除；旧有效失败过期→质量报警并保留事件待验证；hourly/full 不重复5m业务告警。样本时刻、for 时长与预计 alerts 写在 YAML，不能仅检查 PromQL 语法。
 
-- [ ] 写 catalog 单源与 promtool 时序 fixtures。
-- [ ] 运行 python -m pytest tests/test_monitoring_catalog.py -q；运行 promtool test rules tests/prometheus/inspection-rules.test.yaml。
-- [ ] 实现 inventory/export/render，明确实际部署版本兼容。
-- [ ] 运行 promtool check rules 与差异校验；工具缺失时保留待验，不用 YAML 解析代替。
-- [ ] 审查旧 grouping key 清理与新旧规则切换：新规则 shadow，通过后停旧规则，再清理旧指标；提交。
+- [x] 写 catalog 单源与 promtool 时序 fixtures。
+- [x] 运行 python -m pytest tests/test_monitoring_catalog.py -q；运行 promtool test rules tests/prometheus/inspection-rules.test.yaml。
+- [x] 实现 inventory/export/render，明确实际部署版本兼容。
+- [x] 运行 promtool check rules 与差异校验；工具缺失时保留待验，不用 YAML 解析代替。
+- [x] 审查旧 grouping key 清理与新旧规则切换：新规则 shadow，通过后停旧规则，再清理旧指标；提交。
 
 ## 批次完成与回退
 
-- [ ] C1–C7 完成，执行质量与业务状态在 JSON/HTML/metrics 中一致。
-- [ ] 验证 FAIL→ERROR、从未运行、Pushgateway 清空、完整恢复，不能只验正常样例。
-- [ ] 为 D4 输出带 UID/scope/run_id 的可信证据；不得把指标 absent 当作 resolved。
-- [ ] 回退新规则时保留 observation state 和 v2 报告；并行 shadow 禁止双倍正式通知。
+- [x] C1–C7 完成，执行质量与业务状态在 JSON/HTML/metrics 中一致。
+- [x] 验证 FAIL→ERROR、从未运行、Pushgateway 清空、完整恢复，不能只验正常样例。
+- [x] 为 D4 输出带 UID/scope/run_id 的可信证据；不得把指标 absent 当作 resolved。
+- [x] 回退新规则时保留 observation state 和 v2 报告；并行 shadow 禁止双倍正式通知。
+
+
+## 本地实施验收（2026-10-16）
+
+C1–C7 与一次独立审查后的作者修复已完成。审查 11 项 Important、作者补充 1 项 API/SDK 问题全部通过 RED→GREEN；全量447项通过，Prometheus20条规则与11组时序用例通过，最终 wheel 隔离安装30项验证通过。两条警告来自固定飞书 SDK。
+
+以上勾选表示仓库代码与离线验证完成；真实 Linux/容器、状态卷、RBAC/API规模、Prometheus持久存储、合并后的独立通知接收链路和完整daily影子周期仍属于E发布门禁。D事件协作、F扩展覆盖/MCP不在本批交付范围。完整记录见审计16–18。
