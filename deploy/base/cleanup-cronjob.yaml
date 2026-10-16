@@ -24,6 +24,7 @@ spec:
             - '7'
             - --daily-days
             - '30'
+            - --dry-run
             env:
             - name: INSPECTOR_EXIT_MODE
               value: always0
@@ -55,4 +56,7 @@ spec:
             fsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
+      activeDeadlineSeconds: 930
+      backoffLimit: 0
   suspend: true
+  timeZone: Asia/Shanghai

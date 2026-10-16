@@ -6,3 +6,6 @@
 
 /审计/2026-10-16-巡检基础验证/** -text
 /审计/1[678]-* -text
+
+/deploy/base/cronjobs-by-frequency.yaml text eol=lf
+/deploy/cronjobs-by-frequency.yaml text eol=lf

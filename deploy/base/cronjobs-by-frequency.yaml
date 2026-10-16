@@ -67,7 +67,15 @@ spec:
             fsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
+          terminationGracePeriodSeconds: 30
+      activeDeadlineSeconds: 270
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
   suspend: true
+  timeZone: Asia/Shanghai
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -138,7 +146,15 @@ spec:
             fsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
+          terminationGracePeriodSeconds: 30
+      activeDeadlineSeconds: 510
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
   suspend: true
+  timeZone: Asia/Shanghai
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -209,7 +225,15 @@ spec:
             fsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
+          terminationGracePeriodSeconds: 30
+      activeDeadlineSeconds: 930
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
   suspend: true
+  timeZone: Asia/Shanghai
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -280,4 +304,12 @@ spec:
             fsGroup: 10001
             seccompProfile:
               type: RuntimeDefault
+          terminationGracePeriodSeconds: 30
+      activeDeadlineSeconds: 1830
+      backoffLimit: 0
+      ttlSecondsAfterFinished: 86400
   suspend: true
+  timeZone: Asia/Shanghai
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
