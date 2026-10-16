@@ -11,7 +11,8 @@ import json
 import math
 from dataclasses import dataclass, field, fields
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
+from .profiles import PROFILES, normalize_profile
 
 @dataclass
 class Thresholds:
@@ -41,6 +42,11 @@ class InspectorConfig:
     pod_pending_grace_seconds: float = 300
     pvc_pending_grace_seconds: float = 300
     output_policy: str = "best-effort"
+    cluster_id: str | None = None
+    profile: str = 'full'
+    timeouts: dict[str, float] = field(default_factory=lambda: {'connect': 3.0, 'read': 10.0})
+    deadlines: dict[str, float] = field(default_factory=lambda: {
+        key: value.deadline_seconds for key, value in PROFILES.items()})
 
 
 def _object(value: Any, allowed: set[str], label: str) -> dict[str, Any]:
@@ -48,7 +54,7 @@ def _object(value: Any, allowed: set[str], label: str) -> dict[str, Any]:
         raise ValueError(f"{label} must be an object")
     unknown = set(value) - allowed
     if unknown:
-        raise ValueError(f"{label}: unknown fields {sorted(unknown)}")
+        raise ValueError(f"{label}: unknown fields {sorted(map(str, unknown))}")
     return value
 
 
@@ -60,11 +66,10 @@ def _number(value: Any, label: str, *, ratio: bool = False, integer: bool = Fals
                          + (" between 0 and 1" if ratio else ""))
 
 
-def load_config(path: str | None) -> InspectorConfig:
-    """Load config from JSON/YAML file and merge with defaults."""
-    cfg = InspectorConfig()
+def read_config(path: str | None) -> dict[str, Any]:
+    """Read syntax only; validation and priority are applied by resolve_config."""
     if not path:
-        return cfg
+        return {}
 
     p = Path(path)
     raw = p.read_text(encoding="utf-8-sig")
@@ -82,7 +87,21 @@ def load_config(path: str | None) -> InspectorConfig:
     else:
         data = json.loads(raw) if raw.strip() else {}
 
-    data = _object(data, {f.name for f in fields(InspectorConfig)}, "configuration")
+    return data
+
+
+def resolve_config(file_config: dict[str, object], env: Mapping[str, str],
+                   cli_overrides: Mapping[str, object]) -> InspectorConfig:
+    cfg = InspectorConfig()
+    allowed = {f.name for f in fields(InspectorConfig)}
+    data = dict(_object(file_config, allowed, 'configuration'))
+    environment = {'INSPECTOR_CLUSTER': 'cluster_id', 'INSPECTOR_PROFILE': 'profile',
+                   'INSPECTOR_OUTPUT_POLICY': 'output_policy'}
+    for name, key in environment.items():
+        if name in env:
+            data[key] = env[name]
+    explicit = {key: value for key, value in cli_overrides.items() if value is not None}
+    data.update(_object(explicit, allowed, 'CLI configuration'))
     thresholds = _object(data.get("thresholds", {}),
                          {f.name for f in fields(Thresholds)}, "thresholds")
     for key, value in thresholds.items():
@@ -107,5 +126,23 @@ def load_config(path: str | None) -> InspectorConfig:
     if policy not in ("best-effort", "strict"):
         raise ValueError("output_policy must be best-effort or strict")
     cfg.output_policy = policy
-
+    cluster = data.get('cluster_id')
+    if cluster is not None and (not isinstance(cluster, str) or not cluster.strip()
+                                or any(ord(c) < 32 for c in cluster)):
+        raise ValueError('cluster_id must be a non-empty printable string')
+    cfg.cluster_id = cluster.strip() if cluster is not None else None
+    cfg.profile = normalize_profile(data.get('profile', cfg.profile))
+    for key in ('timeouts', 'deadlines'):
+        current = getattr(cfg, key)
+        overrides = _object(data.get(key, {}), set(current), key)
+        for name, value in overrides.items():
+            _number(value, f'{key}.{name}')
+            if value == 0:
+                raise ValueError(f'{key}.{name} must be positive')
+            current[name] = value
     return cfg
+
+
+def load_config(path: str | None) -> InspectorConfig:
+    """Legacy file-only entry point; CLI resolves env and explicit overrides."""
+    return resolve_config(read_config(path), {}, {})

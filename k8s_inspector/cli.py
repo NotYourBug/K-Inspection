@@ -85,7 +85,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run.add_argument(
         "--profile",
-        default="full",
+        default=None,
         choices=["5m", "10m", "hourly", "daily", "full"],
         help="Execution frequency preset",
     )

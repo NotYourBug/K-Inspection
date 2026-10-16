@@ -11,13 +11,14 @@ class KubeCollector:
         self.context, self.deadline, self.clock = context, deadline, clock
         self.started_at = datetime.now(timezone.utc)
         self._cache = {}
+        self.connect_timeout, self.read_timeout = 3.0, 10.0
 
     def _timeout(self):
         remaining = self.deadline - self.clock()
         if remaining <= 0:
             raise TimeoutError('DEADLINE')
-        connect = min(3.0, remaining / 2)
-        return connect, min(10.0, remaining - connect)
+        connect = min(self.connect_timeout, remaining / 2)
+        return connect, min(self.read_timeout, remaining - connect)
 
     def collect_list(self, key, call, **kwargs):
         if key in self._cache:
