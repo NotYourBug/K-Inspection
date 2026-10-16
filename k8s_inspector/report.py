@@ -57,9 +57,28 @@ def write_csv(report: Report, out_dir: str) -> Path:
     fp = p / "report.csv"
     buffer = io.StringIO(newline="")
     w = csv.writer(buffer)
-    w.writerow(["generated_at", "cluster", "check", "status", "summary", "duration_ms"])
+    columns = ["generated_at", "cluster", "check", "status", "summary", "duration_ms"]
+    if report.schema_version == 2:
+        columns += ['schema_version', 'run_id', 'execution_status', 'observed_at', 'coverage_complete',
+                    'resource_kind', 'namespace', 'resource_name', 'resource_uid', 'container', 'reason', 'evidence']
+    w.writerow(columns)
     for r in report.results:
-        w.writerow([report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""])
+        base = [report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""]
+        if report.schema_version != 2:
+            w.writerow(base)
+            continue
+        execution = next((e for e in report.executions if e.rule_id == r.name), None)
+        finding_rows = [f for f in report.findings if f.rule_id == r.name] or [None]
+        for f in finding_rows:
+            resource = f.resource if f else None
+            extra = [2, report.run_id, execution.execution_status.value if execution else '',
+                execution.observed_at.isoformat() if execution else '',
+                execution.coverage.complete if execution else '',
+                resource.kind if resource else '', resource.namespace if resource else '',
+                resource.name if resource else '', resource.uid if resource else '',
+                resource.container if resource else '', f.reason if f else '',
+                json.dumps(f.evidence, ensure_ascii=False) if f else '']
+            w.writerow(base + extra)
     atomic_write_text(fp, buffer.getvalue())
     return fp
 
@@ -123,6 +142,8 @@ def write_html(report: Report, out_dir: str) -> Path:
 </body>
 </html>
 """
+    if report.schema_version == 2:
+        html = html.replace('</body>', _v2_html(report) + '</body>')
     atomic_write_text(fp, html)
     return fp
 
@@ -156,3 +177,55 @@ def format_failed_summary(report: Report) -> str:
         for r in warns[:10]:
             lines.append(f"- {r.name}: {r.summary}")
     return "\n".join(lines)
+
+
+def _v2_html(report):
+    from datetime import datetime, timedelta, timezone
+    from urllib.parse import quote
+    rows = []
+    for execution in report.executions:
+        c = execution.coverage
+        health = next((o.health.value for o in report.observations if o.rule_id == execution.rule_id
+                       and o.resource_uid is None), 'UNKNOWN')
+        coverage = f"observed={c.observed}; expected={c.expected if c.expected is not None else 'unknown'}; complete={c.complete}"
+        rows.append('<tr>' + ''.join(f'<td>{_esc(v)}</td>' for v in (
+            execution.rule_id, execution.execution_status.value, health,
+            execution.observed_at.isoformat(), coverage, execution.error_kind or '')) + '</tr>')
+    evidence = []
+    for f in report.findings:
+        ref = f.resource
+        anchor = 'object-' + quote(ref.uid or f.fingerprint, safe='')
+        label = f"{ref.kind} {ref.namespace or ''}/{ref.name} (UID={ref.uid or 'weak identity'})"
+        evidence.append(f'<li id="{_esc(anchor)}"><a href="#{_esc(anchor)}">{_esc(label)}</a> '
+            f'{_esc(f.rule_id)} [{_esc(f.severity.value)}] {_esc(f.summary)} '
+            f'<pre>{_esc(json.dumps(f.evidence, ensure_ascii=False, indent=2))}</pre></li>')
+    local = datetime.fromisoformat(report.generated_at.replace('Z', '+00:00')).astimezone(timezone(timedelta(hours=8)))
+    return (f'<h2>Execution quality / 采集质量</h2><p>schema=2; run_id={_esc(report.run_id)}; '
+            f'profile={_esc(report.profile)}; Asia/Shanghai: {_esc(local.isoformat())}</p>'
+            '<table><tr><th>Rule</th><th>Execution</th><th>Health</th><th>Observed UTC</th><th>Coverage</th><th>Error</th></tr>'
+            + ''.join(rows) + '</table><h2>Current / historical evidence</h2><p>pods.history 为历史证据；UNKNOWN 不代表恢复。</p><ul>'
+            + ''.join(evidence) + '</ul>')
+
+
+def snapshot_is_compatible(data, *, cluster, profile, scope, now, max_age_seconds):
+    """Only unscoped cluster background is attachable without team ownership proof."""
+    from datetime import datetime
+    from .observation_models import utc
+    if scope != 'cluster' or not cluster or data.get('cluster') != cluster:
+        return False
+    if data.get('schema_version', 1) not in (1, 2):
+        return False
+    if data.get('schema_version') == 2:
+        if data.get('profile') != profile or not data.get('run_id'):
+            return False
+        observations = data.get('observations')
+        if not isinstance(observations, list) or any(not isinstance(o, dict) or
+                o.get('cluster_id') != cluster or (o.get('resource_uid') is None and o.get('scope') != scope)
+                for o in observations):
+            return False
+    try:
+        timestamp = utc(datetime.fromisoformat(data['generated_at'].replace('Z', '+00:00')))
+        age = (utc(now) - timestamp).total_seconds()
+        return -60 <= age <= max_age_seconds
+    except (KeyError, ValueError, TypeError, AttributeError):
+        return False

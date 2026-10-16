@@ -378,20 +378,8 @@ class TestRunAll:
             names = {r.name for r in results}
             assert names == {"control-plane", "nodes", "pods", "pvcs", "events", "kube-system-addons"}
 
-    def test_unknown_profile_falls_back_to_full_with_warning(self, cfg):
+    def test_unknown_profile_rejected_without_api(self, cfg):
         core, storage, custom, api = self._mocks()
-        core.list_node.return_value.items = []
-        core.list_pod_for_all_namespaces.return_value.items = []
-        core.list_persistent_volume_claim_for_all_namespaces.return_value.items = []
-        core.list_event_for_all_namespaces.return_value.items = []
-
-        with patch("k8s_inspector.checks.apiserver_healthz",
-                   return_value={"ok": True, "latency_ms": 10}):
-            core.list_namespaced_pod.return_value.items = [MagicMock()]
-
-            results = run_all(core, storage, custom, api, cfg, profile="bogus")
-            # First result is the profile warning
-            assert results[0].name == "profile"
-            assert results[0].status == Status.WARN
-            # Remaining results are full checks
-            assert len(results) == 7  # 1 warning + 6 full checks
+        with pytest.raises(ValueError, match='profile'):
+            run_all(core, storage, custom, api, cfg, profile="bogus")
+        core.list_node.assert_not_called()

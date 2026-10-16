@@ -266,6 +266,8 @@ def _notification_detail_lines(batch: AlertBatch, cfg: BridgeConfig) -> list[str
     # Reports have no ownership model yet; attaching them to a team/namespace
     # notification could include unrelated objects. Only use a homogeneous,
     # unscoped cluster/profile snapshot, and label it as background context.
+    if any(a.labels.get('scope', 'cluster') != 'cluster' for a in batch.alerts):
+        return []
     if cfg.chat_routes or any(
         a.labels.get(k) for a in batch.alerts for k in ("owner_team", "namespace", "service")
     ):
@@ -549,14 +551,9 @@ def _build_report_detail_lines(
         return []
     if not cluster or report.get("cluster") != cluster or profile not in REPORT_MAX_AGE:
         return []
-    try:
-        timestamp = datetime.fromisoformat(str(report.get("generated_at", "")).replace("Z", "+00:00"))
-        if timestamp.tzinfo is None:
-            return []
-        age = (datetime.now(timezone.utc) - timestamp).total_seconds()
-        if age < -60 or age > REPORT_MAX_AGE[profile]:
-            return []
-    except (ValueError, TypeError):
+    from .report import snapshot_is_compatible
+    if not snapshot_is_compatible(report, cluster=cluster, profile=profile, scope='cluster',
+                                  now=datetime.now(timezone.utc), max_age_seconds=REPORT_MAX_AGE[profile]):
         return []
 
     lines: list[str] = []

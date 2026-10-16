@@ -437,59 +437,22 @@ def check_kube_system_addons(core: client.CoreV1Api, cfg: InspectorConfig,
                        "Addon Ready and controller observations", out, _duration_ms(t0))
 
 
-def run_all(
-    core: client.CoreV1Api,
-    storage: client.StorageV1Api,
-    custom: client.CustomObjectsApi,
-    api_client: client.ApiClient,
-    cfg: InspectorConfig,
-    profile: str = "full",
-) -> list[CheckResult]:
-    """
-    Dispatch inspection by profile (frequency tier).
-
-    - 5m: Data plane essentials (Node Ready/taints, Pod anomalies, Pending PVCs). No metrics.
-    - 10m: Control plane health only.
-    - hourly: Infrastructure essentials (control plane + Nodes with metrics + Pods + PVCs).
-    - daily/full: Full inspection including Warning Events and kube-system addons.
-    """
-    p = (profile or "full").strip().lower()
-    if p in {"5m", "dataplane-5m", "dataplane"}:
-        return [
-            check_nodes(core, custom, cfg, include_metrics=False),
-            check_pods(core, cfg),
-            check_pending_pvcs(core, cfg, storage),
-        ]
-    if p in {"10m", "controlplane-10m", "controlplane"}:
-        return [check_control_plane(core, api_client, cfg)]
-    if p in {"hourly", "1h"}:
-        return [
-            check_control_plane(core, api_client, cfg),
-            check_nodes(core, custom, cfg, include_metrics=True),
-            check_pods(core, cfg),
-            check_pending_pvcs(core, cfg, storage),
-        ]
-    if p in {"daily", "1d", "full"}:
-        return [
-            check_control_plane(core, api_client, cfg),
-            check_nodes(core, custom, cfg, include_metrics=True),
-            check_pods(core, cfg),
-            check_pending_pvcs(core, cfg, storage),
-            check_warning_events(core, cfg),
-            check_kube_system_addons(core, cfg),
-        ]
-    return [
-        CheckResult(
-            name="profile",
-            status=Status.WARN,
-            summary=f"Unknown profile: {profile}, falling back to full",
-            data={"profile": profile},
-            duration_ms=0,
-        ),
-        check_control_plane(core, api_client, cfg),
-        check_nodes(core, custom, cfg, include_metrics=True),
-        check_pods(core, cfg),
-        check_pending_pvcs(core, cfg, storage),
-        check_warning_events(core, cfg),
-        check_kube_system_addons(core, cfg),
-    ]
+def run_all(core, storage, custom, api_client, cfg, profile="full") -> list[CheckResult]:
+    """Legacy grouped result facade over the canonical runner (no fallback profile)."""
+    from types import SimpleNamespace
+    from .runner import run_inspection
+    report = run_inspection(SimpleNamespace(core=core, storage=storage, custom=custom,
+        api_client=api_client), cfg, profile, cluster_id=cfg.cluster_id or 'legacy',
+        now=datetime.now(timezone.utc), monotonic=time.monotonic)
+    groups = {'nodes': ('nodes.',), 'pods': ('pods.',), 'pvcs': ('pvc.',),
+              'control-plane': ('control.',), 'events': ('events.',), 'kube-system-addons': ('addons.',)}
+    results = []
+    for name, prefixes in groups.items():
+        members = [r for r in report.results if r.name.startswith(prefixes)]
+        if not members:
+            continue
+        status = next((st for st in (Status.FAIL, Status.WARN, Status.PASS, Status.SKIP)
+                       if any(r.status == st for r in members)), Status.SKIP)
+        results.append(CheckResult(name, status, '; '.join(r.summary for r in members),
+            {'rules': [r.to_dict() for r in members]}, sum(r.duration_ms or 0 for r in members)))
+    return results

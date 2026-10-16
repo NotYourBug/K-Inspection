@@ -326,3 +326,11 @@ python -m k8s_inspector.alertmanager_bridge --mode webhook --feishu-webhook "<we
   - 按链路排查：Prometheus 规则 → Alertmanager receiver → Bridge `/alert` 返回码与日志 → 飞书配置与权限。
 - `K8sInspectorHasFail` 看似误报
   - 先看 `K8sInspectorStale` 是否同时触发；本仓库规则已增加 last\_run 新鲜度约束，避免旧值误报。
+
+## Inspection report v2
+
+The CLI now emits `schema_version: 2`, a UUID `run_id`, canonical `profile`, and separate `executions`, `findings`, `observations`, and known `sink_results`. The original `generated_at`, `cluster`, `summary`, and `results` keys remain. V2 summary counts rule evaluations; the `run_all` compatibility facade still groups legacy check names. Consumers must check the schema before assuming the old number of checks. Constructing `Report(generated_at, cluster, results)` still serializes exactly the v1 root.
+
+`latest/<profile>/report.json` is refreshed on every run. Archives include the same report run ID, so runs within one second remain distinct. `manifest.json` records completed sink attempts; `run-status.json` and logs also show failures, including a failed manifest write. A report does not recursively rewrite itself to claim its own write succeeded. JSON observation timestamps are UTC; HTML also displays Asia/Shanghai time, execution quality, unknown coverage, current failures, historical evidence, and local object anchors. CSV retains overview columns and adds schema, execution and resource identity columns, with a row per finding (or an execution-only row).
+
+Bridge background snapshots require a supported schema, matching cluster/profile, and a fresh timezone-aware timestamp. Team, namespace, service, responsibility-routed or non-cluster-scope notifications omit object details until ownership can be verified. A background snapshot is never recovery evidence.

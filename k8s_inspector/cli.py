@@ -18,14 +18,15 @@ from uuid import uuid4
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .checks import run_all
-from .config import load_config
+import time
+from .runner import run_inspection
+from .config import read_config, resolve_config
 from .kube import load_kube
 from .metrics import PushGatewayConfig, push_report_to_gateway
 from .models import Report
 from .notify import send_feishu_text
 from .report import format_failed_summary, write_csv, write_html, write_json
-from .sinks import run_sinks, write_run_status
+from .sinks import run_sinks, write_run_status, write_run_manifest
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ def _should_persist(report: Report, persist_level: str) -> bool:
     return True
 
 
-def _resolve_output_dir(base_out_dir: str, archive: str, now: datetime) -> str:
+def _resolve_output_dir(base_out_dir: str, archive: str, now: datetime, *, run_id: str | None = None) -> str:
     a = (archive or "none").strip().lower()
     if a in {"none", "flat"}:
         return base_out_dir
@@ -55,7 +56,7 @@ def _resolve_output_dir(base_out_dir: str, archive: str, now: datetime) -> str:
     now = now.astimezone(timezone.utc)
     if a in {"hourly", "daily"}:
         bucket = now.strftime("%Y%m%d%H" if a == "hourly" else "%Y%m%d")
-        return str(p / bucket / (now.strftime("%Y%m%dT%H%M%SZ") + "_" + uuid4().hex))
+        return str(p / bucket / (now.strftime("%Y%m%dT%H%M%SZ") + "_" + (run_id or uuid4().hex)))
     return base_out_dir
 
 
@@ -158,7 +159,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def cmd_run(args: argparse.Namespace) -> int:
     try:
-        cfg = load_config(args.config)
+        cfg = resolve_config(read_config(args.config), os.environ,
+            {'cluster_id': args.cluster, 'profile': args.profile, 'output_policy': args.output_policy})
     except (ValueError, OSError, RuntimeError) as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         return 1
@@ -169,32 +171,17 @@ def cmd_run(args: argparse.Namespace) -> int:
 
     kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
 
-    results = run_all(
-        core=kube.core,
-        storage=kube.storage,
-        custom=kube.custom,
-        api_client=kube.api_client,
-        cfg=cfg,
-        profile=args.profile,
-    )
-
     now = _now_dt()
-    cluster_name = (
-        str(args.cluster).strip()
-        if args.cluster and str(args.cluster).strip()
-        else (os.getenv("INSPECTOR_CLUSTER") or "").strip()
-    )
-    report_cluster = cluster_name or kube.display_name
-    report = Report(
-        generated_at=now.isoformat(timespec="seconds"),
-        cluster=report_cluster,
-        results=results,
-    )
+    args.profile = cfg.profile
+    report = run_inspection(kube, cfg, cfg.profile, cluster_id=cfg.cluster_id or kube.display_name,
+                            now=now, monotonic=time.monotonic)
+    logger.info('Effective inspection configuration: profile=%s cluster=%s timeouts=%s deadline=%s output_policy=%s',
+                cfg.profile, report.cluster, cfg.timeouts, cfg.deadlines[cfg.profile], cfg.output_policy)
 
     latest, extra_base = _output_locations(Path(args.output_dir), args.profile, args.archive)
     actions = {"latest_json": lambda: write_json(report, str(latest))}
     if _should_persist(report, str(args.persist_level)):
-        out_dir = _resolve_output_dir(str(extra_base), str(args.archive), now)
+        out_dir = _resolve_output_dir(str(extra_base), str(args.archive), now, run_id=report.run_id)
         if "json" in formats and Path(out_dir) != latest:
             actions["json"] = lambda: write_json(report, out_dir)
         if "csv" in formats:
@@ -219,6 +206,8 @@ def cmd_run(args: argparse.Namespace) -> int:
                 ),
                 sink_results=outcomes,
             )}, required=frozenset({"metrics"}))
+    outcomes += run_sinks({'manifest': lambda: write_run_manifest(report, outcomes, latest)},
+                          required=frozenset({'manifest'}))
     outcomes += run_sinks({"run_status": lambda: write_run_status(
         report, args.profile, outcomes, latest / "run-status.json")},
         required=frozenset({"run_status"}))

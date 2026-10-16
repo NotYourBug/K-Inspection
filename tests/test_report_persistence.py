@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from k8s_inspector import cli, report as reports
-from k8s_inspector.models import CheckResult, Status
+from k8s_inspector.models import CheckResult, Status, Report
 from tests.factories import NOW
 
 
@@ -19,7 +19,9 @@ def run_cli(monkeypatch):
         monkeypatch.delenv(key, raising=False)
     def run(status=Status.PASS, persist_on="all", output_dir=None,
             profile="5m", archive="none", formats="json", extra=()):
-        monkeypatch.setattr(cli, "run_all", lambda **kw: [CheckResult("nodes", status, "test")])
+        monkeypatch.setattr(cli, "run_inspection", lambda *a, **kw: Report(
+            NOW.isoformat(), 'test', [CheckResult("nodes", status, "test")],
+            schema_version=2, run_id=__import__('uuid').uuid4().hex, profile=profile))
         return cli.main(["run", "--output-dir", str(output_dir), "--profile", profile,
                          "--persist-level", persist_on, "--archive", archive,
                          "--formats", formats, *extra])
