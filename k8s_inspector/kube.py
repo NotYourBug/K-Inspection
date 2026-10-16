@@ -28,6 +28,7 @@ class KubeContext:
     core: client.CoreV1Api
     storage: client.StorageV1Api
     custom: client.CustomObjectsApi
+    event_baseline: tuple[dict[str, Any], ...] = ()
 
 
 def load_kube(

@@ -31,12 +31,13 @@ def push_report_to_gateway(
     extra_grouping: dict[str, str] | None = None,
     *,
     sink_results: tuple[SinkResult, ...] = (),
+    last_valid: tuple = (),
 ) -> None:
     """Convert a Report to Prometheus metrics and push to Pushgateway."""
     prometheus_client = _import_prometheus_client()
 
     registry = prometheus_client.CollectorRegistry()
-    populate_registry(report=report, profile=profile, registry=registry, sink_results=sink_results)
+    populate_registry(report=report, profile=profile, registry=registry, sink_results=sink_results, last_valid=last_valid)
 
     grouping_key = dict(extra_grouping or {})
     grouping_key.setdefault("cluster", report.cluster)
@@ -52,7 +53,7 @@ def push_report_to_gateway(
 
 
 def populate_registry(report: Report, profile: str, registry: Any, *,
-                      sink_results: tuple[SinkResult, ...] = ()) -> None:
+                      sink_results: tuple[SinkResult, ...] = (), last_valid: tuple = ()) -> None:
     """
     Fill a Prometheus CollectorRegistry from a Report.
 
@@ -65,6 +66,7 @@ def populate_registry(report: Report, profile: str, registry: Any, *,
     - k8s_inspector_node_utilization
     """
     prometheus_client = _import_prometheus_client()
+    _populate_quality(report, profile, registry, last_valid, sink_results)
     run_success = prometheus_client.Gauge(
         "k8s_inspector_run_success",
         "Inspection and required output success before this metrics delivery.",
@@ -230,3 +232,35 @@ def _import_prometheus_client():
         return prometheus_client
     except Exception as e:
         raise RuntimeError("prometheus-client is required for metrics export") from e
+
+
+def _populate_quality(report, profile, registry, last_valid, sink_results):
+    from .observation_models import ExecutionStatus as E, ObservationHealth as H
+    prometheus = _import_prometheus_client()
+    labels = ['cluster', 'profile']
+    prometheus.Gauge('inspector_run_success', 'Collection and required sink execution success.', labels,
+        registry=registry).labels(report.cluster, profile).set(int(execution_success(report, sink_results)))
+    prometheus.Gauge('inspector_last_run_timestamp_seconds', 'Run completion UTC time.', labels,
+        registry=registry).labels(report.cluster, profile).set(_parse_iso_to_epoch(report.generated_at))
+    sink_gauge = prometheus.Gauge('inspector_sink_success', 'Completed sink result before metrics push.',
+                                 labels + ['sink'], registry=registry)
+    for result in sink_results:
+        sink_gauge.labels(report.cluster, profile, result.name).set(int(result.success))
+    rule_labels = labels + ['rule_id', 'scope']
+    complete = prometheus.Gauge('inspector_collection_complete', 'Rule collection coverage complete.', rule_labels, registry=registry)
+    valid = prometheus.Gauge('inspector_rule_observation_valid', 'Current complete known aggregate observation.', rule_labels, registry=registry)
+    timestamp = prometheus.Gauge('inspector_last_valid_observation_timestamp_seconds', 'Last durable valid observation time.', rule_labels, registry=registry)
+    failures = prometheus.Gauge('inspector_last_valid_failures', 'Last durable valid aggregate finding count; unknown has no default zero.', rule_labels, registry=registry)
+    for execution in report.executions:
+        args = (report.cluster, profile, execution.rule_id, 'cluster')
+        complete.labels(*args).set(int(execution.coverage.complete))
+        is_valid = (execution.execution_status == E.OK and execution.coverage.complete and
+            any(o.rule_id == execution.rule_id and o.cluster_id == report.cluster and o.resource_uid is None
+                and o.scope == 'cluster' and o.complete and o.health != H.UNKNOWN for o in report.observations))
+        valid.labels(*args).set(int(is_valid))
+    active_rules = {e.rule_id for e in report.executions}
+    for state in last_valid:
+        if state.cluster_id == report.cluster and state.profile == profile and state.scope == 'cluster' and state.rule_id in active_rules:
+            args = (report.cluster, profile, state.rule_id, state.scope)
+            timestamp.labels(*args).set(state.observed_at.timestamp())
+            failures.labels(*args).set(state.failure_count)

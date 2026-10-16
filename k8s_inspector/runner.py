@@ -22,6 +22,12 @@ def run_inspection(context, cfg, profile, *, cluster_id, now, monotonic):
     rules = tuple(r for r in CATALOG if profile in r.profiles)
     required = frozenset(k for r in rules for k in r.collection_keys)
     snapshot = replace(collector.snapshot(required, run_id, cluster_id), started_at=now)
+    baseline = getattr(context, 'event_baseline', ())
+    if baseline:
+        from .snapshot import Collection
+        from .observation_models import ExecutionStatus
+        snapshot = replace(snapshot, collections=dict(snapshot.collections, event_baseline=Collection(
+            tuple(baseline), ExecutionStatus.OK, now, True)))
     evaluations = []
     for rule in rules:
         started = monotonic()

@@ -11,9 +11,9 @@ from tests.observation_factories import NOW, failed_evaluation, error_evaluation
 
 def report(evaluation=None, **kwargs):
     ev = evaluation or failed_evaluation()
-    return Report(NOW.isoformat(), 'prod', [to_legacy_result(ev)], schema_version=2,
+    return Report(max((o.observed_at for o in ev.observations), default=NOW).isoformat(), 'prod', [to_legacy_result(ev)], schema_version=2,
         run_id='fb7e6d3a-fadf-4010-a98a-50a2b3be1f61', profile='5m', executions=(ev.execution,),
-        findings=ev.findings, observations=ev.observations, **kwargs)
+        findings=ev.findings, observations=tuple(replace(o, run_id='fb7e6d3a-fadf-4010-a98a-50a2b3be1f61') for o in ev.observations), **kwargs)
 
 
 def test_v2_preserves_v1_root_fields_and_csv_finding_evidence(tmp_path):

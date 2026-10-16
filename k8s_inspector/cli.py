@@ -24,6 +24,7 @@ from .config import read_config, resolve_config
 from .kube import load_kube
 from .metrics import PushGatewayConfig, push_report_to_gateway
 from .models import Report
+from .observation_state import ObservationStateStore, profile_run_lock
 from .notify import send_feishu_text
 from .report import format_failed_summary, write_csv, write_html, write_json
 from .sinks import run_sinks, write_run_status, write_run_manifest
@@ -90,6 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["5m", "10m", "hourly", "daily", "full"],
         help="Execution frequency preset",
     )
+    run.add_argument("--state-dir", default=None, help="Persistent observation state root (or INSPECTOR_STATE_DIR)")
     run.add_argument("--output-dir", default="./out")
     run.add_argument("--output-policy", default=None, choices=["best-effort", "strict"],
                      help="strict returns 1 if any configured output fails")
@@ -169,8 +171,29 @@ def cmd_run(args: argparse.Namespace) -> int:
         print("Configuration error: formats must contain json, csv or html", file=sys.stderr)
         return 1
 
-    kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
+    latest, _ = _output_locations(Path(args.output_dir), cfg.profile, args.archive)
+    try:
+        with profile_run_lock(latest):
+            return _cmd_run_locked(args, cfg, formats)
+    except OSError as exc:
+        print(f'Run startup/storage error: {type(exc).__name__}', file=sys.stderr)
+        return 1
 
+
+def _cmd_run_locked(args, cfg, formats):
+    latest, _ = _output_locations(Path(args.output_dir), cfg.profile, args.archive)
+    state_root = args.state_dir or os.getenv('INSPECTOR_STATE_DIR')
+    state_path = Path(state_root) / cfg.profile / 'observations.json' if state_root else latest / 'observation-state.json'
+    store = ObservationStateStore(state_path)
+    last_valid, baseline = (), ()
+    def read_state():
+        nonlocal last_valid, baseline
+        last_valid = store.read()
+        baseline = store.event_baseline(cluster_id=cfg.cluster_id or kube.display_name, profile=cfg.profile)
+    kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
+    state_outcomes = run_sinks({'observation_state_read': read_state}, frozenset({'observation_state_read'}))
+
+    kube.event_baseline = baseline
     now = _now_dt()
     args.profile = cfg.profile
     report = run_inspection(kube, cfg, cfg.profile, cluster_id=cfg.cluster_id or kube.display_name,
@@ -179,6 +202,11 @@ def cmd_run(args: argparse.Namespace) -> int:
                 cfg.profile, report.cluster, cfg.timeouts, cfg.deadlines[cfg.profile], cfg.output_policy)
 
     latest, extra_base = _output_locations(Path(args.output_dir), args.profile, args.archive)
+    def update_state():
+        nonlocal last_valid
+        last_valid = store.update(report)
+    outcomes = state_outcomes + run_sinks({'observation_state': update_state}, frozenset({'observation_state'}))
+    report.sink_results = outcomes
     actions = {"latest_json": lambda: write_json(report, str(latest))}
     if _should_persist(report, str(args.persist_level)):
         out_dir = _resolve_output_dir(str(extra_base), str(args.archive), now, run_id=report.run_id)
@@ -193,7 +221,7 @@ def cmd_run(args: argparse.Namespace) -> int:
     if webhook and (report.has_fail or report.has_warn):
         actions["notification"] = lambda: send_feishu_text(
             webhook, text=format_failed_summary(report))
-    outcomes = run_sinks(actions, required=frozenset(actions))
+    outcomes += run_sinks(actions, required=frozenset(actions))
 
     pushgateway_url = args.pushgateway_url or os.getenv("PUSHGATEWAY_URL")
     if pushgateway_url:
@@ -204,7 +232,7 @@ def cmd_run(args: argparse.Namespace) -> int:
                 cfg=PushGatewayConfig(
                     url=pushgateway_url, job=job, timeout_s=float(args.pushgateway_timeout)
                 ),
-                sink_results=outcomes,
+                sink_results=outcomes, last_valid=last_valid,
             )}, required=frozenset({"metrics"}))
     outcomes += run_sinks({'manifest': lambda: write_run_manifest(report, outcomes, latest)},
                           required=frozenset({'manifest'}))
