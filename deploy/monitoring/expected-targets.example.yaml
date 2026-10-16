@@ -1,0 +1,17 @@
+targets:
+  - cluster_id: YOUR_CLUSTER_NAME
+    profile: 5m
+    max_run_age_seconds: 900
+    rule_ids: [nodes.ready, pods.current, pvc.binding]
+  - cluster_id: YOUR_CLUSTER_NAME
+    profile: 10m
+    max_run_age_seconds: 1800
+    rule_ids: [control.api, control.components]
+  - cluster_id: YOUR_CLUSTER_NAME
+    profile: hourly
+    max_run_age_seconds: 7200
+    rule_ids: [nodes.ready, pods.current, pvc.binding, control.api, control.components, nodes.utilization, nodes.pressure]
+  - cluster_id: YOUR_CLUSTER_NAME
+    profile: daily
+    max_run_age_seconds: 129600
+    rule_ids: [nodes.ready, pods.current, pvc.binding, control.api, control.components, nodes.utilization, nodes.pressure, pods.history, events.warning, addons.ready]

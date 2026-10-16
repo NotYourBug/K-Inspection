@@ -1,4 +1,5 @@
 """Read-only per-run collection snapshot."""
+from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Generic, Mapping, TypeVar

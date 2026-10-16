@@ -1,0 +1,22 @@
+route:
+  receiver: feishu-bridge
+  group_by:
+  - cluster
+  - profile
+  - rule_id
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 2h
+  routes:
+  - matchers:
+    - shadow="true"
+    receiver: shadow-null
+  - matchers:
+    - category="quality"
+    receiver: shadow-null
+receivers:
+- name: shadow-null
+- name: feishu-bridge
+  webhook_configs:
+  - url: http://k8s-inspector-alert-bridge.kube-system.svc:8000/alert
+    send_resolved: true

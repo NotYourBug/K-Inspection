@@ -1,3 +1,5 @@
+# V2 shadow route example: monitoring/generated/alertmanager-snippet.yaml.
+# Merge shadow-null first; preserve async Bridge Secret authorization and independent quality delivery.
 route:
   receiver: feishu-bridge
   # 通知聚合与事件身份分开；Bridge 按每条告警标签路由到已有群。

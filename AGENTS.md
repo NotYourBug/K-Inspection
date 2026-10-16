@@ -57,7 +57,14 @@ kubectl apply -k deploy
 ```
 k8s_inspector/
   cli.py              # Entry point: argparse, "run" and "cleanup" subcommands
-  checks.py           # Core inspection rules: check_nodes, check_pods, check_pending_pvcs,
+  runner.py           # Finite catalog → bounded snapshot → isolated pure rules → Report v2
+  rule_catalog.py     # Rule/profile/collection keys and one primary notification profile
+  observation_models.py # Execution/health/coverage/UID evidence; legacy conversions
+  collector.py, snapshot.py # Deadline-bounded pagination, error classification and per-run reuse
+  rules_*.py          # Pure domain evaluations; no SDK/file/network I/O
+  observation_state.py # OS profile locks, atomic last-valid and confirmed-positive state
+  expected_targets.py # Independent read-only expected inventory HTTP exporter
+  checks.py           # Legacy check_* compatibility adapters; run_all uses canonical runner. Historical rules: check_nodes, check_pods, check_pending_pvcs,
                       #   check_warning_events, check_control_plane, check_kube_system_addons
                       #   run_all(profile) dispatches by frequency tier
   models.py           # Status enum (PASS/WARN/FAIL/SKIP), CheckResult, Report
@@ -104,4 +111,4 @@ deploy/               # Kustomize manifests: RBAC, CronJobs (by frequency), Prom
 - **Bridge order and disposition**: schema3 persists source/destination FIFO and per-alert cycle membership; A→B→A is a new transition even while old A is pending, unrelated HA interleaving still deduplicates. FIFO can delay later same-channel notifications. Local resolve-dead/acknowledge-unknown append reasoned audit and distinguish historical facts from unresolved counts. Backup requires a prepared directory and durable non-overwriting publication.
 - **The MCP server** (`mcp_server.py`) is fully self-contained — it duplicates `parse_quantity`, `_BAD_POD_REASONS`, `_pod_issue`, and client init rather than importing from the shared modules. This is intentional so it can be deployed independently.
 - **Report storage layering**: every run atomically refreshes latest/<profile>/report.json, even with persist-level issue/none; extra output/archive respects persistence policy. Canonical deployed latest/archive paths remain supported. Archives use UTC buckets plus unique run directories. cleanup supports --dry-run, rejects symlink/reparse targets and reports deletion failures; hourly7/daily30 days retained.
-- **Output evidence**: run-status.json records attempted sinks and execution quality independently of the legacy Report root. Prometheus run/sink metrics describe completed attempts before metrics push; that push result is in status/logs. Persistent last-valid observations and missing-target monitoring remain C work.
+- **Output evidence**: run-status.json records attempted sinks and execution quality independently of the legacy Report root. Prometheus run/sink metrics describe completed attempts before metrics push; that push result is in status/logs. Persistent last-valid and confirmed-positive state now preserve faults through unknown collection; independent expected inventory and primary-profile rules are generated under deploy/monitoring/generated in shadow mode. Real volume/runtime/receiver/cutover gates remain E work; see docs/runbooks/inspection-monitoring.md.

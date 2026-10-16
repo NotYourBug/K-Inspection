@@ -185,10 +185,11 @@ def _cmd_run_locked(args, cfg, formats):
     state_root = args.state_dir or os.getenv('INSPECTOR_STATE_DIR')
     state_path = Path(state_root) / cfg.profile / 'observations.json' if state_root else latest / 'observation-state.json'
     store = ObservationStateStore(state_path)
-    last_valid, baseline = (), ()
+    last_valid, baseline, confirmed = (), (), ()
     def read_state():
-        nonlocal last_valid, baseline
+        nonlocal last_valid, baseline, confirmed
         last_valid = store.read()
+        confirmed = store.read_confirmed()
         baseline = store.event_baseline(cluster_id=cfg.cluster_id or kube.display_name, profile=cfg.profile)
     kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
     state_outcomes = run_sinks({'observation_state_read': read_state}, frozenset({'observation_state_read'}))
@@ -203,8 +204,9 @@ def _cmd_run_locked(args, cfg, formats):
 
     latest, extra_base = _output_locations(Path(args.output_dir), args.profile, args.archive)
     def update_state():
-        nonlocal last_valid
+        nonlocal last_valid, confirmed
         last_valid = store.update(report)
+        confirmed = store.read_confirmed()
     outcomes = state_outcomes + run_sinks({'observation_state': update_state}, frozenset({'observation_state'}))
     report.sink_results = outcomes
     actions = {"latest_json": lambda: write_json(report, str(latest))}
@@ -232,7 +234,7 @@ def _cmd_run_locked(args, cfg, formats):
                 cfg=PushGatewayConfig(
                     url=pushgateway_url, job=job, timeout_s=float(args.pushgateway_timeout)
                 ),
-                sink_results=outcomes, last_valid=last_valid,
+                sink_results=outcomes, last_valid=last_valid, confirmed=confirmed,
             )}, required=frozenset({"metrics"}))
     outcomes += run_sinks({'manifest': lambda: write_run_manifest(report, outcomes, latest)},
                           required=frozenset({'manifest'}))

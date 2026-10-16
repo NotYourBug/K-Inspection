@@ -32,12 +32,13 @@ def push_report_to_gateway(
     *,
     sink_results: tuple[SinkResult, ...] = (),
     last_valid: tuple = (),
+    confirmed: tuple = (),
 ) -> None:
     """Convert a Report to Prometheus metrics and push to Pushgateway."""
     prometheus_client = _import_prometheus_client()
 
     registry = prometheus_client.CollectorRegistry()
-    populate_registry(report=report, profile=profile, registry=registry, sink_results=sink_results, last_valid=last_valid)
+    populate_registry(report=report, profile=profile, registry=registry, sink_results=sink_results, last_valid=last_valid, confirmed=confirmed)
 
     grouping_key = dict(extra_grouping or {})
     grouping_key.setdefault("cluster", report.cluster)
@@ -53,7 +54,7 @@ def push_report_to_gateway(
 
 
 def populate_registry(report: Report, profile: str, registry: Any, *,
-                      sink_results: tuple[SinkResult, ...] = (), last_valid: tuple = ()) -> None:
+                      sink_results: tuple[SinkResult, ...] = (), last_valid: tuple = (), confirmed: tuple = ()) -> None:
     """
     Fill a Prometheus CollectorRegistry from a Report.
 
@@ -66,7 +67,7 @@ def populate_registry(report: Report, profile: str, registry: Any, *,
     - k8s_inspector_node_utilization
     """
     prometheus_client = _import_prometheus_client()
-    _populate_quality(report, profile, registry, last_valid, sink_results)
+    _populate_quality(report, profile, registry, last_valid, sink_results, confirmed)
     run_success = prometheus_client.Gauge(
         "k8s_inspector_run_success",
         "Inspection and required output success before this metrics delivery.",
@@ -234,7 +235,7 @@ def _import_prometheus_client():
         raise RuntimeError("prometheus-client is required for metrics export") from e
 
 
-def _populate_quality(report, profile, registry, last_valid, sink_results):
+def _populate_quality(report, profile, registry, last_valid, sink_results, confirmed):
     from .observation_models import ExecutionStatus as E, ObservationHealth as H
     prometheus = _import_prometheus_client()
     labels = ['cluster', 'profile']
@@ -264,3 +265,17 @@ def _populate_quality(report, profile, registry, last_valid, sink_results):
             args = (report.cluster, profile, state.rule_id, state.scope)
             timestamp.labels(*args).set(state.observed_at.timestamp())
             failures.labels(*args).set(state.failure_count)
+
+    positive = prometheus.Gauge('inspector_confirmed_failures',
+        'Durable positive finding evidence; zero requires valid complete healthy observation.', rule_labels, registry=registry)
+    from .observation_models import Severity
+    for rule_id in active_rules:
+        candidates = [c.failure_count for c in confirmed if c.cluster_id == report.cluster
+                      and c.profile == profile and c.rule_id == rule_id and c.scope == 'cluster']
+        current = {f.fingerprint for f in report.findings if f.rule_id == rule_id and f.severity in (Severity.FAIL,Severity.WARN)}
+        if current:
+            candidates.append(len(current))
+        candidates += [s.failure_count for s in last_valid if s.cluster_id == report.cluster
+                       and s.profile == profile and s.rule_id == rule_id and s.scope == 'cluster']
+        if candidates:
+            positive.labels(report.cluster,profile,rule_id,'cluster').set(max(candidates))

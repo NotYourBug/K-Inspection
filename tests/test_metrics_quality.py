@@ -164,3 +164,36 @@ def test_cli_lock_contention_stops_before_cluster_access(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, 'load_kube', lambda **kw: pytest.fail('held lock reached cluster'))
     with profile_run_lock(tmp_path/'latest/5m'):
         assert cli.main(['run', '--profile', '5m', '--output-dir', str(tmp_path), '--exit-mode', 'always0']) == 1
+
+
+def test_partial_finding_survives_following_error_without_claiming_valid_coverage(tmp_path):
+    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.observation_models import ObservationHealth as H
+    ev = failed_evaluation()
+    ev = replace(ev, execution=replace(ev.execution, execution_status=E.PARTIAL, coverage=Coverage(None, 1, False)),
+        observations=tuple(replace(o, health=H.UNKNOWN, complete=False) for o in ev.observations))
+    store = ObservationStateStore(tmp_path/'state.json')
+    assert store.update(report(ev)) == ()
+    r = report(error_evaluation(now=NOW+timedelta(minutes=1)))
+    last_valid = store.update(r)
+    reg = CollectorRegistry()
+    populate_registry(r, '5m', reg, last_valid=last_valid, confirmed=store.read_confirmed())
+    assert sample(reg, 'inspector_confirmed_failures') == 1
+    assert sample(reg, 'inspector_last_valid_failures') is None
+    assert sample(reg, 'inspector_rule_observation_valid') == 0
+    store.update(pass_report())
+    assert store.read_confirmed() == ()
+
+
+def test_error_cannot_reuse_older_healthy_state_to_clear_partial_finding(tmp_path):
+    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.observation_models import ObservationHealth as H
+    store = ObservationStateStore(tmp_path/'state.json')
+    healthy = pass_report()
+    store.update(healthy)
+    ev = failed_evaluation(now=NOW+timedelta(minutes=2))
+    ev = replace(ev, execution=replace(ev.execution, execution_status=E.PARTIAL, coverage=Coverage(None,1,False)),
+        observations=tuple(replace(o,health=H.UNKNOWN,complete=False) for o in ev.observations))
+    store.update(report(ev))
+    store.update(report(error_evaluation(now=NOW+timedelta(minutes=3))))
+    assert store.read_confirmed()[0].failure_count == 1

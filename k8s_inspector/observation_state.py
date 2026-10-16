@@ -57,6 +57,25 @@ class ValidRuleState:
             raise ValueError('invalid observation state')
 
 
+@dataclass(frozen=True)
+class ConfirmedRuleState:
+    """Positive evidence may be partial; it never claims complete coverage."""
+    rule_id: str
+    cluster_id: str
+    profile: str
+    scope: str
+    failure_count: int
+    observed_at: datetime
+    run_id: str
+
+    def __post_init__(self):
+        object.__setattr__(self, 'observed_at', utc(self.observed_at))
+        if (not all(isinstance(x, str) and x for x in (self.rule_id, self.cluster_id,
+                self.profile, self.scope, self.run_id)) or type(self.failure_count) is not int
+                or self.failure_count <= 0):
+            raise ValueError('invalid confirmed finding state')
+
+
 def _key(state):
     return state.cluster_id, state.profile, state.rule_id, state.scope
 
@@ -70,7 +89,7 @@ class ObservationStateStore:
         if not self.path.exists():
             if self.marker.exists():
                 raise ValueError('observation state is missing after initialization')
-            return (), ()
+            return (), (), ()
         try:
             data = json.loads(self.path.read_text(encoding='utf-8'))
             if type(data.get('schema_version')) is not int or data['schema_version'] != 1:
@@ -85,21 +104,29 @@ class ObservationStateStore:
                         or type(cursor['count']) is not int or cursor['count'] < 0):
                     raise ValueError('invalid event cursor state')
                 utc(datetime.fromisoformat(cursor['observed_at']))
-            return states, cursors
+            confirmed = tuple(ConfirmedRuleState(**dict(item,
+                observed_at=datetime.fromisoformat(item['observed_at']))) for item in data.get('confirmed', ()))
+            if len({_key(c) for c in confirmed}) != len(confirmed):
+                raise ValueError('duplicate confirmed finding state')
+            return states, cursors, confirmed
         except (OSError, ValueError, KeyError, TypeError, AttributeError) as exc:
             raise ValueError('observation state cannot be read or validated') from exc
 
     def read(self):
         return self._load()[0]
 
+    def read_confirmed(self):
+        return self._load()[2]
+
     def event_baseline(self, *, cluster_id, profile):
         return tuple(c for c in self._load()[1] if c['cluster_id'] == cluster_id and c['profile'] == profile)
 
     def update(self, report):
         with profile_run_lock(self.path.parent, name=self.path.name + '.lock'):
-            previous, previous_cursors = self._load()
+            previous, previous_cursors, previous_confirmed = self._load()
             states = {_key(s): s for s in previous}
             executions = {e.rule_id: e for e in report.executions}
+            updated_healthy = set()
             for observation in report.observations:
                 if observation.cluster_id != report.cluster or observation.run_id != report.run_id:
                     raise ValueError('observation identity does not match report')
@@ -115,6 +142,22 @@ class ObservationStateStore:
                     observation.scope, observation.health, failures, observation.observed_at, report.run_id)
                 if _key(state) not in states or states[_key(state)].observed_at <= state.observed_at:
                     states[_key(state)] = state
+                    if state.health == H.HEALTHY:
+                        updated_healthy.add(_key(state))
+            confirmed = {_key(c): c for c in previous_confirmed}
+            for execution in report.executions:
+                findings = [f for f in report.findings if f.rule_id == execution.rule_id
+                            and f.severity in (Severity.WARN, Severity.FAIL)]
+                key = (report.cluster, report.profile, execution.rule_id, 'cluster')
+                if findings:
+                    state = ConfirmedRuleState(execution.rule_id, report.cluster, report.profile,
+                        'cluster', len({f.fingerprint for f in findings}),
+                        min(f.observed_at for f in findings), report.run_id)
+                    if key not in confirmed or confirmed[key].observed_at <= state.observed_at:
+                        confirmed[key] = state
+                elif key in updated_healthy:
+                    if key in confirmed and confirmed[key].observed_at <= states[key].observed_at:
+                        del confirmed[key]
             cursors = {(c['cluster_id'], c['profile'], c['uid']): c for c in previous_cursors}
             for finding in report.findings:
                 if finding.rule_id == 'events.warning' and type(finding.evidence.get('count')) is int:
@@ -127,7 +170,8 @@ class ObservationStateStore:
             cursors = tuple(c for c in cursors.values()
                             if (generated - utc(datetime.fromisoformat(c['observed_at']))).total_seconds() <= 7200)
             current = tuple(states[k] for k in sorted(states))
-            data = {'schema_version': 1, 'states': to_json_value(current), 'event_cursors': cursors}
+            data = {'schema_version': 1, 'states': to_json_value(current), 'event_cursors': cursors,
+                    'confirmed': to_json_value(tuple(confirmed[k] for k in sorted(confirmed)))}
             atomic_write_text(self.path, json.dumps(data, ensure_ascii=False, allow_nan=False, indent=2))
             if not self.marker.exists():
                 atomic_write_text(self.marker, '1\n')

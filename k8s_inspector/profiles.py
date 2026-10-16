@@ -1,4 +1,5 @@
 """Finite profile definitions, shared without importing rule implementations."""
+from __future__ import annotations
 from dataclasses import dataclass
 from types import MappingProxyType
 
