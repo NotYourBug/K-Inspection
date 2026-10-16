@@ -55,6 +55,13 @@ class Report:
     generated_at: str
     cluster: str
     results: list[CheckResult]
+    schema_version: int | None = None
+    run_id: str | None = None
+    profile: str | None = None
+    executions: tuple = ()
+    findings: tuple = ()
+    observations: tuple = ()
+    sink_results: tuple = ()
 
     @property
     def has_fail(self) -> bool:
@@ -65,7 +72,7 @@ class Report:
         return any(r.status == Status.WARN for r in self.results)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        result = {
             "generated_at": self.generated_at,
             "cluster": self.cluster,
             "summary": {
@@ -77,3 +84,9 @@ class Report:
             },
             "results": [r.to_dict() for r in self.results],
         }
+        if self.schema_version == 2:
+            from .observation_models import to_json_value
+            result.update({key: to_json_value(getattr(self, key)) for key in (
+                'schema_version', 'run_id', 'profile', 'executions', 'findings',
+                'observations', 'sink_results')})
+        return result
