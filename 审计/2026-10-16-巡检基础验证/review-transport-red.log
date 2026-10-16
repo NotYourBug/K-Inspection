@@ -1,0 +1,79 @@
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+_________ test_r1_physical_http_attempts_share_collector_retry_budget _________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1472/test_r1_physical_http_attempts0')
+
+    def test_r1_physical_http_attempts_share_collector_retry_budget(tmp_path):
+        with endpoint(drop=True) as (url, attempts):
+            ctx = load_kube(kubeconfig(tmp_path/'config', url))
+            try:
+                result = KubeCollector(ctx, 30, lambda: 0).collect_list('nodes', ctx.core.list_node)
+                assert result.execution_status == E.ERROR
+>               assert len(attempts) == 3
+E               AssertionError: assert 12 == 3
+E                +  where 12 = len(['/api/v1/nodes?limit=500', '/api/v1/nodes?limit=500', '/api/v1/nodes?limit=500', '/api/v1/nodes?limit=500', '/api/v1/nodes?limit=500', '/api/v1/nodes?limit=500', ...])
+
+tests\test_foundations_review_transport.py:57: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+WARNING  urllib3.connectionpool:connectionpool.py:874 Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'RemoteDisconnected('Remote end closed connection without response')': /api/v1/nodes?limit=500
+_ test_r2_final_page_after_deadline_preserves_items_without_complete_coverage _
+
+    def test_r2_final_page_after_deadline_preserves_items_without_complete_coverage():
+        tick = [0]
+        def late(**kwargs):
+            tick[0] = 2
+            return page(['observed-fault'])
+        result = KubeCollector(NS(), 1, lambda: tick[0]).collect_list('nodes', late)
+        assert result.items == ('observed-fault',)
+>       assert not result.complete and result.execution_status == E.PARTIAL
+E       AssertionError: assert (not True)
+E        +  where True = Collection(items=('observed-fault',), execution_status=<ExecutionStatus.OK: 'OK'>, observed_at=datetime.datetime(2026, 10, 16, 7, 49, 49, 748078, tzinfo=datetime.timezone.utc), complete=True, error_kind=None, reason=None).complete
+
+tests\test_foundations_review_transport.py:69: AssertionError
+___________ test_r11_default_identity_binds_actual_selected_cluster ___________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1472/test_r11_default_identity_bind0')
+
+    def test_r11_default_identity_binds_actual_selected_cluster(tmp_path):
+        a = load_kube(kubeconfig(tmp_path/'a', 'https://cluster-a.invalid'))
+        b = load_kube(kubeconfig(tmp_path/'b', 'https://cluster-b.invalid'))
+        again = load_kube(str(tmp_path/'a'))
+        try:
+            identity = lambda ctx: getattr(ctx, 'cluster_identity', None) or ctx.display_name
+>           assert identity(a) != identity(b)
+E           AssertionError: assert 'kubeconfig' != 'kubeconfig'
+E            +  where 'kubeconfig' = <function test_r11_default_identity_binds_actual_selected_cluster.<locals>.<lambda> at 0x000001A2AE134360>(KubeContext(display_name='kubeconfig', api_client=<kubernetes.client.api_client.ApiClient object at 0x000001A2B18D6300...0>, custom=<kubernetes.client.api.custom_objects_api.CustomObjectsApi object at 0x000001A2AFA41730>, event_baseline=()))
+E            +  and   'kubeconfig' = <function test_r11_default_identity_binds_actual_selected_cluster.<locals>.<lambda> at 0x000001A2AE134360>(KubeContext(display_name='kubeconfig', api_client=<kubernetes.client.api_client.ApiClient object at 0x000001A2AF69EF00...0>, custom=<kubernetes.client.api.custom_objects_api.CustomObjectsApi object at 0x000001A2AFA41D00>, event_baseline=()))
+
+tests\test_foundations_review_transport.py:79: AssertionError
+____________ test_r12_sdk_health_http500_is_confirmed_api_failure _____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1472/test_r12_sdk_health_http500_is0')
+
+    def test_r12_sdk_health_http500_is_confirmed_api_failure(tmp_path):
+        from k8s_inspector.rule_catalog import CATALOG
+        with endpoint(status=500) as (url, attempts):
+            ctx = load_kube(kubeconfig(tmp_path/'config', url))
+            try:
+                snapshot = KubeCollector(ctx, 30, lambda: 0).snapshot(frozenset({'api_health'}), 'run', 'prod')
+                result = next(r for r in CATALOG if r.rule_id == 'control.api').evaluate(snapshot, InspectorConfig())
+>               assert any(f.reason == 'APIUnhealthy' and f.severity == Severity.FAIL for f in result.findings)
+E               assert False
+E                +  where False = any(<generator object test_r12_sdk_health_http500_is_confirmed_api_failure.<locals>.<genexpr> at 0x000001A2AF967B90>)
+
+tests\test_foundations_review_transport.py:94: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_transport.py::test_r1_physical_http_attempts_share_collector_retry_budget
+FAILED tests/test_foundations_review_transport.py::test_r2_final_page_after_deadline_preserves_items_without_complete_coverage
+FAILED tests/test_foundations_review_transport.py::test_r11_default_identity_binds_actual_selected_cluster
+FAILED tests/test_foundations_review_transport.py::test_r12_sdk_health_http500_is_confirmed_api_failure
+4 failed in 17.40s

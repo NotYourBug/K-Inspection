@@ -1,0 +1,67 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-10-02-inspection-foundations-and-monitoring.md
+
+Baseline: 2f7e806; existing isolated remediation/inspection-correctness checkout; Native execution authorized. Spec: docs/superpowers/specs/2026-10-02-remediation-design.md.
+Tasks: C1 in_progress; C2–C7 pending.
+Pre-flight: C1 → C2/C3/C4/C5/C6: exact observation DTOs and v1 compatibility agreed.
+Pre-flight: C2 → C3/C4: keyed immutable snapshot, shared monotonic deadline, incomplete collections never healthy.
+Pre-flight: C3 → C4/C7: finite catalog with one primary profile; strict config precedence.
+Pre-flight: C4 → C5/C6/D4: per-UID evidence and aggregate scope; absence does not recover old UID.
+Pre-flight: C5 → C6: manifest records required state sink; report writing does not recurse.
+Pre-flight: C6 → C7: persistent last-valid samples retain failures through unknown; independent inventory supplies missing targets.
+Ruling: Use PowerShell task bookkeeping instead of Unix helper scripts — Windows environment and C task identifiers — cost if wrong: manual ledger omissions, checked at final review.
+Task C1: complete (commits 2f7e806..c45b4b3; tests: models 19 passed; full suite 352 passed, 2 upstream warnings; RED missing observation module).
+Task C2: in_progress; BASE c45b4b3; RED 11 missing collector failures.
+Ruling: Split short remaining request budget between connect/read instead of fixed connect3s — fixed3s exceeds sub3s remainder; SDK timeouts bound transport waits, cannot promise hard cancellation of DNS/processing — cost if wrong: request may overrun wall deadline, E requires actual transport validation.
+Task C2: complete (commits c45b4b3..e71a257; 13 collector/snapshot/Node tests passed; full suite 365 passed, 2 upstream warnings).
+Task C3: in_progress; BASE e71a257; RED 13 missing catalog/runner/config failures.
+Ruling: Wire CLI and run_all to the new runner after C4 domain migration in C5 — C3 catalog exposes unmigrated rules as UNKNOWN during local development instead of falsely healthy — cost if wrong: C3 alone is not a release, final C5/full-suite gate required.
+Task C3: complete (commits e71a257..36a40bf; targeted 42 passed; full suite 378 passed, 2 upstream warnings). Fixed mixed-type unknown config keys with friendly ValueError.
+Task C4: in_progress; BASE 36a40bf; Node RED 2 → GREEN 12 with A fixtures; Pod/storage RED 4.
+Ruling: A Pod within readiness grace has no current FAIL but cannot prove HEALTHY recovery in v2 — grace suppresses fault escalation, not evidence requirements — cost if wrong: transient PARTIAL quality during deployments; legacy A API remains compatible.
+Task C4: complete (commits 36a40bf..7542f4c; domain regressions 84 passed; final rules 14 passed; full implemented suite 392 passed, 2 upstream warnings; future C5 test file explicitly excluded while RED). Event delta and optional client/metrics errors also RED→GREEN. F1 coverage expansion remains separate.
+Ruling: Retain old check_* V1 adapters and their legacy detail shapes while default runtime moves to pure rules — A public compatibility fixtures depend on these shapes; Pod state calculation is shared — cost if wrong: residual legacy calculation drift; final review must weigh this C4 deviation.
+Task C5: in_progress; BASE 7542f4c; RED 7 report/manifest/scope/archive/facade failures.
+Task C5: complete (commits 7542f4c..b967a59; targeted 96 passed; full suite 399 passed, 2 upstream warnings; UTF-8 test reader fixed for Windows GBK; faulthandler confirms slow lark SDK import, not deadlock). CLI and grouped run_all now use canonical runner; unknown profile no longer falls back.
+Task C6: in_progress; BASE b967a59; RED 8 missing state/quality metric failures; cross-cluster identity regression added.
+Task C6: complete (commits b967a59..2422c3e; targeted 58 passed; full suite 411 passed, 2 upstream warnings; state sequence/loss/locks/identity/write failures/always0 RED→GREEN). Event cursors persist cluster/profile/UID binding.
+Ruling: State loss marker detects a removed state file, not simultaneous loss of its entire volume — complete volume loss removes local proof too; absent valid samples and independent inventory must remain visible — cost if wrong: cold restart cannot distinguish first installation from total volume loss; E volume/restore gate remains mandatory.
+Task C7: in_progress; BASE 2422c3e; Python RED 8 missing inventory/generator failures. Official promtool 2.53.0 downloaded; archive and executable SHA256 verified.
+Ruling: Keep legacy active rules during explicit v2 shadow cutover — E must verify the daily cycle, actual state volume and independent quality receiver before activation — cost if wrong: operators could activate both business rule sets and duplicate notifications; generated defaults route shadow to null.
+Ruling: Persist positive partial evidence separately from complete last-valid observations — otherwise a first partial FAIL followed by ERROR would lose business notification evidence — cost if wrong: aggregate fault retention may outlive an object lifecycle; old UID recovery remains separate and requires D evidence/disposition.
+Ruling: Business lookback is 30 days bounded by available Prometheus retention/TSDB survival — retain notifications through transient metric loss, with independent missing/stale quality coverage and persistent state republishing — cost if wrong: long telemetry/TSDB loss can expire a business alert; never treat it as verified incident recovery.
+Task C7: complete (commits 2422c3e..43e642b4f7bb7840b852f5c10ff6809e696feb1f; Python full suite 421 passed, 2 upstream warnings; promtool 2.53.0 20 new rules valid and 11 temporal fixture groups passed; 5 standalone/5 embedded legacy rules valid; amtool 0.27.0 base/shadow configs and null routing passed; Kustomize5.4.3 base23 objects; sandbox link-metadata read needed escalation). Generated byte reproducibility uses eol=lf.
+
+Final review: 43e642b; 11 Important, 0 Critical, 0 Minor; single author TDD fix pass required; no second review. User resolved reviewer quota interruption.
+Author additional Important R12: /healthz HTTP500 must preserve confirmed API failure rather than become collection ERROR; verify against real SDK HTTP.
+
+Review verification: transport RED 4/4; extra deadline/identity RED 2/2; actual SDK37 health200 RED; rule regressions RED13/13; metric/order/CSV extra RED4/4; Pod isolation RED after correcting invalid fixture construction. Targeted GREEN111/111. Actual CLI HTTP test also RED on preserved pre-review wheel at43e642b (missing legacy PVC metric), then verified against final source. R12 includes discovered SDK37 call_api signature mismatch.
+Final: Ruling: INFO findings carry non-fault measurements and Event cursors within canonical DTOs — keeps evidence serializable without mutable side channels; severity filtering is applied to health/counters — cost if wrong: downstream consumers counting every finding must filter WARN/FAIL.
+Final: Ruling: Require explicit in-cluster identity and hash the local kubeconfig binding — generic service host/context is not a globally stable cluster identity and discovery would require extra API permissions — cost if wrong: missing ID blocks startup; moving config changes fallback history identity, so production should set an explicit ID.
+Final: Ruling: Declined1 actual Linux/Python/container compatibility remains an E release gate — local Windows3.12 results do not prove other environments — cost if wrong: deployed import/lock/runtime failures.
+Final: Ruling: Declined2 actual local/block PVC, locks, power-loss and restore remains an E release gate — local filesystem fixtures cannot validate target storage — cost if wrong: lost or corrupted durable evidence.
+Final: Ruling: Declined3 actual RBAC, managed capability, scale and hard cancellation remain E gates; local retry/deadline defects R1/R2 were fixed — real endpoints still require controlled validation — cost if wrong: API pressure, blind spots or late requests.
+Final: Ruling: Declined4 actual Prometheus retention/TSDB, merged rollout, independent receiver and daily shadow cycle remain E gates — offline tools cannot prove delivery/storage — cost if wrong: missed or duplicated production alerts.
+Final: Ruling: Declined5 incident authorization, disposition and verified recovery remain D; C now produces seen-resource UID evidence — metrics alone do not close incidents — cost if wrong: stale or prematurely closed incidents.
+Final: Ruling: Declined6 expanded rule coverage and independent MCP remain F — C establishes correctness of existing scope — cost if wrong: users could assume checks cover unimplemented risks.
+Final: Ruling: Declined7 legacy direct check APIs remain for compatibility; default evidence projection and metrics regression R3 are fixed — existing public fixtures and consumers still use old APIs — cost if wrong: two calculation paths can drift.
+Final: Ruling: Declined8 retain shadow deployment until E gates pass; default legacy selectors are repaired — avoid treating offline approval as production rollout — cost if wrong: delayed v2 production coverage or duplicate rules if misconfigured.
+Final: Ruling: Declined9 accept documented entire-volume loss and finite Prometheus-history limits — local markers cannot survive total volume loss and queries cannot retain expired TSDB samples — cost if wrong: cold-start ambiguity or expiring alerts; independent quality alerts and restore remain required.
+Final: minor (deferred): none (review raised no Minor findings).
+Final: fixed R1 SDK hidden retries — test_r1_physical_http_attempts_share_collector_retry_budget (12 physical attempts -> 3) RED→GREEN, suite 447/447.
+Final: fixed R2 final-page/rule deadline — test_r2_final_page_after_deadline_preserves_items_without_complete_coverage; test_r2_late_rule_cannot_claim_complete_healthy_coverage RED→GREEN, suite 447/447.
+Final: fixed R3 legacy monitoring/report/CSV projection — test_r3_default_v2_keeps_active_legacy_selectors_and_node_measurements; test_r3_unknown_rule_does_not_export_fake_legacy_issue_zero; test_r3_csv_keeps_rule_identity_and_uid_when_root_results_use_legacy_groups; test_r3_real_cli_preserves_shipped_legacy_metrics_and_report_groups (pre-review installed wheel RED, final source GREEN) RED→GREEN, suite 447/447.
+Final: fixed R4 sibling isolation — test_r4_malformed_sibling_metric_cannot_hide_node_not_ready; test_r4_invalid_history_evidence_cannot_hide_current_pod_failure RED→GREEN, suite 447/447.
+Final: fixed R5 partial addon false fault — test_r5_partial_pod_membership_cannot_prove_addon_shortage RED→GREEN, suite 447/447.
+Final: fixed R6 unsupported addons false healthy — test_r6_unrelated_namespace_pod_does_not_prove_addon_capability RED→GREEN, suite 447/447.
+Final: fixed R7 stale/multiple-time fault resurrection — test_r7_older_failure_cannot_resurrect_newer_healthy_state_or_metric; test_r7_older_current_report_cannot_export_resurrected_fault; test_r7_multi_time_partial_fault_waits_for_health_after_latest_evidence RED→GREEN, suite 447/447.
+Final: fixed R8 seen-resource UID evidence — test_r8_seen_healthy_resource_emits_uid_recovery_evidence (4 rule IDs) RED→GREEN, suite 447/447.
+Final: fixed R9 Event occurrence/window/cursor — test_r9_one_series_with_21_new_occurrences_exceeds_threshold10; test_r9_below_threshold_cursor_is_durable_and_next_delta_is_counted; test_r9_unknown_initial_cumulative_count_cannot_prove_healthy RED→GREEN, suite 447/447.
+Final: fixed R10 collection-time Event boundary — test_r10_event_created_during_collection_is_not_future_or_lost RED→GREEN, suite 447/447.
+Final: fixed R11 cluster binding — test_r11_default_identity_binds_actual_selected_cluster; test_r11_in_cluster_requires_stable_identity_before_loading_credentials RED→GREEN, suite 447/447.
+Final: fixed R12 author API health/SDK interface — test_r12_sdk_health_http500_is_confirmed_api_failure; test_r12_sdk_health_http200_is_valid_healthy_probe RED→GREEN, suite 447/447.
+Final verification: python -m pytest tests/ -v:447 passed,2 upstream lark SDK DeprecationWarnings,228.29s. promtool2.53.0:20 rules valid,11 temporal groups SUCCESS. Final isolated wheel30 tests passed (13.56s); SHA2566a9bc47211c4b59bf79f862677b009bbdbe46a7cb25ba29da542fd1b5a2dfc46. git diff --check clean.
+Verification correction: review-pod-green.log records a wrong nonexistent test file and no tests; corrected review-cli-pod-green.log passed36. The initial Pod isolation fixture validation error was corrected before the meaningful RED. Neither mistaken invocation is counted as passing evidence.
+Final: Ruling: Preserve the existing local remediation/inspection-correctness branch — repository has only this branch, no remote or named integration base; no merge/push/deployment is authorized or necessary to finish local work — cost if wrong: integration remains a later explicit action.
+Final status: C1–C7 and one author review fix pass complete locally; E/D/F scope remains as documented. No re-review was dispatched. Archive logs/ledger before deleting only this plan-owned scratch directory.
+Final fix pass commit: ea2f6e3046aa7ae12ba9494dd6d7f12c0abb9bae; tests447/447 and installed wheel30/30; no remaining Critical/Important findings known.
+Audit publication: preserve source range, raw RED/GREEN/full-suite logs, pre-review and final wheel metadata, real tool checks, independent review and all rulings in audit16–18 plus SHA256 manifest before removing the owned scratch directory. Shared tool/pip caches and all sibling plans are excluded from cleanup.

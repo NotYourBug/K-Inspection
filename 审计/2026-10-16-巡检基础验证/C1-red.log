@@ -1,0 +1,136 @@
+FEEEEEE.E                                                                [100%]
+=================================== ERRORS ====================================
+________ ERROR at setup of test_resource_uid_changes_finding_identity _________
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+___________ ERROR at setup of test_partial_with_failure_keeps_fail ____________
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+_______ ERROR at setup of test_unknown_coverage_denominator_stays_null ________
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+__________ ERROR at setup of test_naive_observation_time_is_rejected __________
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+________ ERROR at setup of test_evidence_rejects_non_json_sdk_objects _________
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+______ ERROR at setup of test_only_complete_healthy_observation_is_pass _______
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+_____ ERROR at setup of test_explicit_v2_serializes_observations_and_utc ______
+
+    @pytest.fixture
+    def o():
+>       return api()
+               ^^^^^
+
+tests\test_observation_models.py:24: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def api():
+        # Keep a missing feature a focused assertion instead of a collection error.
+>       from k8s_inspector import observation_models as o
+E       ImportError: cannot import name 'observation_models' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_observation_models.py:13: ImportError
+================================== FAILURES ===================================
+______________________ test_observation_contract_exists _______________________
+
+    def test_observation_contract_exists():
+        import importlib.util
+>       assert importlib.util.find_spec('k8s_inspector.observation_models') is not None
+E       AssertionError: assert None is not None
+E        +  where None = <function find_spec at 0x0000014D2A5D1800>('k8s_inspector.observation_models')
+E        +    where <function find_spec at 0x0000014D2A5D1800> = <module 'importlib.util' (frozen)>.find_spec
+E        +      where <module 'importlib.util' (frozen)> = <module 'importlib' from 'C:\\Users\\23033\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\Lib\\importlib\\__init__.py'>.util
+
+tests\test_observation_models.py:19: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_observation_models.py::test_observation_contract_exists - A...
+ERROR tests/test_observation_models.py::test_resource_uid_changes_finding_identity
+ERROR tests/test_observation_models.py::test_partial_with_failure_keeps_fail
+ERROR tests/test_observation_models.py::test_unknown_coverage_denominator_stays_null
+ERROR tests/test_observation_models.py::test_naive_observation_time_is_rejected
+ERROR tests/test_observation_models.py::test_evidence_rejects_non_json_sdk_objects
+ERROR tests/test_observation_models.py::test_only_complete_healthy_observation_is_pass
+ERROR tests/test_observation_models.py::test_explicit_v2_serializes_observations_and_utc
+1 failed, 1 passed, 7 errors in 0.71s

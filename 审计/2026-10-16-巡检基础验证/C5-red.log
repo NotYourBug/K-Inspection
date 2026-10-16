@@ -1,0 +1,98 @@
+FFFFFFF                                                                  [100%]
+================================== FAILURES ===================================
+__________ test_v2_preserves_v1_root_fields_and_csv_finding_evidence __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1452/test_v2_preserves_v1_root_fiel0')
+
+    def test_v2_preserves_v1_root_fields_and_csv_finding_evidence(tmp_path):
+        r = report()
+        data = json.loads(output.write_json(r, tmp_path).read_text())
+        assert {'generated_at', 'cluster', 'summary', 'results'} <= set(data)
+        rows = list(csv.DictReader(output.write_csv(r, tmp_path).open(encoding='utf-8')))
+>       assert rows[0]['resource_uid'] == 'pod-uid-1'
+               ^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'resource_uid'
+
+tests\test_report_v2.py:24: KeyError
+___________ test_html_escapes_untrusted_evidence_and_links_objects ____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1452/test_html_escapes_untrusted_ev0')
+
+    def test_html_escapes_untrusted_evidence_and_links_objects(tmp_path):
+        ev = failed_evaluation()
+        f = replace(ev.findings[0], summary='<script>alert(1)</script>', evidence={'message': '<script>'})
+        text = output.write_html(report(replace(ev, findings=(f,))), tmp_path).read_text()
+>       assert '<script>' not in text and '&lt;script&gt;' in text
+E       assert ('<script>' not in '<!doctype h...>\n</html>\n'
+E         
+E         '<script>' is contained here:
+E           y>
+E           </html> and '&lt;script&gt;' in '<!doctype html>\n<html lang="zh">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device-...d><td class=\'fail\'>FAIL</td><td>pods.current: FAIL</td><td>1</td></tr>\n    </tbody>\n  </table>\n</body>\n</html>\n')
+
+tests\test_report_v2.py:32: AssertionError
+_______________________ test_unknown_is_visible_in_html _______________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1452/test_unknown_is_visible_in_htm0')
+
+    def test_unknown_is_visible_in_html(tmp_path):
+        text = output.write_html(report(error_evaluation()), tmp_path).read_text()
+>       assert 'UNKNOWN' in text and 'FORBIDDEN' in text and 'expected=unknown' in text
+E       assert ('UNKNOWN' in '<!doctype html>\n<html lang="zh">\n<head>\n  <meta charset="utf-8" />\n  <meta name="viewport" content="width=device-...d class=\'warn\'>WARN</td><td>collection unavailable</td><td>1</td></tr>\n    </tbody>\n  </table>\n</body>\n</html>\n')
+
+tests\test_report_v2.py:38: AssertionError
+_________________ test_snapshot_scope_mismatch_omits_details __________________
+
+    def test_snapshot_scope_mismatch_omits_details():
+        r = report().to_dict()
+>       assert output.snapshot_is_compatible(r, cluster='prod', profile='5m', scope='cluster', now=NOW, max_age_seconds=900)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.report' has no attribute 'snapshot_is_compatible'
+
+tests\test_report_v2.py:43: AttributeError
+_______________ test_manifest_failure_does_not_overwrite_report _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1452/test_manifest_failure_does_not0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001B82BE7FFE0>
+
+    def test_manifest_failure_does_not_overwrite_report(tmp_path, monkeypatch):
+        from k8s_inspector import sinks
+        r = report()
+        target = output.write_json(r, tmp_path)
+        before = target.read_bytes()
+        monkeypatch.setattr(sinks, 'atomic_write_text', lambda *a: (_ for _ in ()).throw(OSError('full')))
+        with pytest.raises(OSError):
+>           sinks.write_run_manifest(r, (), tmp_path)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.sinks' has no attribute 'write_run_manifest'
+
+tests\test_report_v2.py:58: AttributeError
+__________ test_same_second_archive_directory_contains_report_run_id __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1452/test_same_second_archive_direc0')
+
+    def test_same_second_archive_directory_contains_report_run_id(tmp_path):
+        from k8s_inspector.cli import _resolve_output_dir
+>       a = _resolve_output_dir(str(tmp_path), 'hourly', NOW, run_id='run-one')
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: _resolve_output_dir() got an unexpected keyword argument 'run_id'
+
+tests\test_report_v2.py:64: TypeError
+_____________ test_unknown_legacy_profile_is_rejected_before_api ______________
+
+    def test_unknown_legacy_profile_is_rejected_before_api():
+        from k8s_inspector.checks import run_all
+        from k8s_inspector.config import InspectorConfig
+>       with pytest.raises(ValueError, match='profile'):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_report_v2.py:72: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_report_v2.py::test_v2_preserves_v1_root_fields_and_csv_finding_evidence
+FAILED tests/test_report_v2.py::test_html_escapes_untrusted_evidence_and_links_objects
+FAILED tests/test_report_v2.py::test_unknown_is_visible_in_html - assert ('UN...
+FAILED tests/test_report_v2.py::test_snapshot_scope_mismatch_omits_details - ...
+FAILED tests/test_report_v2.py::test_manifest_failure_does_not_overwrite_report
+FAILED tests/test_report_v2.py::test_same_second_archive_directory_contains_report_run_id
+FAILED tests/test_report_v2.py::test_unknown_legacy_profile_is_rejected_before_api
+7 failed in 6.27s

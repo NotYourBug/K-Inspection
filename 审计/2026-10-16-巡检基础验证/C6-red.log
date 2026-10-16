@@ -1,0 +1,108 @@
+FFFFFFFF                                                                 [100%]
+================================== FAILURES ===================================
+________________ test_error_does_not_clear_last_valid_failure _________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_error_does_not_clear_last0')
+
+    def test_error_does_not_clear_last_valid_failure(tmp_path):
+>       from k8s_inspector.observation_state import ObservationStateStore
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:22: ModuleNotFoundError
+___________ test_valid_healthy_observation_clears_previous_failure ____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_valid_healthy_observation0')
+
+    def test_valid_healthy_observation_clears_previous_failure(tmp_path):
+>       from k8s_inspector.observation_state import ObservationStateStore
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:34: ModuleNotFoundError
+_____________ test_unknown_without_history_has_no_healthy_sample ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_unknown_without_history_h0')
+
+    def test_unknown_without_history_has_no_healthy_sample(tmp_path):
+>       from k8s_inspector.observation_state import ObservationStateStore
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:45: ModuleNotFoundError
+_________________________ test_state_loss_is_visible __________________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_state_loss_is_visible0')
+
+    def test_state_loss_is_visible(tmp_path):
+>       from k8s_inspector.observation_state import ObservationStateStore
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:56: ModuleNotFoundError
+__________ test_profile_lock_is_exclusive_and_recovers_after_release __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_profile_lock_is_exclusive0')
+
+    def test_profile_lock_is_exclusive_and_recovers_after_release(tmp_path):
+>       from k8s_inspector.observation_state import profile_run_lock
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:68: ModuleNotFoundError
+________________ test_metrics_labels_have_bounded_cardinality _________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_metrics_labels_have_bound0')
+
+    def test_metrics_labels_have_bounded_cardinality(tmp_path):
+>       from k8s_inspector.observation_state import ObservationStateStore
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:78: ModuleNotFoundError
+_________ test_state_write_failure_is_required_sink_and_keeps_failure _________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_state_write_failure_is_re0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001BA1B151070>
+
+    def test_state_write_failure_is_required_sink_and_keeps_failure(tmp_path, monkeypatch):
+>       from k8s_inspector.observation_state import ObservationStateStore
+E       ModuleNotFoundError: No module named 'k8s_inspector.observation_state'
+
+tests\test_metrics_quality.py:90: ModuleNotFoundError
+___________________ test_always0_still_exports_run_failure ____________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1458/test_always0_still_exports_run0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001BA1B248350>
+
+    def test_always0_still_exports_run_failure(tmp_path, monkeypatch):
+        import json
+        from types import SimpleNamespace
+        from k8s_inspector import cli
+        r = report(error_evaluation())
+        monkeypatch.setattr(cli, 'load_kube', lambda **kw: SimpleNamespace(display_name='prod'))
+        monkeypatch.setattr(cli, 'run_inspection', lambda *a, **kw: r)
+        for key in ('FEISHU_WEBHOOK', 'PUSHGATEWAY_URL', 'INSPECTOR_PROFILE', 'INSPECTOR_CLUSTER'):
+            monkeypatch.delenv(key, raising=False)
+        values = []
+        def push(**kwargs):
+            reg = CollectorRegistry()
+            populate_registry(kwargs['report'], kwargs['profile'], reg,
+                              last_valid=kwargs.get('last_valid', ()), sink_results=kwargs['sink_results'])
+            values.append(reg.get_sample_value('inspector_run_success', {'cluster': 'prod', 'profile': '5m'}))
+        monkeypatch.setattr(cli, 'push_report_to_gateway', push)
+        code = cli.main(['run', '--profile', '5m', '--output-dir', str(tmp_path),
+            '--pushgateway-url', 'http://example.invalid', '--exit-mode', 'always0'])
+>       assert code == 0 and values == [0]
+E       assert (0 == 0 and [] == [0]
+E         
+E         Right contains one more item: 0
+E         Use -v to get more diff)
+
+tests\test_metrics_quality.py:121: AssertionError
+------------------------------ Captured log call ------------------------------
+ERROR    k8s_inspector.cli:cli.py:216 Output metrics failed (TypeError)
+=========================== short test summary info ===========================
+FAILED tests/test_metrics_quality.py::test_error_does_not_clear_last_valid_failure
+FAILED tests/test_metrics_quality.py::test_valid_healthy_observation_clears_previous_failure
+FAILED tests/test_metrics_quality.py::test_unknown_without_history_has_no_healthy_sample
+FAILED tests/test_metrics_quality.py::test_state_loss_is_visible - ModuleNotF...
+FAILED tests/test_metrics_quality.py::test_profile_lock_is_exclusive_and_recovers_after_release
+FAILED tests/test_metrics_quality.py::test_metrics_labels_have_bounded_cardinality
+FAILED tests/test_metrics_quality.py::test_state_write_failure_is_required_sink_and_keeps_failure
+FAILED tests/test_metrics_quality.py::test_always0_still_exports_run_failure
+8 failed in 4.80s

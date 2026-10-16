@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-expected-targets
+  namespace: kube-system
+data:
+  expected-targets.yaml: "targets:\n- cluster_id: YOUR_CLUSTER_NAME\n  profile: 10m\n\
+    \  max_run_age_seconds: 1800\n  rule_ids:\n  - control.api\n  - control.components\n\
+    - cluster_id: YOUR_CLUSTER_NAME\n  profile: 5m\n  max_run_age_seconds: 900\n \
+    \ rule_ids:\n  - nodes.ready\n  - pods.current\n  - pvc.binding\n- cluster_id:\
+    \ YOUR_CLUSTER_NAME\n  profile: daily\n  max_run_age_seconds: 129600\n  rule_ids:\n\
+    \  - nodes.ready\n  - pods.current\n  - pvc.binding\n  - control.api\n  - control.components\n\
+    \  - nodes.utilization\n  - nodes.pressure\n  - pods.history\n  - events.warning\n\
+    \  - addons.ready\n- cluster_id: YOUR_CLUSTER_NAME\n  profile: hourly\n  max_run_age_seconds:\
+    \ 7200\n  rule_ids:\n  - nodes.ready\n  - pods.current\n  - pvc.binding\n  - control.api\n\
+    \  - control.components\n  - nodes.utilization\n  - nodes.pressure\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-inspector-inventory
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels: &id001
+      app: k8s-inspector-inventory
+  template:
+    metadata:
+      labels: *id001
+      annotations:
+        inspector/config-sha256: e7f9c49328c8800e06af7f85154098765e4b833f39c3ef48d98c0127a09959c3
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+      containers:
+      - name: inventory
+        image: your-registry/k8s-inspector:0.1.0
+        command:
+        - python
+        - -m
+        - k8s_inspector.expected_targets
+        args:
+        - --config
+        - /etc/inventory/expected-targets.yaml
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: '1'
+        ports:
+        - containerPort: 9400
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9400
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 9400
+        volumeMounts:
+        - name: inventory
+          mountPath: /etc/inventory
+          readOnly: true
+      volumes:
+      - name: inventory
+        configMap:
+          name: k8s-inspector-expected-targets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-inspector-inventory
+  namespace: kube-system
+spec:
+  selector:
+    app: k8s-inspector-inventory
+  ports:
+  - port: 9400
+    targetPort: 9400

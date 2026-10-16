@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "source_commit": "ea2f6e3046aa7ae12ba9494dd6d7f12c0abb9bae",
+  "source_base": "2f7e806",
+  "evidence": "working bytes and committed blobs must both match",
+  "files": [
+    {
+      "path": "审计/16-巡检基础与监控实施记录-2026-10-16.md",
+      "sha256": "6f7fe56e45fbc12377e5d1baae5f409a67d9cd6c013574d56f781ba0d91f74c0",
+      "size_bytes": 5599
+    },
+    {
+      "path": "审计/17-巡检基础与监控独立审查-2026-10-16.md",
+      "sha256": "f065476bc4db52ad10c71c0888caa9de953b695b9e7fc7bfe07d25f6f94ed41e",
+      "size_bytes": 5659
+    },
+    {
+      "path": "审计/18-巡检基础与监控执行台账-2026-10-16.md",
+      "sha256": "00b3d74e19c329ac84cd87b856b0e92c184d198ac4415f3777b12876db7790b1",
+      "size_bytes": 13730
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-amtool-check.log",
+      "sha256": "1b6526c433e71dc71557ce38fc0f66c1118687c198b4beecf18a514215d2f111",
+      "size_bytes": 232
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/alertmanager-snippet.yaml",
+      "sha256": "3f87ccaa8d2186f81dc5cf565d87a83fd09950c0f33828e48822100b5b3ded57",
+      "size_bytes": 570
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/inspection-rules.yaml",
+      "sha256": "a219b9136f28bcc6c523ebc6b2ef3cb6915335ea3a4b2dfe10b2ea6fc50b2e64",
+      "size_bytes": 10427
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/inventory.yaml",
+      "sha256": "8f80102fe0ca7cc0d31e7da27e17cdb990efbd6f47b81a5419363c21320ff602",
+      "size_bytes": 2806
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/scrape-snippet.yaml",
+      "sha256": "7ff17c0446103f894e91e04773a0fadf7517b17c62803e66e76c1332ab3be7bf",
+      "size_bytes": 130
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-quality-route-check.log",
+      "sha256": "d1e195b328c12be418eb2048dca5f529eec0883fac38556099eedc2c617f9cc4",
+      "size_bytes": 21
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/author-adversarial-probes.log",
+      "sha256": "b3fcf69dacbe257da3503f7c18e33a43eb21bc8d8411fce65cc8b845fe29f94c",
+      "size_bytes": 269
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/author-sdk-retry-probe.log",
+      "sha256": "300e7aaf805ab04e2b3a9cfe5bd12823c4bfe633e89aa02f303ef2e08fc92c9f",
+      "size_bytes": 120
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/base-alertmanager.yml",
+      "sha256": "5cb4fdbd52a822175ab34ccc51c7c71675d6061ae6526e8a4801565b40a338f1",
+      "size_bytes": 900
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/base-k8s-inspector-rules.yaml",
+      "sha256": "5af0797f23d60089ad5a1261a03fae32a0ebd40a9a20380ffbeab18cc9f78d7c",
+      "size_bytes": 6944
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/baseline.log",
+      "sha256": "2dee655aa23e2c103f4cf5bf580790d4c6aa0e27af4927d9e3e4c366a6195c4e",
+      "size_bytes": 1440
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C1-red.log",
+      "sha256": "0247f82ed5d4fa7e6820552a5a266cce8310dee561797eff206715f71d0bf4c0",
+      "size_bytes": 6432
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C1-suite.log",
+      "sha256": "7c0b78f554ce9843023558f6f77b3efdb55921e01c5d349b0730269df01e4e1a",
+      "size_bytes": 1440
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C1-target.log",
+      "sha256": "93b6141a2ddc37092379c3fd8dabea956eba9717d45b58201ec1376672bcd76d",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C2-node-red.log",
+      "sha256": "5e88c9ac10c94be561365e3fc9d5284fb33de6a529212b88cd596ce10a359fe3",
+      "size_bytes": 1128
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C2-red.log",
+      "sha256": "56406b38cbf54baf165e29c7af5456d6e6bb8b6f5686d1a0762da0638c65705d",
+      "size_bytes": 8547
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C2-suite.log",
+      "sha256": "3f53dd47561fb9f75f7f6be793723b971fbb8d9b50f30c749d36a214c2f774d1",
+      "size_bytes": 1522
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C2-target.log",
+      "sha256": "4abf8c2f6a920b807d6cb21b2d217f30d79a8ada41aad57d33bba92ce04adc3c",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C3-red.log",
+      "sha256": "c1a57d4ee10cef42cdabe71b422633621c8dc48a88ac4029325022fed16308cb",
+      "size_bytes": 8085
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C3-suite.log",
+      "sha256": "88b24ed0a9ba3210c9f2cfa98c12ef072f4fd3ca25241d2cbc9c584138ba7765",
+      "size_bytes": 1522
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C3-target.log",
+      "sha256": "f7610f9e9e6d13f634e6183ec8dd951f5ac0f09f975d1a28c173a1bc5ed13cb2",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-binding-red.log",
+      "sha256": "8faab230dd4467b0a9c978ba711daa806f425c54bfd7f03ba7b0d5d3b373fe6d",
+      "size_bytes": 2277
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-control-events-green.log",
+      "sha256": "613111e342b000238b6e45fd1073fc603e637873d7dc4b337fb0ade2223fdd3d",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-control-events-red.log",
+      "sha256": "a1f4de28097d2e5c8d5bfd832c9a0cbb458feb76a726652131503e718374d030",
+      "size_bytes": 4556
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-event-delta-red.log",
+      "sha256": "097ded46fb666f79d34e87ed51b2585c0470def85b09cfae25e65ad733bea902",
+      "size_bytes": 1752
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-final-suite.log",
+      "sha256": "489d2047735715437711fcec1ad5296646bbff403c738807c87da6ff11420777",
+      "size_bytes": 1522
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-final-target.log",
+      "sha256": "7cc0e95857ed74f8a9c249b4216c8faae5975edeab03e7fff4d463171240c48b",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-node-green.log",
+      "sha256": "329abb9b077ac34a09f1fedb2fe6f2c5408e1650aecf99529b28344483b01010",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-node-red.log",
+      "sha256": "c7246b51e7865d046889d937b66e5a0cb558a108e3a327a376c783c2acd999c1",
+      "size_bytes": 1975
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-optional-red.log",
+      "sha256": "a5bf2646247fb5affc7c04d4f2e467277e694920fad7bc644e6980624b54fb7c",
+      "size_bytes": 4570
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-pod-storage-green.log",
+      "sha256": "b5ba464e801b5ffe487c0527515416ed432e02ae4e68e810bcb23e160c4867a0",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-pod-storage-red.log",
+      "sha256": "4fb9037495bb7bc80af41351953a4f7e6bc7915a32c903317d381f43d73d48a3",
+      "size_bytes": 2422
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-suite.log",
+      "sha256": "15aea8086a9f9a4f4bb322609fc65c51b82c5311577f73a47f1be2af9d051865",
+      "size_bytes": 1522
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C4-target.log",
+      "sha256": "32cb68149a47c23ef74b89661cc2dca3baf418bc10799160b1529c5c6f30c930",
+      "size_bytes": 182
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C5-red.log",
+      "sha256": "8cf1a6bfb548b01fe0e1ef856fd987e5030c4633df30428c8f4bce885e3cbb6a",
+      "size_bytes": 5837
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C5-suite.log",
+      "sha256": "eb029f92144aaacf7c0a128a61f950f9533625259fad280d99521b1918dce1d7",
+      "size_bytes": 10729
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C5-target.log",
+      "sha256": "971b7ebc934ef6ab2d53142261136198e874c493cc31c9658af30eac3fc07308",
+      "size_bytes": 182
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C6-event-binding-red.log",
+      "sha256": "dadde37a577b681683d523496bb8a70153c0a9f13f4f0c61f667c0dcc6f28618",
+      "size_bytes": 1502
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C6-red.log",
+      "sha256": "8973e0fb96920ee1ac716cd3ce8047dc572a35948c459781cd7f6eda909c6bb9",
+      "size_bytes": 6280
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C6-suite.log",
+      "sha256": "34800e746f668b993989b945f5428b7d1443f4a595312f66658e8b9b8ecf280f",
+      "size_bytes": 1522
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C6-target.log",
+      "sha256": "80d12f123ed542a004ad83c9916399802db29d8ed61058c36c7f21eb010643c3",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-amtool-routes.log",
+      "sha256": "fb98b1dc20b4b0b1c0c8be702f2c5899dd67aa2d1951e47de694298fedb67d28",
+      "size_bytes": 13
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-amtool.log",
+      "sha256": "d750fecf35f39d465d8499042bfaf977c459efdfadd20e6c82a32f06382c7655",
+      "size_bytes": 165
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-base-amtool.log",
+      "sha256": "f4c02c3fe866161944991158501d1caea30fb58b12c11e2975fa70f9e048018c",
+      "size_bytes": 199
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-confirmed-clear-green.log",
+      "sha256": "24eca64a288e7f9be29e64adf58432406b7ea7a1d506f81548b715eed68ed75f",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-confirmed-clear-red.log",
+      "sha256": "7593b1c3b69c0552445cd7c71730d17b537bbf01f464174bd72aaf830e82438d",
+      "size_bytes": 1552
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-kustomize-base.yaml",
+      "sha256": "03bbd4aea251a65814d9f2251a90edff015f82b8bc58eadfc3153108195e7597",
+      "size_bytes": 22674
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-legacy-rule-check.log",
+      "sha256": "ac56579bf87193b3084dc627eb8c47ea53212311ff73b63d76bae0cf455fd3c3",
+      "size_bytes": 221
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-partial-evidence-green.log",
+      "sha256": "1c98861febae97ea3b1028e41ea4e6cd68a5886ab4bd0cf4751b5f51b589cee8",
+      "size_bytes": 101
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-partial-evidence-red.log",
+      "sha256": "c490bb2f86bbb00d5fdfb9651aea6138c94a16be79b4a69121ccf6b96a82e75d",
+      "size_bytes": 1698
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-promtool-red.log",
+      "sha256": "78426e00932c30bacd48aeea13cd141f049ccee0b254924ea5370492f9f40816",
+      "size_bytes": 6261
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-promtool.log",
+      "sha256": "c0c50f633a6296ad04fba88c0a243ee8146d4e5a13fe461556c177bec73a409a",
+      "size_bytes": 73
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-red.log",
+      "sha256": "b73a48f05948e08a34c1740a17a378d7fb8d5c2c26bd4f8f3e034e9d37dd40d5",
+      "size_bytes": 5378
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-rule-check.log",
+      "sha256": "2b4d21a56e4a2fee36cdab0e52b6d62ca4b5b130e43605ca8591258593b4bd93",
+      "size_bytes": 89
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-suite.log",
+      "sha256": "2084dc7d349d1d8309b77ddcad75aed2369a6a56a767e7057c3452f59e2401f8",
+      "size_bytes": 1522
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/C7-target.log",
+      "sha256": "cb3d013dcf8c22734263ce96c23322a841edc98bde55b43dc42b783ac4c27036",
+      "size_bytes": 100
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/environment-and-source.json",
+      "sha256": "50293c99bd85b047fc290ea8b04e9524b78573d4b03d188230cf86533cc21f3e",
+      "size_bytes": 929
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-promtool.log",
+      "sha256": "c0c50f633a6296ad04fba88c0a243ee8146d4e5a13fe461556c177bec73a409a",
+      "size_bytes": 73
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-rule-check.log",
+      "sha256": "2b4d21a56e4a2fee36cdab0e52b6d62ca4b5b130e43605ca8591258593b4bd93",
+      "size_bytes": 89
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-source-commits.txt",
+      "sha256": "9fdd1599fe7bdac9389ef966fcc1b7e21b99b995ce7be9f8af6de1736d4ac6c7",
+      "size_bytes": 655
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-source-diff-stat.txt",
+      "sha256": "1c219a7adde22630118db9ef8b2c844db6c0fe006e8a3e45e827cace801f45ab",
+      "size_bytes": 3591
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-suite.log",
+      "sha256": "de5b167a1143d3a85d4f54004d211ed45e96cc57c8a987ceb4884bf12cd05c59",
+      "size_bytes": 45164
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-wheel-build.log",
+      "sha256": "c03a6664bffedfbc5aaa074d0765eb923576d99fecbdcdcd5b114aa2d38e65aa",
+      "size_bytes": 8312
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-wheel-install.log",
+      "sha256": "5ee100aa8843ec435515a1430c35982cb35512b06c66d35aa8ce81fab60dfa5e",
+      "size_bytes": 268
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-wheel-metadata.json",
+      "sha256": "c5dd2727bd1920f1bd764838555a27de75bca3a5acbd44cd18be52d6a2e456f9",
+      "size_bytes": 665
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/final-wheel-smoke.log",
+      "sha256": "7fce7cec1e2df25f03a1bd97351541d1fe9fb81d9fb02d70fee3c5a093a4425e",
+      "size_bytes": 358
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/independent-review.md",
+      "sha256": "5b803043b6a28fde968b059a2d30e5150b798f0b854cd44f239852d982ec96af",
+      "size_bytes": 4783
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/progress.md",
+      "sha256": "00b3d74e19c329ac84cd87b856b0e92c184d198ac4415f3777b12876db7790b1",
+      "size_bytes": 13730
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-all-targeted-green.log",
+      "sha256": "416d461a577f41b206d795b51ffbac06beb8fc45d535bd2cc8c7a89ba9599bb2",
+      "size_bytes": 184
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-cli-pod-green.log",
+      "sha256": "485062c0e11da8abaf775002274ade66c7aeb2c9523ed3249cb0e79612b756b5",
+      "size_bytes": 102
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-compat-extra-red.log",
+      "sha256": "4cd1f8ea0a81175e4ac6845d34a2c1f1dbc07e6c4901351ff018591548b7d4d3",
+      "size_bytes": 4427
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-core-green.log",
+      "sha256": "dbd0b3229c6119a4aaa00658197534d0044f8c7a8983ec07fcc0a59418bf8b8a",
+      "size_bytes": 116
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-diff-stat.txt",
+      "sha256": "fdfd4edbc578a19d7e933b94105a619d877cc70f6577e42bc6371e9d51f67c45",
+      "size_bytes": 3281
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-event-green.log",
+      "sha256": "a7a5ae62d5a4c682b4a60346fe537599916d3ccfc7a05cd511cace1ecf3c11df",
+      "size_bytes": 115
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-http-cli-baseline-red.log",
+      "sha256": "a950fccf3746ed7c004f87f46a435c26e23230c71ba6f6265b88d6879134a46b",
+      "size_bytes": 4044
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-package.md",
+      "sha256": "c1fc3894b2c55002eed40c6bf91ff55cbde86fdd4c7dc746cf82cdeba7217bf3",
+      "size_bytes": 2496
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-pod-green.log",
+      "sha256": "c281532020f11c6fa1e937b490190a5830ab87b38e2a8d2969aafbd39d475871",
+      "size_bytes": 88
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-pod-isolation-red.log",
+      "sha256": "1fe2be24bff217084bb4d3e260604534bf4f0c33e5da005099aa5a0db423bbdf",
+      "size_bytes": 5606
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-rules-red.log",
+      "sha256": "246bbbabe167a3aa0a89b2f368dce9b5e43ed4a326712875665bf54a1612eb1c",
+      "size_bytes": 13260
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-sdk37-red.log",
+      "sha256": "1772e27c411b24aecf3b961f61e939ee8a3730beecbd9a66cd2a1e587b7f2812",
+      "size_bytes": 1354
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-transport-extra-red.log",
+      "sha256": "7c84669675df7172197e7d17c6aa517f29e01a80997f283059fa0b4a89388a75",
+      "size_bytes": 3915
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-transport-green.log",
+      "sha256": "2db67fd7edc793ed3671fdee85db6504bb97f07de0b67de2f407460babf284e3",
+      "size_bytes": 1445
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/review-transport-red.log",
+      "sha256": "80ac3ff4c46d3bb76c131b799459ee90c5acb07a5e2bcb1c7df503a0663f7b91",
+      "size_bytes": 7526
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/wheel-build.log",
+      "sha256": "d251065559921d7ad16d8c7a4c858533dc477c6fd239186da8da48f3530c0d91",
+      "size_bytes": 8686
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/wheel-install.log",
+      "sha256": "9d5f6ba665a465a72b75d67be199f036d83e5554f932fd7190ec7c53d131e3ce",
+      "size_bytes": 262
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/wheel-metadata.json",
+      "sha256": "a1cf3e3e6c2daf2b6f3155d11c52dd58a0e6300770fe345668053040c5f27dfd",
+      "size_bytes": 470
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/wheel-smoke.log",
+      "sha256": "6bb7678d6bb8e00e55055bf94fd499e4381675f43d1d086baa015825e730215b",
+      "size_bytes": 110
+    }
+  ]
+}

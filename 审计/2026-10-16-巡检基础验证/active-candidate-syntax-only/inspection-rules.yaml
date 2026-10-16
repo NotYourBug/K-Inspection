@@ -1,0 +1,241 @@
+groups:
+- name: k8s-inspector-v2
+  rules:
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="5m",rule_id="nodes.ready",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="5m",rule_id="nodes.ready",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: critical
+      rule_id: nodes.ready
+      profile: 5m
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: nodes.ready'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="5m",rule_id="pods.current",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="5m",rule_id="pods.current",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: critical
+      rule_id: pods.current
+      profile: 5m
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: pods.current'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="5m",rule_id="pvc.binding",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="5m",rule_id="pvc.binding",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: critical
+      rule_id: pvc.binding
+      profile: 5m
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: pvc.binding'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="10m",rule_id="control.api",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="10m",rule_id="control.api",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: critical
+      rule_id: control.api
+      profile: 10m
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: control.api'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="10m",rule_id="control.components",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="10m",rule_id="control.components",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: critical
+      rule_id: control.components
+      profile: 10m
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: control.components'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="hourly",rule_id="nodes.utilization",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="hourly",rule_id="nodes.utilization",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: warning
+      rule_id: nodes.utilization
+      profile: hourly
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: nodes.utilization'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="hourly",rule_id="nodes.pressure",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="hourly",rule_id="nodes.pressure",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: warning
+      rule_id: nodes.pressure
+      profile: hourly
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: nodes.pressure'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="daily",rule_id="pods.history",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="daily",rule_id="pods.history",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: warning
+      rule_id: pods.history
+      profile: daily
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: pods.history'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="daily",rule_id="events.warning",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="daily",rule_id="events.warning",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: warning
+      rule_id: events.warning
+      profile: daily
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: events.warning'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorBusinessFailure
+    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="daily",rule_id="addons.ready",scope="cluster"}[30d])
+      > 0) or (last_over_time(inspector_confirmed_failures{profile="daily",rule_id="addons.ready",scope="cluster"}[30d])
+      > 0))
+    for: 1m
+    labels:
+      category: business
+      severity: warning
+      rule_id: addons.ready
+      profile: daily
+      scope: cluster
+    annotations:
+      summary: 'Inspection finding: addons.ready'
+      description: Last valid unhealthy observation; verify recovery using fresh evidence.
+  - alert: K8sInspectorTargetNeverRan
+    expr: inspector_expected_target unless on (cluster, profile) count_over_time(inspector_last_run_timestamp_seconds[30d])
+    for: 5m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Expected inspection target has never run
+      description: Expected inventory has no run history for this target.
+  - alert: K8sInspectorTelemetryMissing
+    expr: (inspector_expected_target unless on (cluster, profile) inspector_last_run_timestamp_seconds)
+      and on (cluster, profile) count_over_time(inspector_last_run_timestamp_seconds[30d])
+    for: 5m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Inspection telemetry missing
+      description: Target ran before but its current telemetry is absent.
+  - alert: K8sInspectorRunStale
+    expr: (time() - max by (cluster, profile) (inspector_last_run_timestamp_seconds))
+      > on (cluster, profile) inspector_expected_max_run_age_seconds
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Inspection run is stale
+      description: Run completion time exceeded the expected target budget.
+  - alert: K8sInspectorExpectedObservationMissing
+    expr: inspector_expected_rule unless on (cluster, profile, rule_id, scope) inspector_rule_observation_valid
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Expected rule observation missing
+      description: Expected rule has no current quality sample.
+  - alert: K8sInspectorObservationInvalid
+    expr: max by (cluster, profile, rule_id, scope) (inspector_rule_observation_valid
+      == 0) and on (cluster, profile, rule_id, scope) inspector_expected_rule
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Current observation is unknown
+      description: Incomplete or invalid collection cannot prove recovery.
+  - alert: K8sInspectorObservationStale
+    expr: ((time() - max by (cluster, profile, rule_id, scope) (inspector_last_valid_observation_timestamp_seconds))
+      > on (cluster, profile) group_left inspector_expected_max_run_age_seconds) and
+      on (cluster, profile, rule_id, scope) inspector_expected_rule
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Last valid observation is stale
+      description: Stale evidence does not verify business recovery.
+  - alert: K8sInspectorRunFailed
+    expr: max by (cluster, profile) (inspector_run_success == 0) and on (cluster,
+      profile) inspector_expected_target
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Inspection execution or required output failed
+      description: Check collection quality and sink results in the run manifest.
+  - alert: K8sInspectorSinkFailed
+    expr: max by (cluster, profile, sink) (inspector_sink_success == 0) and on (cluster,
+      profile) inspector_expected_target
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Inspection output failed
+      description: A completed sink attempt failed; inspect local manifests and logs.
+  - alert: K8sInspectorInventoryUnavailable
+    expr: max by (job) (up{job="inspector-inventory"} == 0) or absent(up{job="inspector-inventory"})
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Expected target inventory unavailable
+      description: Restore independent inventory; missing-target detection requires
+        it.
+  - alert: K8sInspectorPushgatewayUnavailable
+    expr: max by (job) (up{job="pushgateway"} == 0) or absent(up{job="pushgateway"})
+    for: 2m
+    labels:
+      severity: critical
+      category: quality
+    annotations:
+      summary: Inspection Pushgateway unavailable
+      description: Restore the telemetry path; absent metrics do not prove recovery.

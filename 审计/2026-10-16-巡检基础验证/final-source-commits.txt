@@ -1,0 +1,8 @@
+c45b4b3 feat: add trusted inspection observation models with legacy report compatibility
+e71a257 feat: collect bounded paginated snapshots and preserve partial Node evidence
+36a40bf feat: define finite rule catalog and validated effective inspection configuration
+7542f4c feat: evaluate inspection domains from pure bounded snapshots
+b967a59 feat: publish report v2 with quality evidence and atomic delivery manifests
+2422c3e feat: persist last valid observations and expose collection quality metrics
+43e642b feat: generate shadow monitoring from independent expected inventory and rule ownership
+ea2f6e3 fix: close inspection foundation review findings

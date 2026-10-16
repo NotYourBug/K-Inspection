@@ -1,0 +1,8 @@
+Checking '.superpowers/sdd/2026-10-02-inspection-foundations-and-monitoring/base-alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 1 inhibit rules
+ - 1 receivers
+ - 0 templates
+

@@ -1,0 +1,111 @@
+Unit Testing:  tests/prometheus/inspection-rules.test.yaml
+  FAILED:
+    name: expected target never produced any run,
+    alertname: K8sInspectorTargetNeverRan, time: 6m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorTargetNeverRan", category="quality", cluster="prod", profile="5m", severity="critical", shadow="true"}
+              Annotations:{description="Expected inventory has no run history for this target.", summary="Expected inspection target has never run"}
+            ], 
+        got:[]
+    name: Pushgateway clear keeps prior failure and detects telemetry missing,
+    alertname: K8sInspectorTelemetryMissing, time: 6m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorTelemetryMissing", category="quality", cluster="prod", profile="5m", severity="critical", shadow="true"}
+              Annotations:{description="Target ran before but its current telemetry is absent.", summary="Inspection telemetry missing"}
+            ], 
+        got:[]
+    name: Pushgateway clear keeps prior failure and detects telemetry missing,
+    alertname: K8sInspectorBusinessFailure, time: 6m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorBusinessFailure", category="business", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Last valid unhealthy observation; verify recovery using fresh evidence.", summary="Inspection finding: nodes.ready"}
+            ], 
+        got:[]
+    name: FAIL followed by ERROR keeps business failure and invalid quality,
+    alertname: K8sInspectorBusinessFailure, time: 4m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorBusinessFailure", category="business", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Last valid unhealthy observation; verify recovery using fresh evidence.", summary="Inspection finding: nodes.ready"}
+            ], 
+        got:[]
+    name: FAIL followed by ERROR keeps business failure and invalid quality,
+    alertname: K8sInspectorObservationInvalid, time: 4m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorObservationInvalid", category="quality", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Incomplete or invalid collection cannot prove recovery.", summary="Current observation is unknown"}
+            ], 
+        got:[]
+    name: complete healthy observation actually clears failure,
+    alertname: K8sInspectorBusinessFailure, time: 1m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorBusinessFailure", category="business", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Last valid unhealthy observation; verify recovery using fresh evidence.", summary="Inspection finding: nodes.ready"}
+            ], 
+        got:[]
+    name: expired valid failure remains pending verification,
+    alertname: K8sInspectorBusinessFailure, time: 5m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorBusinessFailure", category="business", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Last valid unhealthy observation; verify recovery using fresh evidence.", summary="Inspection finding: nodes.ready"}
+            ], 
+        got:[]
+    name: expired valid failure remains pending verification,
+    alertname: K8sInspectorObservationStale, time: 5m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorObservationStale", category="quality", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Stale evidence does not verify business recovery.", summary="Last valid observation is stale"}
+            ], 
+        got:[]
+    name: inventory scrape configuration removed still alarms,
+    alertname: K8sInspectorInventoryUnavailable, time: 3m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorInventoryUnavailable", category="quality", job="inspector-inventory", severity="critical", shadow="true"}
+              Annotations:{description="Restore independent inventory; missing-target detection requires it.", summary="Expected target inventory unavailable"}
+            ], 
+        got:[]
+    name: run stopped after an observed start,
+    alertname: K8sInspectorRunStale, time: 6m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorRunStale", category="quality", cluster="prod", profile="5m", severity="critical", shadow="true"}
+              Annotations:{description="Run completion time exceeded the expected target budget.", summary="Inspection run is stale"}
+            ], 
+        got:[]
+    name: expected rule has never produced a quality sample,
+    alertname: K8sInspectorExpectedObservationMissing, time: 3m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorExpectedObservationMissing", category="quality", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Expected rule has no current quality sample.", summary="Expected rule observation missing"}
+            ], 
+        got:[]
+    name: unknown with no valid history cannot create business health,
+    alertname: K8sInspectorObservationInvalid, time: 3m, 
+        exp:[
+            0:
+              Labels:{alertname="K8sInspectorObservationInvalid", category="quality", cluster="prod", profile="5m", rule_id="nodes.ready", scope="cluster", severity="critical", shadow="true"}
+              Annotations:{description="Incomplete or invalid collection cannot prove recovery.", summary="Current observation is unknown"}
+            ], 
+        got:[]
+
+
+
+
+
+
+
+
+
+
+
+
+

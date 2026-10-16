@@ -1,0 +1,19 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____________ test_r12_sdk_health_http200_is_valid_healthy_probe ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1478/test_r12_sdk_health_http200_is0')
+
+    def test_r12_sdk_health_http200_is_valid_healthy_probe(tmp_path):
+        with endpoint(status=200) as (url,attempts):
+            ctx=load_kube(kubeconfig(tmp_path/'config',url))
+            try:
+                snap=KubeCollector(ctx,30,lambda:0).snapshot(frozenset({'api_health'}),'run','prod')
+>               assert snap.collections['api_health'].complete
+E               AssertionError: assert False
+E                +  where False = Collection(items=(), execution_status=<ExecutionStatus.ERROR: 'ERROR'>, observed_at=datetime.datetime(2026, 10, 16, 7,...5, tzinfo=datetime.timezone.utc), complete=False, error_kind='INVALID_RESPONSE', reason='api_health: INVALID_RESPONSE').complete
+
+tests\test_foundations_review_transport.py:131: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_transport.py::test_r12_sdk_health_http200_is_valid_healthy_probe
+1 failed, 6 deselected in 10.09s

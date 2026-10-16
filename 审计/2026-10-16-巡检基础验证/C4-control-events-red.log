@@ -1,0 +1,85 @@
+........FFFF..F                                                          [100%]
+================================== FAILURES ===================================
+________________ test_managed_component_absence_is_unsupported ________________
+
+    def test_managed_component_absence_is_unsupported():
+>       from k8s_inspector.rules_control import evaluate_control
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_control'
+
+tests\test_rule_observations.py:113: ModuleNotFoundError
+_____________________ test_addon_requires_ready_replicas ______________________
+
+    def test_addon_requires_ready_replicas():
+        from kubernetes import client
+        from tests.factories import pod
+>       from k8s_inspector.rules_control import evaluate_control
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_control'
+
+tests\test_rule_observations.py:122: ModuleNotFoundError
+____________________ test_old_event_is_not_current_warning ____________________
+
+    def test_old_event_is_not_current_warning():
+>       from k8s_inspector.rules_events import evaluate_events
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_events'
+
+tests\test_rule_observations.py:147: ModuleNotFoundError
+____ test_event_series_uses_last_observed_time_and_missing_time_is_unknown ____
+
+    def test_event_series_uses_last_observed_time_and_missing_time_is_unknown():
+>       from k8s_inspector.rules_events import evaluate_events
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_events'
+
+tests\test_rule_observations.py:152: ModuleNotFoundError
+_____ test_api_health_uses_transport_timeout_and_namespace_scoped_addons ______
+
+    def test_api_health_uses_transport_timeout_and_namespace_scoped_addons():
+        from k8s_inspector.collector import KubeCollector
+        ctx = NS(api_client=NS(call_api=Mock(return_value=('ok', 200, {}))),
+                 apps=NS(list_namespaced_deployment=Mock(return_value=page()),
+                         list_namespaced_daemon_set=Mock(return_value=page())))
+        collector = KubeCollector(ctx, 2, lambda: 0)
+        collector.namespace = 'system'
+>       snap = collector.snapshot(frozenset({'api_health', 'deployments'}), 'run', 'prod')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_snapshot.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\collector.py:103: in snapshot
+    call, kwargs = self._binding(key)
+                   ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <k8s_inspector.collector.KubeCollector object at 0x000001AFF46DAAB0>
+key = 'api_health'
+
+    def _binding(self, key):
+        ctx = self.context
+        if key == 'nodes':
+            return ctx.core.list_node, {}
+        if key == 'pods':
+            return ctx.core.list_pod_for_all_namespaces, {}
+        if key == 'pvcs':
+            return ctx.core.list_persistent_volume_claim_for_all_namespaces, {}
+        if key == 'storage_classes':
+            return ctx.storage.list_storage_class, {}
+        if key == 'events':
+            return ctx.core.list_event_for_all_namespaces, {'field_selector': 'type=Warning'}
+        if key == 'node_metrics':
+            return ctx.custom.list_cluster_custom_object, {
+                'group': 'metrics.k8s.io', 'version': 'v1beta1', 'plural': 'nodes'}
+        if key in ('deployments', 'daemonsets'):
+            from kubernetes.client import AppsV1Api
+            apps = getattr(ctx, 'apps', None) or AppsV1Api(ctx.api_client)
+            return (apps.list_deployment_for_all_namespaces if key == 'deployments'
+                    else apps.list_daemon_set_for_all_namespaces), {}
+>       raise ValueError(f'unknown collection key: {key}')
+E       ValueError: unknown collection key: api_health
+
+k8s_inspector\collector.py:98: ValueError
+=========================== short test summary info ===========================
+FAILED tests/test_rule_observations.py::test_managed_component_absence_is_unsupported
+FAILED tests/test_rule_observations.py::test_addon_requires_ready_replicas - ...
+FAILED tests/test_rule_observations.py::test_old_event_is_not_current_warning
+FAILED tests/test_rule_observations.py::test_event_series_uses_last_observed_time_and_missing_time_is_unknown
+FAILED tests/test_snapshot.py::test_api_health_uses_transport_timeout_and_namespace_scoped_addons
+5 failed, 10 passed in 5.74s

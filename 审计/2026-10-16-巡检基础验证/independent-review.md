@@ -1,0 +1,31 @@
+# Independent review — C1–C7
+Reviewer: /root/review_foundations_batch; gpt-6-astra high; one review, read-only, no delegation.
+Range: 2f7e806..43e642b4f7bb7840b852f5c10ff6809e696feb1f. Reviewed plan/spec/ledger/AGENTS. Independently ran 41 tests successfully. Checkout clean.
+
+Strengths: UID/cluster/container identity and explicit weak identity; v1 serialization; partial pages, 410 restart and cache; strict profile selection and no 5m metrics collection; durable last-valid and partial positive evidence; independent inventory, catalog and temporal Prometheus fixtures; escaped HTML, restricted snapshot scope and required state outcomes.
+
+Critical: none. Important: 11. Minor: none. Assessment: No — false health, unproven faults, stale faults and broken default monitoring must be fixed.
+
+R1 Important: collector.py:33/69 and kube.py:59. SDK hidden transport retries multiply 3 collector calls into 12 physical HTTP attempts and bypass the shared deadline. Disable hidden retries or share one budget; test at the real HTTP boundary.
+R2 Important: collector.py:46. A final page returned after deadline is marked OK/complete. Recheck after every response, preserving returned evidence without claiming complete coverage.
+R3 Important: runner.py:43, metrics.py:152, checks.py:456. Default v2 uses rule names instead of legacy groups, drops legacy issue counters and healthy Node utilization. run_all grouped rules produce fake zero counts. Existing PendingPVC alert and Grafana CPU panels are active. Supply a meaningful legacy projection until migration.
+R4 Important: rule_catalog.py:24, rules_nodes.py:28. Each rule evaluates all siblings. Malformed metric metadata.name list raises TypeError and hides confirmed NodeNotReady. Evaluate each rule independently.
+R5 Important: rules_control.py:57. Complete controller desired=1 with partial Pod list containing only unrelated Pods manufactures AddonNotReady and complete unhealthy UID evidence. Incomplete membership alone proves no shortage; use UNKNOWN or authoritative controller status.
+R6 Important: rules_control.py:46/65. No recognized addons plus unrelated control-namespace Pod returns healthy, while empty namespace is unsupported. Unrelated Pods cannot prove capability or recover prior failure.
+R7 Important: observation_state.py:152. Complete healthy at T+2 removes confirmed state, then older FAIL at T recreates it despite last-valid zero. Compare positive evidence against newer complete healthy state too; verify exported metrics.
+R8 Important: nodes.utilization/nodes.pressure/control.components/addons.ready only emit fault UID observations. Healthy seen resources emit only aggregate observations. Emit explicit healthy/unknown/unhealthy UID evidence, never recover absent old UIDs.
+R9 Important: rules_events.py:29/36 and observation_state.py:162. Delta is calculated but threshold uses object count. One series with 21 new occurrences and threshold10 is healthy. Cursors only persist for warning findings. Use valid occurrence deltas and persist ordinary cursors; unknown initial cumulative counts cannot prove healthy.
+R10 Important: rules_events.py:20. Event at start+1 collected at start+2 is rejected as future because age uses run start; next daily run misses the window. Use collection observation time and explicit clock skew handling.
+R11 Important: cli.py:200 and kube.py:56. All default kubeconfigs share generic cluster name kubeconfig. Bind identity to selected config/context/cluster or require stable explicit identity.
+
+Recommendations: RED first; test actual SDK HTTP, partial addon membership, out-of-order writes, UID recovery, real Event series, and actual CLI v2 metrics against shipped legacy selectors. These are offline correctness defects, not E environment gates.
+
+Declined to judge 1: actual Linux/Python/container compatibility — E environment unavailable.
+Declined to judge 2: actual local/block PVC locks, power loss, restore — E.
+Declined to judge 3: actual RBAC, managed capabilities, production API scale and transport cancellation — E; local retry/deadline defects were reviewed.
+Declined to judge 4: actual Prometheus retention/TSDB, merged rollout, independent receiver and daily shadow cycle — E.
+Declined to judge 5: D incident authorization/disposition/recovery outside C; missing C UID producer is R8.
+Declined to judge 6: F expanded checks and standalone MCP outside C.
+Declined to judge 7: removal of all legacy check_* is an accepted compatibility ruling; R3 remains a real regression.
+Declined to judge 8: immediate v2 activation is an accepted shadow ruling; default metric regression remains R3.
+Declined to judge 9: entire volume loss and alert duration beyond retained Prometheus history are documented limitations.

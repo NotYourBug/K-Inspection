@@ -1,0 +1,25 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_ test_partial_finding_survives_following_error_without_claiming_valid_coverage _
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1465/test_partial_finding_survives_0')
+
+    def test_partial_finding_survives_following_error_without_claiming_valid_coverage(tmp_path):
+        from k8s_inspector.observation_state import ObservationStateStore
+        from k8s_inspector.observation_models import ObservationHealth as H
+        ev = failed_evaluation()
+        ev = replace(ev, execution=replace(ev.execution, execution_status=E.PARTIAL, coverage=Coverage(None, 1, False)),
+            observations=tuple(replace(o, health=H.UNKNOWN, complete=False) for o in ev.observations))
+        store = ObservationStateStore(tmp_path/'state.json')
+        assert store.update(report(ev)) == ()
+        r = report(error_evaluation(now=NOW+timedelta(minutes=1)))
+        last_valid = store.update(r)
+        reg = CollectorRegistry()
+>       populate_registry(r, '5m', reg, last_valid=last_valid, confirmed=store.read_confirmed())
+                                                                         ^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ObservationStateStore' object has no attribute 'read_confirmed'
+
+tests\test_metrics_quality.py:180: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_metrics_quality.py::test_partial_finding_survives_following_error_without_claiming_valid_coverage
+1 failed, 12 deselected in 2.60s

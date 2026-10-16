@@ -1,0 +1,33 @@
+..FF                                                                     [100%]
+================================== FAILURES ===================================
+__________ test_node_pressure_and_missing_usage_are_separate_quality __________
+
+    def test_node_pressure_and_missing_usage_are_separate_quality():
+        from tests.factories import node as sdk_node
+        from k8s_inspector.rules_nodes import evaluate_nodes
+        n = sdk_node('n1')
+        from kubernetes.client import V1NodeCondition
+        n.status.conditions.append(V1NodeCondition(type='MemoryPressure', status='True'))
+        results = {r.execution.rule_id: r for r in evaluate_nodes(snapshot(nodes=[n], node_metrics=[]), InspectorConfig())}
+>       assert results['nodes.pressure'].findings[0].reason == 'MemoryPressure'
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes.pressure'
+
+tests\test_rule_observations.py:45: KeyError
+____ test_node_zero_usage_is_valid_and_bad_metric_preserves_other_finding _____
+
+    def test_node_zero_usage_is_valid_and_bad_metric_preserves_other_finding():
+        from tests.factories import node as sdk_node
+        from k8s_inspector.rules_nodes import evaluate_nodes
+        n = sdk_node('n1')
+        metric = {'metadata': {'name': 'n1'}, 'usage': {'cpu': '0', 'memory': '0'}}
+        r = {x.execution.rule_id: x for x in evaluate_nodes(snapshot(nodes=[n], node_metrics=[metric]), InspectorConfig())}
+>       assert r['nodes.utilization'].observations[0].health == H.HEALTHY
+               ^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'nodes.utilization'
+
+tests\test_rule_observations.py:55: KeyError
+=========================== short test summary info ===========================
+FAILED tests/test_rule_observations.py::test_node_pressure_and_missing_usage_are_separate_quality
+FAILED tests/test_rule_observations.py::test_node_zero_usage_is_valid_and_bad_metric_preserves_other_finding
+2 failed, 2 passed in 4.47s

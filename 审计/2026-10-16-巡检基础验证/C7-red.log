@@ -1,0 +1,96 @@
+FFFFFFFF                                                                 [100%]
+================================== FAILURES ===================================
+_______________ test_rule_has_one_primary_notification_profile ________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1463/test_rule_has_one_primary_noti0')
+
+    def test_rule_has_one_primary_notification_profile(tmp_path):
+>       from tools.render_monitoring import render_monitoring
+E       ModuleNotFoundError: No module named 'tools'
+
+tests\test_monitoring_catalog.py:16: ModuleNotFoundError
+__________ test_monitoring_generation_is_reproducible_and_checked_in __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1463/test_monitoring_generation_is_0')
+
+    def test_monitoring_generation_is_reproducible_and_checked_in(tmp_path):
+>       from tools.render_monitoring import render_monitoring
+E       ModuleNotFoundError: No module named 'tools'
+
+tests\test_monitoring_catalog.py:30: ModuleNotFoundError
+__________ test_inventory_exports_expected_without_any_inspector_run __________
+
+    def test_inventory_exports_expected_without_any_inspector_run():
+>       from k8s_inspector.expected_targets import export_inventory
+E       ModuleNotFoundError: No module named 'k8s_inspector.expected_targets'
+
+tests\test_monitoring_catalog.py:42: ModuleNotFoundError
+_______________ test_invalid_inventory_cannot_start[overrides0] _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1463/test_invalid_inventory_cannot_0')
+overrides = {'profile': 'typo'}
+
+    @pytest.mark.parametrize('overrides', [
+        {'profile': 'typo'}, {'rule_ids': ['events.warning']}, {'max_run_age_seconds': 0}, {'cluster_id': ''},
+    ])
+    def test_invalid_inventory_cannot_start(tmp_path, overrides):
+>       from k8s_inspector.expected_targets import load_expected_targets
+E       ModuleNotFoundError: No module named 'k8s_inspector.expected_targets'
+
+tests\test_monitoring_catalog.py:55: ModuleNotFoundError
+_______________ test_invalid_inventory_cannot_start[overrides1] _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1463/test_invalid_inventory_cannot_1')
+overrides = {'rule_ids': ['events.warning']}
+
+    @pytest.mark.parametrize('overrides', [
+        {'profile': 'typo'}, {'rule_ids': ['events.warning']}, {'max_run_age_seconds': 0}, {'cluster_id': ''},
+    ])
+    def test_invalid_inventory_cannot_start(tmp_path, overrides):
+>       from k8s_inspector.expected_targets import load_expected_targets
+E       ModuleNotFoundError: No module named 'k8s_inspector.expected_targets'
+
+tests\test_monitoring_catalog.py:55: ModuleNotFoundError
+_______________ test_invalid_inventory_cannot_start[overrides2] _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1463/test_invalid_inventory_cannot_2')
+overrides = {'max_run_age_seconds': 0}
+
+    @pytest.mark.parametrize('overrides', [
+        {'profile': 'typo'}, {'rule_ids': ['events.warning']}, {'max_run_age_seconds': 0}, {'cluster_id': ''},
+    ])
+    def test_invalid_inventory_cannot_start(tmp_path, overrides):
+>       from k8s_inspector.expected_targets import load_expected_targets
+E       ModuleNotFoundError: No module named 'k8s_inspector.expected_targets'
+
+tests\test_monitoring_catalog.py:55: ModuleNotFoundError
+_______________ test_invalid_inventory_cannot_start[overrides3] _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1463/test_invalid_inventory_cannot_3')
+overrides = {'cluster_id': ''}
+
+    @pytest.mark.parametrize('overrides', [
+        {'profile': 'typo'}, {'rule_ids': ['events.warning']}, {'max_run_age_seconds': 0}, {'cluster_id': ''},
+    ])
+    def test_invalid_inventory_cannot_start(tmp_path, overrides):
+>       from k8s_inspector.expected_targets import load_expected_targets
+E       ModuleNotFoundError: No module named 'k8s_inspector.expected_targets'
+
+tests\test_monitoring_catalog.py:55: ModuleNotFoundError
+________________ test_independent_inventory_http_is_read_only _________________
+
+    def test_independent_inventory_http_is_read_only():
+>       from k8s_inspector.expected_targets import make_inventory_server
+E       ModuleNotFoundError: No module named 'k8s_inspector.expected_targets'
+
+tests\test_monitoring_catalog.py:65: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_monitoring_catalog.py::test_rule_has_one_primary_notification_profile
+FAILED tests/test_monitoring_catalog.py::test_monitoring_generation_is_reproducible_and_checked_in
+FAILED tests/test_monitoring_catalog.py::test_inventory_exports_expected_without_any_inspector_run
+FAILED tests/test_monitoring_catalog.py::test_invalid_inventory_cannot_start[overrides0]
+FAILED tests/test_monitoring_catalog.py::test_invalid_inventory_cannot_start[overrides1]
+FAILED tests/test_monitoring_catalog.py::test_invalid_inventory_cannot_start[overrides2]
+FAILED tests/test_monitoring_catalog.py::test_invalid_inventory_cannot_start[overrides3]
+FAILED tests/test_monitoring_catalog.py::test_independent_inventory_http_is_read_only
+8 failed in 1.79s

@@ -1,0 +1,844 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-inspector
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: k8s-inspector-addon-observer
+  namespace: kube-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-inspector
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - pods
+  - events
+  - persistentvolumeclaims
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - nodes
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - /healthz
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: k8s-inspector-addon-observer
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: k8s-inspector-addon-observer
+subjects:
+- kind: ServiceAccount
+  name: k8s-inspector
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-inspector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-inspector
+subjects:
+- kind: ServiceAccount
+  name: k8s-inspector
+  namespace: kube-system
+---
+apiVersion: v1
+data:
+  alertmanager.yml: |
+    route:
+      receiver: feishu-bridge
+      # 通知聚合与事件身份分开；Bridge 按每条告警标签路由到已有群。
+      group_by: ["cluster"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+
+    inhibit_rules:
+      - source_matchers:
+          - alertname="K8sInspectorStale"
+        target_matchers:
+          - alertname=~"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC"
+        equal: ["cluster", "profile"]
+
+    receivers:
+      - name: feishu-bridge
+        webhook_configs:
+          - url: http://k8s-inspector-alert-bridge.kube-system.svc:8000/alert
+            send_resolved: true
+            # Async cutover: enable only after mounting the matching Secret in
+            # both processes. See docs/runbooks/bridge-delivery.md.
+            # http_config:
+            #   authorization:
+            #     type: Bearer
+            #     credentials_file: /etc/bridge-auth/token
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-alertmanager-config
+  namespace: kube-system
+---
+apiVersion: v1
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    rule_files:
+      - /etc/prometheus/rules/*.yaml
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+                - alertmanager.kube-system.svc:9093
+
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets: ["127.0.0.1:9090"]
+
+      - job_name: pushgateway
+        honor_labels: true
+        static_configs:
+          - targets: ["pushgateway.kube-system.svc:9091"]
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-prometheus-config
+  namespace: kube-system
+---
+apiVersion: v1
+data:
+  k8s-inspector-rules.yaml: |
+    groups:
+      - name: k8s-inspector
+        rules:
+          - alert: K8sInspectorStale
+            expr: |
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"})
+              ) > 900
+              or
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"})
+              ) > 1800
+              or
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"})
+              ) > 7200
+              or
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"})
+              ) > 129600
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "巡检任务未按预期运行（stale）"
+              description: "k8s-inspector 在对应 profile 的 last_run 超过阈值未更新"
+
+          - alert: K8sInspectorHasFail
+            expr: |
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile="5m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile="10m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile="hourly"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile=~"daily|full"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "巡检发现 FAIL"
+              description: "k8s-inspector report_summary{status=fail} > 0"
+
+          - alert: K8sInspectorHasWarn
+            expr: |
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile="5m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile="10m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile="hourly"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile=~"daily|full"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "巡检发现 WARN"
+              description: "k8s-inspector report_summary{status=warn} > 0"
+
+          - alert: K8sInspectorCheckFail
+            expr: |
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile="5m"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile="10m"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile="hourly"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile=~"daily|full"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "检查项 FAIL"
+              description: "check={{ $labels.check }} 返回 FAIL（2）"
+
+          - alert: K8sInspectorPendingPVC
+            expr: |
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile="5m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile="10m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile="hourly"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile=~"daily|full"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "存在 Pending PVC"
+              description: "pending pvc > 0"
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-prometheus-rules
+  namespace: kube-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: kube-system
+spec:
+  ports:
+  - name: http
+    port: 9093
+    targetPort: http
+  selector:
+    app: alertmanager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: kube-system
+spec:
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+  selector:
+    app: k8s-inspector-alert-bridge
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  ports:
+  - name: http
+    port: 9090
+    targetPort: http
+  selector:
+    app: prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushgateway
+  namespace: kube-system
+spec:
+  ports:
+  - name: http
+    port: 9091
+    targetPort: http
+  selector:
+    app: pushgateway
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: k8s-inspector-nfs-pv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 10Gi
+  nfs:
+    path: /exports/k8s-inspector
+    server: 192.168.32.10
+  persistentVolumeReclaimPolicy: Retain
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-out
+  namespace: kube-system
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: k8s-inspector-nfs-pv
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+      - args:
+        - --config.file=/etc/alertmanager/alertmanager.yml
+        - --storage.path=/alertmanager
+        image: prom/alertmanager:v0.27.0
+        name: alertmanager
+        ports:
+        - containerPort: 9093
+          name: http
+        volumeMounts:
+        - mountPath: /etc/alertmanager/alertmanager.yml
+          name: config
+          subPath: alertmanager.yml
+        - mountPath: /alertmanager
+          name: data
+      volumes:
+      - configMap:
+          name: k8s-inspector-alertmanager-config
+        name: config
+      - emptyDir: {}
+        name: data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-inspector-alert-bridge
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: k8s-inspector-alert-bridge
+    spec:
+      containers:
+      - command:
+        - python
+        - -m
+        - k8s_inspector.alertmanager_bridge
+        env:
+        - name: FEISHU_MODE
+          value: app
+        - name: FEISHU_CHAT_POLICY
+          value: fixed
+        - name: FEISHU_CHAT_ID
+          valueFrom:
+            secretKeyRef:
+              key: fixed_chat_id
+              name: k8s-inspector-feishu
+        - name: FEISHU_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              key: feishu_webhook
+              name: k8s-inspector-feishu
+              optional: true
+        - name: FEISHU_APP_ID
+          valueFrom:
+            secretKeyRef:
+              key: app_id
+              name: k8s-inspector-feishu
+        - name: FEISHU_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: app_secret
+              name: k8s-inspector-feishu
+        - name: INSPECTOR_REPORT_DIR
+          value: /data/out
+        - name: INSPECTOR_REPORT_MAX_RESULTS
+          value: "5"
+        - name: INSPECTOR_REPORT_MAX_ITEMS
+          value: "3"
+        image: your-registry/k8s-inspector:0.1.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 10
+        name: bridge
+        ports:
+        - containerPort: 8000
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+        - mountPath: /data/out
+          name: out
+          readOnly: true
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: out
+        persistentVolumeClaim:
+          claimName: k8s-inspector-out
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      containers:
+      - args:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention.time=15d
+        image: prom/prometheus:v2.53.0
+        name: prometheus
+        ports:
+        - containerPort: 9090
+          name: http
+        volumeMounts:
+        - mountPath: /etc/prometheus/prometheus.yml
+          name: config
+          subPath: prometheus.yml
+        - mountPath: /etc/prometheus/rules
+          name: rules
+        - mountPath: /prometheus
+          name: data
+      volumes:
+      - configMap:
+          name: k8s-inspector-prometheus-config
+        name: config
+      - configMap:
+          name: k8s-inspector-prometheus-rules
+        name: rules
+      - emptyDir: {}
+        name: data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pushgateway
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pushgateway
+  template:
+    metadata:
+      labels:
+        app: pushgateway
+    spec:
+      containers:
+      - args:
+        - --web.listen-address=:9091
+        image: prom/pushgateway:v1.8.0
+        name: pushgateway
+        ports:
+        - containerPort: 9091
+          name: http
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-cleanup
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - args:
+            - cleanup
+            - --root
+            - /data/out/archive
+            - --hourly-days
+            - "7"
+            - --daily-days
+            - "30"
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: cleanup
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+          restartPolicy: Never
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: 30 3 * * *
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-controlplane-10m
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - 10m
+            - --formats
+            - json
+            - --output-dir
+            - /data/out/latest/10m
+            - --persist-level
+            - issue
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            - name: INSPECTOR_CLUSTER
+              value: YOUR_CLUSTER_NAME
+            - name: FEISHU_WEBHOOK
+              value: ""
+            - name: PUSHGATEWAY_URL
+              value: http://pushgateway.kube-system.svc:9091
+            - name: PUSHGATEWAY_JOB
+              value: k8s-inspector
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+          restartPolicy: Never
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: '*/10 * * * *'
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-daily
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - daily
+            - --formats
+            - json,html
+            - --output-dir
+            - /data/out/archive/daily
+            - --archive
+            - daily
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            - name: INSPECTOR_CLUSTER
+              value: YOUR_CLUSTER_NAME
+            - name: FEISHU_WEBHOOK
+              value: ""
+            - name: PUSHGATEWAY_URL
+              value: http://pushgateway.kube-system.svc:9091
+            - name: PUSHGATEWAY_JOB
+              value: k8s-inspector
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+          restartPolicy: Never
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: 0 2 * * *
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-dataplane-5m
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - 5m
+            - --formats
+            - json
+            - --output-dir
+            - /data/out/latest/5m
+            - --persist-level
+            - issue
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            - name: INSPECTOR_CLUSTER
+              value: YOUR_CLUSTER_NAME
+            - name: FEISHU_WEBHOOK
+              value: ""
+            - name: PUSHGATEWAY_URL
+              value: http://pushgateway.kube-system.svc:9091
+            - name: PUSHGATEWAY_JOB
+              value: k8s-inspector
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+          restartPolicy: Never
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: '*/5 * * * *'
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-infra-hourly
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - hourly
+            - --formats
+            - json
+            - --output-dir
+            - /data/out/archive/hourly
+            - --archive
+            - hourly
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            - name: INSPECTOR_CLUSTER
+              value: YOUR_CLUSTER_NAME
+            - name: FEISHU_WEBHOOK
+              value: ""
+            - name: PUSHGATEWAY_URL
+              value: http://pushgateway.kube-system.svc:9091
+            - name: PUSHGATEWAY_JOB
+              value: k8s-inspector
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+          restartPolicy: Never
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: 0 * * * *

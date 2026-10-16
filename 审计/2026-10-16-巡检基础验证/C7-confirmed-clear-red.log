@@ -1,0 +1,25 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____ test_error_cannot_reuse_older_healthy_state_to_clear_partial_finding _____
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1467/test_error_cannot_reuse_older_0')
+
+    def test_error_cannot_reuse_older_healthy_state_to_clear_partial_finding(tmp_path):
+        from k8s_inspector.observation_state import ObservationStateStore
+        from k8s_inspector.observation_models import ObservationHealth as H
+        store = ObservationStateStore(tmp_path/'state.json')
+        healthy = pass_report()
+        store.update(healthy)
+        ev = failed_evaluation(now=NOW+timedelta(minutes=2))
+        ev = replace(ev, execution=replace(ev.execution, execution_status=E.PARTIAL, coverage=Coverage(None,1,False)),
+            observations=tuple(replace(o,health=H.UNKNOWN,complete=False) for o in ev.observations))
+        store.update(report(ev))
+        store.update(report(error_evaluation(now=NOW+timedelta(minutes=3))))
+>       assert store.read_confirmed()[0].failure_count == 1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       IndexError: tuple index out of range
+
+tests\test_metrics_quality.py:199: IndexError
+=========================== short test summary info ===========================
+FAILED tests/test_metrics_quality.py::test_error_cannot_reuse_older_healthy_state_to_clear_partial_finding
+1 failed, 13 deselected in 1.60s

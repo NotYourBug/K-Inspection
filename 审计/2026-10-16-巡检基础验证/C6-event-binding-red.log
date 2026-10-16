@@ -1,0 +1,25 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+______________ test_event_baseline_is_cluster_and_profile_bound _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1460/test_event_baseline_is_cluster0')
+
+    def test_event_baseline_is_cluster_and_profile_bound(tmp_path):
+        from k8s_inspector.observation_state import ObservationStateStore
+        from k8s_inspector.rules_events import evaluate_events
+        from k8s_inspector.config import InspectorConfig
+        from tests.test_rule_observations import snapshot, event
+        cfg = InspectorConfig()
+        cfg.thresholds.warning_events_max = 0
+        r = report(evaluate_events(snapshot(events=[event(series=True)]), cfg)[0])
+        r.profile = 'daily'
+        store = ObservationStateStore(tmp_path/'state.json')
+        store.update(r)
+>       assert store.event_baseline(cluster_id='prod', profile='daily')[0]['count'] == 21
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: ObservationStateStore.event_baseline() got an unexpected keyword argument 'cluster_id'
+
+tests\test_metrics_quality.py:156: TypeError
+=========================== short test summary info ===========================
+FAILED tests/test_metrics_quality.py::test_event_baseline_is_cluster_and_profile_bound
+1 failed, 11 deselected in 4.97s

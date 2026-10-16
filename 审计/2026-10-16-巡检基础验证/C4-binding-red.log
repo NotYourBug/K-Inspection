@@ -1,0 +1,44 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_missing_optional_client_keeps_confirmed_node_failure __________
+
+    def test_missing_optional_client_keeps_confirmed_node_failure():
+        from k8s_inspector.runner import run_inspection
+        ctx = context()
+        ctx.storage = None
+>       report = run_inspection(ctx, InspectorConfig(), '5m', cluster_id='prod', now=NOW, monotonic=lambda: 0)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_runner.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\runner.py:24: in run_inspection
+    snapshot = replace(collector.snapshot(required, run_id, cluster_id), started_at=now)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\collector.py:117: in snapshot
+    call, kwargs = self._binding(key)
+                   ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <k8s_inspector.collector.KubeCollector object at 0x0000021E1AAFD3D0>
+key = 'storage_classes'
+
+    def _binding(self, key):
+        ctx = self.context
+        if key == 'api_health':
+            return self._health_page, {}
+        if key == 'nodes':
+            return ctx.core.list_node, {}
+        if key == 'pods':
+            return ((ctx.core.list_namespaced_pod, {'namespace': self.pod_namespace})
+                    if self.pod_namespace else (ctx.core.list_pod_for_all_namespaces, {}))
+        if key == 'pvcs':
+            return ctx.core.list_persistent_volume_claim_for_all_namespaces, {}
+        if key == 'storage_classes':
+>           return ctx.storage.list_storage_class, {}
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: 'NoneType' object has no attribute 'list_storage_class'
+
+k8s_inspector\collector.py:92: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_runner.py::test_missing_optional_client_keeps_confirmed_node_failure
+1 failed, 5 deselected in 4.20s

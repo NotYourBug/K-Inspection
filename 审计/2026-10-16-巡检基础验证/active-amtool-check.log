@@ -1,0 +1,8 @@
+Checking '.superpowers/sdd/2026-10-02-inspection-foundations-and-monitoring/active-candidate-syntax-only/alertmanager-snippet.yaml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 0 inhibit rules
+ - 3 receivers
+ - 0 templates
+

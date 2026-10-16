@@ -1,0 +1,62 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+__________ test_r2_late_rule_cannot_claim_complete_healthy_coverage ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F85B46BA40>
+
+    def test_r2_late_rule_cannot_claim_complete_healthy_coverage(monkeypatch):
+        from k8s_inspector import runner
+        from k8s_inspector.rule_catalog import RuleSpec
+        from k8s_inspector.rules_nodes import evaluate_nodes
+        from tests.test_runner import context
+        tick=[0]
+        def late(s,c):
+            result=evaluate_nodes(s,c)[0]
+            tick[0]=10000
+            return result
+        monkeypatch.setattr(runner,'CATALOG',(RuleSpec('nodes.ready',frozenset({'5m'}),'5m',frozenset({'nodes'}),late),))
+        r=runner.run_inspection(context(),InspectorConfig(),'5m',cluster_id='prod',now=NOW,monotonic=lambda:tick[0])
+        assert r.findings[0].reason=='NodeNotReady'
+>       assert not r.executions[0].coverage.complete
+E       AssertionError: assert not True
+E        +  where True = Coverage(expected=1, observed=1, complete=True).complete
+E        +    where Coverage(expected=1, observed=1, complete=True) = CheckExecution(rule_id='nodes.ready', execution_status=<ExecutionStatus.OK: 'OK'>, observed_at=datetime.datetime(2026,...=10000000, coverage=Coverage(expected=1, observed=1, complete=True), error_kind=None, reason='nodes.ready: 1 findings').coverage
+
+tests\test_foundations_review_transport.py:114: AssertionError
+___ test_r11_in_cluster_requires_stable_identity_before_loading_credentials ___
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1475/test_r11_in_cluster_requires_s0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001F85C9EDA60>
+
+    def test_r11_in_cluster_requires_stable_identity_before_loading_credentials(tmp_path,monkeypatch):
+        from k8s_inspector import cli
+        for key in ('INSPECTOR_CLUSTER','INSPECTOR_PROFILE'):
+            monkeypatch.delenv(key,raising=False)
+        monkeypatch.setattr(cli,'load_kube',lambda **kw:pytest.fail('generic in-cluster identity reached credentials'))
+>       assert cli.main(['run','--in-cluster','--profile','5m','--output-dir',str(tmp_path)])==1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_foundations_review_transport.py:123: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\cli.py:351: in main
+    return cmd_run(args)
+           ^^^^^^^^^^^^^
+k8s_inspector\cli.py:177: in cmd_run
+    return _cmd_run_locked(args, cfg, formats)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\cli.py:194: in _cmd_run_locked
+    kube = load_kube(kubeconfig=args.kubeconfig, context=args.context, in_cluster=args.in_cluster)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+kw = {'kubeconfig': None, 'context': None, 'in_cluster': True}
+
+>   monkeypatch.setattr(cli,'load_kube',lambda **kw:pytest.fail('generic in-cluster identity reached credentials'))
+                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: generic in-cluster identity reached credentials
+
+tests\test_foundations_review_transport.py:122: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_transport.py::test_r2_late_rule_cannot_claim_complete_healthy_coverage
+FAILED tests/test_foundations_review_transport.py::test_r11_in_cluster_requires_stable_identity_before_loading_credentials
+2 failed, 4 deselected in 12.20s

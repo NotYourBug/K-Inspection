@@ -1,0 +1,102 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+______ test_r4_invalid_history_evidence_cannot_hide_current_pod_failure _______
+
+self = Finding(rule_id='pods.history', severity=<Severity.WARN: 'WARN'>, resource=ResourceRef(kind='Pod', name='api', namespa...6, 0, 0, tzinfo=datetime.timezone.utc), fingerprint='39841928d0828939450205d8429065370bea5132d5faa379239ab35b6437c87e')
+
+    def __post_init__(self):
+        object.__setattr__(self, 'observed_at', utc(self.observed_at))
+        try:
+            # Do not stringify SDK instances, non-finite numbers or non-string keys.
+            def validate(v):
+                if isinstance(v, dict):
+                    if any(not isinstance(k, str) for k in v):
+                        raise ValueError('JSON evidence keys must be strings')
+                    for x in v.values():
+                        validate(x)
+                elif isinstance(v, list):
+                    for x in v:
+                        validate(x)
+                elif v is not None and type(v) not in (str, int, float, bool):
+                    raise ValueError('evidence must contain JSON values')
+>           validate(self.evidence)
+
+k8s_inspector\observation_models.py:112: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\observation_models.py:106: in validate
+    validate(x)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+v = <object object at 0x000001789A16BFB0>
+
+    def validate(v):
+        if isinstance(v, dict):
+            if any(not isinstance(k, str) for k in v):
+                raise ValueError('JSON evidence keys must be strings')
+            for x in v.values():
+                validate(x)
+        elif isinstance(v, list):
+            for x in v:
+                validate(x)
+        elif v is not None and type(v) not in (str, int, float, bool):
+>           raise ValueError('evidence must contain JSON values')
+E           ValueError: evidence must contain JSON values
+
+k8s_inspector\observation_models.py:111: ValueError
+
+The above exception was the direct cause of the following exception:
+
+    def test_r4_invalid_history_evidence_cannot_hide_current_pod_failure():
+        from tests.factories import container_status
+        cs=container_status(waiting='CrashLoopBackOff')
+        # Bad optional evidence at the rule boundary must not invalidate a sibling.
+        object.__setattr__(cs,'last_state',NS(terminated=NS(reason=object(),finished_at=None)))
+        p=pod('api',container_statuses=[cs])
+>       r=evaluate('pods.current',snapshot(pods=[p]))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_foundations_review_rules.py:218: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_foundations_review_rules.py:23: in evaluate
+    return next(r for r in CATALOG if r.rule_id == rule_id).evaluate(snap, cfg or InspectorConfig())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\rule_catalog.py:26: in run
+    matches = [e for e in getattr(domain, function)(snapshot, cfg) if e.execution.rule_id == rule_id]
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+k8s_inspector\rules_pods.py:112: in evaluate_pods
+    history.append(make_finding('pods.history', snapshot.cluster_id,
+k8s_inspector\observation_models.py:167: in make_finding
+    return Finding(rule_id, severity, resource, reason, summary, evidence, observed_at, fingerprint)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<string>:11: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = Finding(rule_id='pods.history', severity=<Severity.WARN: 'WARN'>, resource=ResourceRef(kind='Pod', name='api', namespa...6, 0, 0, tzinfo=datetime.timezone.utc), fingerprint='39841928d0828939450205d8429065370bea5132d5faa379239ab35b6437c87e')
+
+    def __post_init__(self):
+        object.__setattr__(self, 'observed_at', utc(self.observed_at))
+        try:
+            # Do not stringify SDK instances, non-finite numbers or non-string keys.
+            def validate(v):
+                if isinstance(v, dict):
+                    if any(not isinstance(k, str) for k in v):
+                        raise ValueError('JSON evidence keys must be strings')
+                    for x in v.values():
+                        validate(x)
+                elif isinstance(v, list):
+                    for x in v:
+                        validate(x)
+                elif v is not None and type(v) not in (str, int, float, bool):
+                    raise ValueError('evidence must contain JSON values')
+            validate(self.evidence)
+            # Copy to detach mutable caller evidence.
+            object.__setattr__(self, 'evidence', json.loads(json.dumps(self.evidence, allow_nan=False)))
+        except (TypeError, ValueError) as exc:
+>           raise ValueError('evidence must contain finite JSON values') from exc
+E           ValueError: evidence must contain finite JSON values
+
+k8s_inspector\observation_models.py:116: ValueError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_rules.py::test_r4_invalid_history_evidence_cannot_hide_current_pod_failure
+1 failed, 17 deselected in 2.36s

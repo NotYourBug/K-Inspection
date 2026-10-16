@@ -1,0 +1,120 @@
+........................................................................ [ 18%]
+........................................................................ [ 36%]
+Timeout (0:01:00)!
+Thread 0x0000039c (most recent call first):
+  File "<frozen importlib._bootstrap_external>", line 1190 in get_data
+  File "<frozen importlib._bootstrap_external>", line 1091 in get_code
+  File "<frozen importlib._bootstrap_external>", line 995 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\api\aily\v1\model\__init__.py", line 169 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\api\aily\v1\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1415 in _handle_fromlist
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\api\aily\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1415 in _handle_fromlist
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\api\__init__.py", line 41 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\event\dispatcher_handler.py", line 9 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py", line 23 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1415 in _handle_fromlist
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 999 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\tests\test_delivery_adapter.py", line 28 in test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\python.py", line 167 in pytest_pyfunc_call
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\python.py", line 1707 in runtest
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\runner.py", line 184 in pytest_runtest_call
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\runner.py", line 250 in <lambda>
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\runner.py", line 361 in from_call
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\runner.py", line 249 in call_and_report
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\runner.py", line 139 in runtestprotocol
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\runner.py", line 118 in pytest_runtest_protocol
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\_pytest\main.py", line 408 in pytest_runtestloop
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_callers.py", line 121 in _multicall
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_manager.py", line 120 in _hookexec
+  File "C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\pluggy\_hooks.py", line 512 in __call__
+  ...
+........................................................................ [ 54%]
+........................................................................ [ 72%]
+........................................................................ [ 90%]
+.......................................                                  [100%]
+============================== warnings summary ===============================
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py:35: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+399 passed, 2 warnings in 121.48s (0:02:01)
