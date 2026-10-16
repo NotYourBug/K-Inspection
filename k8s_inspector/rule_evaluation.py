@@ -31,8 +31,11 @@ def evaluation(snapshot, rule_id, keys, findings=(), *, unknown=False, unsupport
     health = H.UNHEALTHY if findings else H.HEALTHY
     observations = [RuleObservation(rule_id, snapshot.cluster_id, 'cluster', None,
         health if complete else H.UNKNOWN, timestamp, complete, snapshot.run_id)]
+    resources = resources or tuple((f.resource, H.UNHEALTHY) for f in findings)
+    seen_resources = set()
     for ref, resource_health in resources:
-        if ref.uid:
+        if ref.uid and (ref.namespace, ref.uid) not in seen_resources:
+            seen_resources.add((ref.namespace, ref.uid))
             observations.append(RuleObservation(rule_id, snapshot.cluster_id,
                 f'namespace:{ref.namespace}' if ref.namespace else 'cluster', ref.uid,
                 resource_health, timestamp, resource_health != H.UNKNOWN, snapshot.run_id))

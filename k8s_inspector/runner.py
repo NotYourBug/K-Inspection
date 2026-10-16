@@ -17,6 +17,8 @@ def run_inspection(context, cfg, profile, *, cluster_id, now, monotonic):
     run_id = str(uuid4())
     collector = KubeCollector(context, monotonic() + cfg.deadlines[profile], monotonic)
     collector.connect_timeout, collector.read_timeout = cfg.timeouts['connect'], cfg.timeouts['read']
+    collector.namespace = cfg.control_plane_namespace
+    collector.pod_namespace = cfg.control_plane_namespace if profile == '10m' else None
     rules = tuple(r for r in CATALOG if profile in r.profiles)
     required = frozenset(k for r in rules for k in r.collection_keys)
     snapshot = replace(collector.snapshot(required, run_id, cluster_id), started_at=now)

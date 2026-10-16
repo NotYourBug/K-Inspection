@@ -11,6 +11,8 @@ class KubeCollector:
         self.context, self.deadline, self.clock = context, deadline, clock
         self.started_at = datetime.now(timezone.utc)
         self._cache = {}
+        self.namespace = 'kube-system'
+        self.pod_namespace = None
         self.connect_timeout, self.read_timeout = 3.0, 10.0
 
     def _timeout(self):
@@ -77,10 +79,13 @@ class KubeCollector:
 
     def _binding(self, key):
         ctx = self.context
+        if key == 'api_health':
+            return self._health_page, {}
         if key == 'nodes':
             return ctx.core.list_node, {}
         if key == 'pods':
-            return ctx.core.list_pod_for_all_namespaces, {}
+            return ((ctx.core.list_namespaced_pod, {'namespace': self.pod_namespace})
+                    if self.pod_namespace else (ctx.core.list_pod_for_all_namespaces, {}))
         if key == 'pvcs':
             return ctx.core.list_persistent_volume_claim_for_all_namespaces, {}
         if key == 'storage_classes':
@@ -93,14 +98,28 @@ class KubeCollector:
         if key in ('deployments', 'daemonsets'):
             from kubernetes.client import AppsV1Api
             apps = getattr(ctx, 'apps', None) or AppsV1Api(ctx.api_client)
-            return (apps.list_deployment_for_all_namespaces if key == 'deployments'
-                    else apps.list_daemon_set_for_all_namespaces), {}
+            return (apps.list_namespaced_deployment if key == 'deployments'
+                    else apps.list_namespaced_daemon_set), {'namespace': self.namespace}
         raise ValueError(f'unknown collection key: {key}')
+
+    def _health_page(self, **kwargs):
+        data, status, _ = self.context.api_client.call_api(
+            '/healthz', 'GET', response_type='str', auth_settings=['BearerToken'],
+            _request_timeout=kwargs['_request_timeout'], _preload_content=True)
+        if status != 200:
+            from kubernetes.client.exceptions import ApiException
+            raise ApiException(status=status)
+        return {'items': [{'ok': str(data).strip().lower() == 'ok', 'status_code': status}], 'metadata': {}}
 
     def snapshot(self, required: frozenset[str], run_id: str, cluster_id: str):
         for key in sorted(required):
             if key not in self._cache:
-                call, kwargs = self._binding(key)
+                try:
+                    call, kwargs = self._binding(key)
+                except (AttributeError, ValueError):
+                    self._cache[key] = Collection((), E.ERROR, datetime.now(timezone.utc), False,
+                                                  'CLIENT_UNAVAILABLE', f'{key}: client unavailable')
+                    continue
                 self.collect_list(key, call, **kwargs)
         return RunSnapshot(run_id, cluster_id, self.started_at,
                            {k: self._cache[k] for k in required})

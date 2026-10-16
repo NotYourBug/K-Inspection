@@ -20,10 +20,7 @@ class RuleSpec:
 def domain_rule(module, function, rule_id):
     def run(snapshot, cfg):
         import importlib
-        try:
-            domain = importlib.import_module(f'.{module}', __package__)
-        except ModuleNotFoundError:
-            return evaluation(snapshot, rule_id, (), unknown=True, reason='Rule migration pending')
+        domain = importlib.import_module(f'.{module}', __package__)
         matches = [e for e in getattr(domain, function)(snapshot, cfg) if e.execution.rule_id == rule_id]
         if len(matches) != 1:
             raise ValueError('domain must return exactly one matching rule')

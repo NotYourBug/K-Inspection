@@ -27,3 +27,17 @@ def test_5m_does_not_collect_metrics():
     snap = collector.snapshot(frozenset({'nodes', 'pods'}), 'run-1', 'prod')
     assert set(snap.collections) == {'nodes', 'pods'}
     assert not ctx.custom.list_cluster_custom_object.called
+
+
+def test_api_health_uses_transport_timeout_and_namespace_scoped_addons():
+    from k8s_inspector.collector import KubeCollector
+    ctx = NS(api_client=NS(call_api=Mock(return_value=('ok', 200, {}))),
+             apps=NS(list_namespaced_deployment=Mock(return_value=page()),
+                     list_namespaced_daemon_set=Mock(return_value=page())))
+    collector = KubeCollector(ctx, 2, lambda: 0)
+    collector.namespace = 'system'
+    snap = collector.snapshot(frozenset({'api_health', 'deployments'}), 'run', 'prod')
+    assert snap.collections['api_health'].items[0]['ok'] is True
+    timeout = ctx.api_client.call_api.call_args.kwargs['_request_timeout']
+    assert sum(timeout) <= 2
+    assert ctx.apps.list_namespaced_deployment.call_args.kwargs['namespace'] == 'system'

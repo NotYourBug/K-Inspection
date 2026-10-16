@@ -69,3 +69,12 @@ def test_catalog_mismatched_identity_is_execution_error(monkeypatch):
         RuleSpec('wanted', frozenset({'5m'}), '5m', frozenset(), lambda s,c: failed_evaluation()),))
     report = runner.run_inspection(context(), InspectorConfig(), '5m', cluster_id='prod', now=NOW, monotonic=lambda: 0)
     assert report.executions[0].rule_id == 'wanted' and report.executions[0].execution_status == E.ERROR
+
+
+def test_missing_optional_client_keeps_confirmed_node_failure():
+    from k8s_inspector.runner import run_inspection
+    ctx = context()
+    ctx.storage = None
+    report = run_inspection(ctx, InspectorConfig(), '5m', cluster_id='prod', now=NOW, monotonic=lambda: 0)
+    assert report.has_fail
+    assert next(e for e in report.executions if e.rule_id == 'pvc.binding').coverage.complete is True
