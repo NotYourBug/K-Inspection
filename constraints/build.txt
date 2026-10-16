@@ -1,0 +1,6 @@
+# These tool releases retain Python3.9 support. Matrix results remain required.
+setuptools==80.9.0
+wheel==0.45.1
+build==1.2.2.post1
+pytest==8.4.2
+tomli==2.3.0
