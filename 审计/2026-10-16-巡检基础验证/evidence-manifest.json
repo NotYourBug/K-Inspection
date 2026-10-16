@@ -16,63 +16,8 @@
     },
     {
       "path": "审计/18-巡检基础与监控执行台账-2026-10-16.md",
-      "sha256": "00b3d74e19c329ac84cd87b856b0e92c184d198ac4415f3777b12876db7790b1",
-      "size_bytes": 13730
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/active-amtool-check.log",
-      "sha256": "1b6526c433e71dc71557ce38fc0f66c1118687c198b4beecf18a514215d2f111",
-      "size_bytes": 232
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/alertmanager-snippet.yaml",
-      "sha256": "3f87ccaa8d2186f81dc5cf565d87a83fd09950c0f33828e48822100b5b3ded57",
-      "size_bytes": 570
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/inspection-rules.yaml",
-      "sha256": "a219b9136f28bcc6c523ebc6b2ef3cb6915335ea3a4b2dfe10b2ea6fc50b2e64",
-      "size_bytes": 10427
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/inventory.yaml",
-      "sha256": "8f80102fe0ca7cc0d31e7da27e17cdb990efbd6f47b81a5419363c21320ff602",
-      "size_bytes": 2806
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/scrape-snippet.yaml",
-      "sha256": "7ff17c0446103f894e91e04773a0fadf7517b17c62803e66e76c1332ab3be7bf",
-      "size_bytes": 130
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/active-quality-route-check.log",
-      "sha256": "d1e195b328c12be418eb2048dca5f529eec0883fac38556099eedc2c617f9cc4",
-      "size_bytes": 21
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/author-adversarial-probes.log",
-      "sha256": "b3fcf69dacbe257da3503f7c18e33a43eb21bc8d8411fce65cc8b845fe29f94c",
-      "size_bytes": 269
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/author-sdk-retry-probe.log",
-      "sha256": "300e7aaf805ab04e2b3a9cfe5bd12823c4bfe633e89aa02f303ef2e08fc92c9f",
-      "size_bytes": 120
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/base-alertmanager.yml",
-      "sha256": "5cb4fdbd52a822175ab34ccc51c7c71675d6061ae6526e8a4801565b40a338f1",
-      "size_bytes": 900
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/base-k8s-inspector-rules.yaml",
-      "sha256": "5af0797f23d60089ad5a1261a03fae32a0ebd40a9a20380ffbeab18cc9f78d7c",
-      "size_bytes": 6944
-    },
-    {
-      "path": "审计/2026-10-16-巡检基础验证/baseline.log",
-      "sha256": "2dee655aa23e2c103f4cf5bf580790d4c6aa0e27af4927d9e3e4c366a6195c4e",
-      "size_bytes": 1440
+      "sha256": "2c9da3d3bc7328ae24217cd46b1f8a95f1da73291a3ae0aabdbab6e7a68e0d51",
+      "size_bytes": 14136
     },
     {
       "path": "审计/2026-10-16-巡检基础验证/C1-red.log",
@@ -300,6 +245,66 @@
       "size_bytes": 100
     },
     {
+      "path": "审计/2026-10-16-巡检基础验证/active-amtool-check.log",
+      "sha256": "1b6526c433e71dc71557ce38fc0f66c1118687c198b4beecf18a514215d2f111",
+      "size_bytes": 232
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/alertmanager-snippet.yaml",
+      "sha256": "3f87ccaa8d2186f81dc5cf565d87a83fd09950c0f33828e48822100b5b3ded57",
+      "size_bytes": 570
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/inspection-rules.yaml",
+      "sha256": "a219b9136f28bcc6c523ebc6b2ef3cb6915335ea3a4b2dfe10b2ea6fc50b2e64",
+      "size_bytes": 10427
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/inventory.yaml",
+      "sha256": "8f80102fe0ca7cc0d31e7da27e17cdb990efbd6f47b81a5419363c21320ff602",
+      "size_bytes": 2806
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-candidate-syntax-only/scrape-snippet.yaml",
+      "sha256": "7ff17c0446103f894e91e04773a0fadf7517b17c62803e66e76c1332ab3be7bf",
+      "size_bytes": 130
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/active-quality-route-check.log",
+      "sha256": "d1e195b328c12be418eb2048dca5f529eec0883fac38556099eedc2c617f9cc4",
+      "size_bytes": 21
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/author-adversarial-probes.log",
+      "sha256": "b3fcf69dacbe257da3503f7c18e33a43eb21bc8d8411fce65cc8b845fe29f94c",
+      "size_bytes": 269
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/author-sdk-retry-probe.log",
+      "sha256": "300e7aaf805ab04e2b3a9cfe5bd12823c4bfe633e89aa02f303ef2e08fc92c9f",
+      "size_bytes": 120
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/base-alertmanager.yml",
+      "sha256": "5cb4fdbd52a822175ab34ccc51c7c71675d6061ae6526e8a4801565b40a338f1",
+      "size_bytes": 900
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/base-k8s-inspector-rules.yaml",
+      "sha256": "5af0797f23d60089ad5a1261a03fae32a0ebd40a9a20380ffbeab18cc9f78d7c",
+      "size_bytes": 6944
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/baseline.log",
+      "sha256": "2dee655aa23e2c103f4cf5bf580790d4c6aa0e27af4927d9e3e4c366a6195c4e",
+      "size_bytes": 1440
+    },
+    {
+      "path": "审计/2026-10-16-巡检基础验证/cleanup-verification.md",
+      "sha256": "1294fae3e7a3f9e7c07fce877fe2558615ec00d13cc85dce6329ccac692cb27c",
+      "size_bytes": 1551
+    },
+    {
       "path": "审计/2026-10-16-巡检基础验证/environment-and-source.json",
       "sha256": "50293c99bd85b047fc290ea8b04e9524b78573d4b03d188230cf86533cc21f3e",
       "size_bytes": 929
@@ -356,8 +361,8 @@
     },
     {
       "path": "审计/2026-10-16-巡检基础验证/progress.md",
-      "sha256": "00b3d74e19c329ac84cd87b856b0e92c184d198ac4415f3777b12876db7790b1",
-      "size_bytes": 13730
+      "sha256": "2c9da3d3bc7328ae24217cd46b1f8a95f1da73291a3ae0aabdbab6e7a68e0d51",
+      "size_bytes": 14136
     },
     {
       "path": "审计/2026-10-16-巡检基础验证/review-all-targeted-green.log",

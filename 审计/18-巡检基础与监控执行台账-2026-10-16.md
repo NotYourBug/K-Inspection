@@ -65,3 +65,5 @@ Final: Ruling: Preserve the existing local remediation/inspection-correctness br
 Final status: C1–C7 and one author review fix pass complete locally; E/D/F scope remains as documented. No re-review was dispatched. Archive logs/ledger before deleting only this plan-owned scratch directory.
 Final fix pass commit: ea2f6e3046aa7ae12ba9494dd6d7f12c0abb9bae; tests447/447 and installed wheel30/30; no remaining Critical/Important findings known.
 Audit publication: preserve source range, raw RED/GREEN/full-suite logs, pre-review and final wheel metadata, real tool checks, independent review and all rulings in audit16–18 plus SHA256 manifest before removing the owned scratch directory. Shared tool/pip caches and all sibling plans are excluded from cleanup.
+
+Cleanup record: audit published at ab98915. Owned scratch removed after90 committed blob SHA256 checks. An extra pre-delete PowerShell reparse guard failed due a nested array and default Continue; see cleanup-verification.md. Follow-up strict checks verified ordinary retained parents, absent scratch, unchanged shared tool hashes/pip cache and clean Git. No production code changed after447/447 suite.
