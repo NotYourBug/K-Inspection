@@ -1,4 +1,6 @@
 """Independent pure API, component and addon observations."""
+import math
+
 from .observation_models import ObservationHealth as H, Severity, ResourceRef, make_finding
 from .rule_evaluation import evaluation, resource_ref
 from .rules_pods import evaluate_pod_state
@@ -8,10 +10,16 @@ def evaluate_api(snapshot, cfg):
     collection = snapshot.collections.get('api_health')
     findings, unknown = [], True
     for health in collection.items if collection else ():
+        latency = health.get('latency_ms')
+        evidence = {'status_code': health.get('status_code'), 'latency_ms': latency}
         if health.get('ok') is False:
             findings.append(make_finding('control.api', snapshot.cluster_id,
                 ResourceRef('APIServer', 'healthz'), Severity.FAIL, 'APIUnhealthy',
-                'API health endpoint is unhealthy', {'status_code': health.get('status_code')}, collection.observed_at))
+                'API health endpoint is unhealthy', evidence, collection.observed_at))
+        elif health.get('ok') is True and type(latency) in (int, float) and math.isfinite(latency) and latency >= 500:
+            findings.append(make_finding('control.api', snapshot.cluster_id,
+                ResourceRef('APIServer', 'healthz'), Severity.WARN, 'APISlow',
+                'API health endpoint response took at least 500 ms', evidence, collection.observed_at))
         unknown = health.get('ok') not in (True, False)
     return evaluation(snapshot, 'control.api', ('api_health',), findings, unknown=unknown)
 

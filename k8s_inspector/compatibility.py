@@ -60,9 +60,12 @@ def legacy_results(report):
             data['count_is_lower_bound']=not known('events.warning')
             counts={'warning':data['count']}
         elif name=='control-plane':
-            bad=records('control.api')
+            api_issues=records('control.api')
+            bad=records('control.api',lambda f:f.severity==Severity.FAIL)
             ok=False if bad else True if known('control.api') else None
             data['apiserver_healthz']={'ok':ok,'status_code':bad[0].get('status_code') if bad else 200 if ok else None}
+            if api_issues and 'latency_ms' in api_issues[0]:
+                data['apiserver_healthz']['latency_ms']=api_issues[0]['latency_ms']
             data['components']=records('control.components')
             counts={'healthz_not_ok':int(not ok) if ok is not None else None}
         elif name=='kube-system-addons':

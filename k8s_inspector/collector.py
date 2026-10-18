@@ -108,6 +108,7 @@ class KubeCollector:
 
     def _health_page(self, **kwargs):
         from kubernetes.client.exceptions import ApiException
+        started = self.clock()
         try:
             from .kube import _healthz_response
             data, status, _ = _healthz_response(self.context.api_client, kwargs['_request_timeout'])
@@ -121,7 +122,8 @@ class KubeCollector:
         if status != 200 and not (isinstance(status, int) and 500 <= status < 600):
             raise ApiException(status=status)
         return {'items': [{'ok': status == 200 and str(data).strip().lower() == 'ok',
-                            'status_code': status}], 'metadata': {}}
+                            'status_code': status,
+                            'latency_ms': max(0.0, (self.clock() - started) * 1000)}], 'metadata': {}}
 
     def snapshot(self, required: frozenset[str], run_id: str, cluster_id: str):
         for key in sorted(required):

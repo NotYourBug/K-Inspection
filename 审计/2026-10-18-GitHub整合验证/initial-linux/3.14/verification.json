@@ -1,0 +1,96 @@
+{
+  "success": false,
+  "local_checks_success": true,
+  "exit_gate": "local",
+  "checks": {
+    "wheel": {
+      "success": true,
+      "detail": "exit=0; evidence=wheel-build.log"
+    },
+    "venv": {
+      "success": true,
+      "detail": "exit=0; evidence=venv.log"
+    },
+    "install": {
+      "success": true,
+      "detail": "exit=0; evidence=install.log"
+    },
+    "imports": {
+      "success": true,
+      "detail": "Installed module path=/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/venv/lib/python3.14/site-packages/k8s_inspector/__init__.py"
+    },
+    "source_tests": {
+      "success": true,
+      "detail": "exit=0; evidence=source-tests.log"
+    },
+    "kustomize_base": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-base.log"
+    },
+    "kustomize_example": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-example.log"
+    },
+    "kustomize_shadow": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-shadow.log"
+    },
+    "kustomize": {
+      "success": true,
+      "detail": "See per-overlay render checks"
+    },
+    "promtool": {
+      "success": true,
+      "detail": "exit=0; evidence=example-promconfig.log; exit=0; evidence=shadow-promconfig.log; exit=0; evidence=rules-check.log; exit=0; evidence=rules-test.log; exit=0; evidence=bridge-rules-check.log; exit=0; evidence=bridge-rules-test.log"
+    },
+    "amtool": {
+      "success": true,
+      "detail": "exit=0; evidence=example-amconfig.log; exit=0; evidence=shadow-amconfig.log"
+    },
+    "docker": {
+      "success": false,
+      "detail": "PENDING: Docker unavailable or offline mode forbids image pulls/builds"
+    },
+    "environment_acceptance": {
+      "success": false,
+      "detail": "PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance"
+    },
+    "clean_dependency_install": {
+      "success": false,
+      "detail": "PENDING: offline bootstrap shares installed dependency paths"
+    },
+    "runtime_metadata": {
+      "success": true,
+      "detail": "exit=0; evidence=runtime-metadata.log"
+    },
+    "selected_constraints": {
+      "success": true,
+      "detail": "Installed pins verified"
+    }
+  },
+  "artifacts": [
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/wheel/k8s_inspector-0.1.0-py3-none-any.whl",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/venv/bin/python",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/imports.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/venv.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/wheel-build.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/package/install.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/base.yaml",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/example.yaml",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/shadow.yaml",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/candidate-manifest.json",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/shadow-promconfig.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/example-promconfig.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/runtime-metadata.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/source-tests.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/shadow-amconfig.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/rules-check.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/kustomize-base.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/bridge-rules-check.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/bridge-rules-test.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/rules-test.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/kustomize-example.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/example-amconfig.log",
+    "/home/runner/work/K-Inspection/K-Inspection/out/ci-release/kustomize-shadow.log"
+  ]
+}

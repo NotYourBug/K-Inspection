@@ -1,0 +1,58 @@
+F..FFF                                                                   [100%]
+================================== FAILURES ===================================
+________________ test_health_snapshot_retains_request_latency _________________
+
+    def test_health_snapshot_retains_request_latency():
+        context, clock = timed_context(0.6)
+        result = KubeCollector(context, 30, clock).snapshot(frozenset({'api_health'}), 'run', 'prod')
+>       assert result.collections['api_health'].items[0]['latency_ms'] == pytest.approx(600)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'latency_ms'
+
+tests\test_github_review_regressions.py:29: KeyError
+_ test_canonical_runner_preserves_slow_api_warning_without_marking_endpoint_failed[0.5-True] _
+
+seconds = 0.5, slow = True
+
+    @pytest.mark.parametrize('seconds,slow', [(0.1, False), (0.499, False), (0.5, True), (0.6, True)])
+    def test_canonical_runner_preserves_slow_api_warning_without_marking_endpoint_failed(seconds, slow):
+        context, clock = timed_context(seconds)
+        report = run_inspection(context, InspectorConfig(), '10m', cluster_id='prod', now=NOW, monotonic=clock)
+        api_findings = [f for f in report.findings if f.rule_id == 'control.api']
+>       assert bool(api_findings) == slow
+E       assert False == True
+E        +  where False = bool([])
+
+tests\test_github_review_regressions.py:37: AssertionError
+_ test_canonical_runner_preserves_slow_api_warning_without_marking_endpoint_failed[0.6-True] _
+
+seconds = 0.6, slow = True
+
+    @pytest.mark.parametrize('seconds,slow', [(0.1, False), (0.499, False), (0.5, True), (0.6, True)])
+    def test_canonical_runner_preserves_slow_api_warning_without_marking_endpoint_failed(seconds, slow):
+        context, clock = timed_context(seconds)
+        report = run_inspection(context, InspectorConfig(), '10m', cluster_id='prod', now=NOW, monotonic=clock)
+        api_findings = [f for f in report.findings if f.rule_id == 'control.api']
+>       assert bool(api_findings) == slow
+E       assert False == True
+E        +  where False = bool([])
+
+tests\test_github_review_regressions.py:37: AssertionError
+______________ test_slow_unhealthy_api_retains_confirmed_failure ______________
+
+    def test_slow_unhealthy_api_retains_confirmed_failure():
+        context, clock = timed_context(0.6, status=503, body='failed')
+        report = run_inspection(context, InspectorConfig(), '10m', cluster_id='prod', now=NOW, monotonic=clock)
+        api_findings = [f for f in report.findings if f.rule_id == 'control.api']
+        assert [(f.severity, f.reason) for f in api_findings] == [(Severity.FAIL, 'APIUnhealthy')]
+>       assert api_findings[0].evidence['latency_ms'] == pytest.approx(600)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'latency_ms'
+
+tests\test_github_review_regressions.py:55: KeyError
+=========================== short test summary info ===========================
+FAILED tests/test_github_review_regressions.py::test_health_snapshot_retains_request_latency
+FAILED tests/test_github_review_regressions.py::test_canonical_runner_preserves_slow_api_warning_without_marking_endpoint_failed[0.5-True]
+FAILED tests/test_github_review_regressions.py::test_canonical_runner_preserves_slow_api_warning_without_marking_endpoint_failed[0.6-True]
+FAILED tests/test_github_review_regressions.py::test_slow_unhealthy_api_retains_confirmed_failure
+4 failed, 2 passed in 3.42s

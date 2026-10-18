@@ -1,0 +1,22 @@
+{
+  "baseline_commit": "94ae59d9c09bfc36d28acb1446f31f375d8f84ac",
+  "pr": "https://github.com/NotYourBug/K-Inspection/pull/1",
+  "review_comment_ids_fixed": [
+    4306444704,
+    4306444711
+  ],
+  "local_python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "local_full_suite": "487 passed, 3 skipped, 2 warnings in 253.67s (0:04:13)",
+  "latency_red": "4 failed, 2 passed",
+  "latency_green": "30 passed",
+  "durability_red": "5 failed, 1 skipped, 6 deselected",
+  "durability_green": "37 passed, 1 skipped",
+  "first_full_suite": "4 failed, 473 passed, 3 skipped, 10 errors; Kustomize sandbox evalsymlink denied",
+  "first_push_ci": 39113353394,
+  "first_pr_ci": 39113411196,
+  "initial_ci_scope": "Only baseline94ae59d; each Linux source476 pass/2skip and separate container2pass",
+  "fixed_head_ci": "Must use current PR head checks; baseline CI is not reused as proof of later fixes",
+  "release_ready": false,
+  "real_cluster_storage_receiver_shadow_acceptance": "pending",
+  "source_byte_note": "Before push, normalized only edited source/test checkout CRLF to LF to match committed Git blobs; no logic change."
+}

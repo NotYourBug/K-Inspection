@@ -7,13 +7,13 @@ import os
 from pathlib import Path
 
 from .observation_models import ObservationHealth as H, ExecutionStatus as E, Severity, to_json_value, utc
-from .report import atomic_write_text
+from .report import atomic_write_text, _ensure_dir
 
 
 @contextmanager
 def profile_run_lock(directory: Path, *, name='.run.lock'):
     directory = Path(directory)
-    directory.mkdir(parents=True, exist_ok=True)
+    _ensure_dir(directory)
     with (directory/name).open('a+b') as handle:
         handle.seek(0, os.SEEK_END)
         if handle.tell() == 0:
