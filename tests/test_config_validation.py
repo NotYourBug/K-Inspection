@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from k8s_inspector.config import load_config
+from k8s_inspector.core.config import load_config
 from k8s_inspector.cli import main
 
 

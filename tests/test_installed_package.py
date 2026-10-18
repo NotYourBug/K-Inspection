@@ -32,7 +32,7 @@ def run(installed_env,code):
 
 
 def test_wheel_installs_and_imports_outside_source_tree(installed_env):
-    result=run(installed_env,'import k8s_inspector,k8s_inspector.alert_routing;print(k8s_inspector.__file__)')
+    result=run(installed_env,'import k8s_inspector,k8s_inspector.notifications.bridge.routing;print(k8s_inspector.__file__)')
     assert result.returncode==0,result.stderr
     assert str(installed_env[0]) not in result.stdout
     assert 'site-packages' in result.stdout
@@ -41,6 +41,24 @@ def test_wheel_installs_and_imports_outside_source_tree(installed_env):
 def test_nested_packages_are_included_in_wheel(installed_env):
     result=run(installed_env,'from k8s_inspector._release_canary import VALUE;print(VALUE)')
     assert result.returncode==0 and result.stdout.strip()=='17',result.stderr
+
+
+def test_domain_packages_are_usable_from_installed_wheel(installed_env):
+    result=run(installed_env,'''import pathlib,k8s_inspector
+from k8s_inspector.core.files import atomic_write_text
+from k8s_inspector.inspection.catalog import collection_keys
+from k8s_inspector.notifications.delivery.store import DeliveryStore
+from k8s_inspector.reporting.writers import write_json
+from k8s_inspector.monitoring.inventory import load_expected_targets
+assert collection_keys('5m')==frozenset({'nodes','pods','pvcs','storage_classes'})
+''')
+    assert result.returncode==0,result.stderr
+
+
+@pytest.mark.parametrize('module',['alertmanager_bridge','bridge_admin','expected_targets'])
+def test_existing_service_commands_work_from_installed_wheel(installed_env,module):
+    result=run(installed_env,f'import runpy,sys;sys.argv=["{module}","--help"];runpy.run_module("k8s_inspector.{module}",run_name="__main__")')
+    assert result.returncode==0 and 'usage:' in result.stdout,result.stderr
 
 
 def test_cli_help_from_installed_wheel(installed_env):

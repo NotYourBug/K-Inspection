@@ -1,11 +1,11 @@
-"""Tests for k8s_inspector.notify."""
+"""Tests for k8s_inspector.notifications.providers.webhook."""
 
 import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from k8s_inspector.notify import send_feishu_text
+from k8s_inspector.notifications.providers.webhook import send_feishu_text
 
 
 class TestSendFeishuText:
@@ -14,7 +14,7 @@ class TestSendFeishuText:
         mock_resp.status = 200
         mock_resp.read.return_value = b'{"code": 0}'
 
-        with patch("k8s_inspector.notify.urllib.request.urlopen") as mock_urlopen:
+        with patch("k8s_inspector.notifications.providers.webhook.urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value.__enter__.return_value = mock_resp
             result = send_feishu_text("https://open.feishu.cn/hook/xxx", "Hello cluster: prod")
 
@@ -30,7 +30,7 @@ class TestSendFeishuText:
         mock_resp.status = 200
         mock_resp.read.return_value = json.dumps({"code": 0, "padding": "x" * 3000}).encode()
 
-        with patch("k8s_inspector.notify.urllib.request.urlopen") as mock_urlopen:
+        with patch("k8s_inspector.notifications.providers.webhook.urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value.__enter__.return_value = mock_resp
             result = send_feishu_text("https://open.feishu.cn/hook/xxx", "test")
 
@@ -42,7 +42,7 @@ class TestSendFeishuText:
         mock_resp.status = 200
         mock_resp.read.return_value = b'{"code": 0}'
 
-        with patch("k8s_inspector.notify.urllib.request.urlopen") as mock_urlopen:
+        with patch("k8s_inspector.notifications.providers.webhook.urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value.__enter__.return_value = mock_resp
             result = send_feishu_text("https://open.feishu.cn/hook/xxx", "")
 
@@ -56,7 +56,7 @@ class TestSendFeishuText:
         mock_resp = MagicMock()
         mock_resp.status = 200
         mock_resp.read.return_value = body
-        with patch("k8s_inspector.notify.urllib.request.urlopen") as mock_urlopen:
+        with patch("k8s_inspector.notifications.providers.webhook.urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value.__enter__.return_value = mock_resp
             with pytest.raises(RuntimeError):
                 send_feishu_text("https://example.invalid/hook", "alert")
@@ -65,6 +65,6 @@ class TestSendFeishuText:
         mock_resp = MagicMock()
         mock_resp.status = 200
         mock_resp.read.return_value = b'{"StatusCode": 0, "StatusMessage": "success"}'
-        with patch("k8s_inspector.notify.urllib.request.urlopen") as mock_urlopen:
+        with patch("k8s_inspector.notifications.providers.webhook.urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.return_value.__enter__.return_value = mock_resp
             assert send_feishu_text("https://example.invalid/hook", "alert")["status"] == 200

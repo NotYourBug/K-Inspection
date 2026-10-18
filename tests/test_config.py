@@ -1,10 +1,10 @@
-"""Tests for k8s_inspector.config."""
+"""Tests for k8s_inspector.core.config."""
 
 import json
 import tempfile
 from pathlib import Path
 
-from k8s_inspector.config import InspectorConfig, Thresholds, load_config
+from k8s_inspector.core.config import InspectorConfig, Thresholds, load_config
 
 
 class TestDefaults:

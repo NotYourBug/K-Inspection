@@ -1,0 +1,236 @@
+FFFFFFFFFFFF                                                             [100%]
+================================== FAILURES ===================================
+______________ test_domain_modules_are_discoverable[core.files] _______________
+
+name = 'core.files'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: core.files
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+______________ test_domain_modules_are_discoverable[core.config] ______________
+
+name = 'core.config'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: core.config
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+___________ test_domain_modules_are_discoverable[inspection.runner] ___________
+
+name = 'inspection.runner'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: inspection.runner
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+________ test_domain_modules_are_discoverable[inspection.rules.nodes] _________
+
+name = 'inspection.rules.nodes'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: inspection.rules.nodes
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+______ test_domain_modules_are_discoverable[notifications.bridge.server] ______
+
+name = 'notifications.bridge.server'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: notifications.bridge.server
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+_____ test_domain_modules_are_discoverable[notifications.delivery.store] ______
+
+name = 'notifications.delivery.store'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: notifications.delivery.store
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+____ test_domain_modules_are_discoverable[notifications.providers.feishu] _____
+
+name = 'notifications.providers.feishu'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: notifications.providers.feishu
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+___________ test_domain_modules_are_discoverable[reporting.writers] ___________
+
+name = 'reporting.writers'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: reporting.writers
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+_________ test_domain_modules_are_discoverable[monitoring.inventory] __________
+
+name = 'monitoring.inventory'
+
+    @pytest.mark.parametrize('name', [
+        'core.files', 'core.config', 'inspection.runner', 'inspection.rules.nodes',
+        'notifications.bridge.server', 'notifications.delivery.store',
+        'notifications.providers.feishu', 'reporting.writers', 'monitoring.inventory',
+    ])
+    def test_domain_modules_are_discoverable(name):
+        try:
+            spec = importlib.util.find_spec('k8s_inspector.' + name)
+        except ModuleNotFoundError:
+            spec = None
+>       assert spec is not None, f'Missing domain module: {name}'
+E       AssertionError: Missing domain module: monitoring.inventory
+E       assert None is not None
+
+tests\test_package_layout.py:23: AssertionError
+_____________ test_core_import_does_not_load_service_dependencies _____________
+
+    def test_core_import_does_not_load_service_dependencies():
+        code = '''
+    import sys
+    from k8s_inspector.core.config import InspectorConfig
+    from k8s_inspector.core.models import Report
+    from k8s_inspector.core.observations import Severity
+    assert InspectorConfig() and Severity.WARN.value == 'WARN'
+    assert not {'kubernetes','lark_oapi','fastmcp','prometheus_client'} & set(sys.modules)
+    '''
+        result = subprocess.run([sys.executable, '-c', code], cwd=ROOT, capture_output=True, text=True, timeout=30)
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 3, in <module>
+E         ModuleNotFoundError: No module named 'k8s_inspector.core'
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.venv\\Scripts\\python.exe', '-c', "\n...nt call last):\n  File "<string>", line 3, in <module>\nModuleNotFoundError: No module named \'k8s_inspector.core\'\n').returncode
+
+tests\test_package_layout.py:36: AssertionError
+________ test_delivery_import_does_not_initialize_bridge_or_providers _________
+
+    def test_delivery_import_does_not_initialize_bridge_or_providers():
+        code = '''
+    import sys
+    from k8s_inspector.notifications.delivery.store import DeliveryStore
+    assert 'k8s_inspector.notifications.bridge.server' not in sys.modules
+    assert not {'lark_oapi','fastmcp'} & set(sys.modules)
+    '''
+        result = subprocess.run([sys.executable, '-c', code], cwd=ROOT, capture_output=True, text=True, timeout=30)
+>       assert result.returncode == 0, result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 3, in <module>
+E         ModuleNotFoundError: No module named 'k8s_inspector.notifications'
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.venv\\Scripts\\python.exe', '-c', "\n...ast):\n  File "<string>", line 3, in <module>\nModuleNotFoundError: No module named \'k8s_inspector.notifications\'\n').returncode
+
+tests\test_package_layout.py:47: AssertionError
+__________ test_shared_core_and_pure_rules_do_not_depend_on_adapters __________
+
+    def test_shared_core_and_pure_rules_do_not_depend_on_adapters():
+        packages = [ROOT / 'k8s_inspector/core', ROOT / 'k8s_inspector/inspection/rules']
+>       assert all(package.is_dir() for package in packages)
+E       assert False
+E        +  where False = all(<generator object test_shared_core_and_pure_rules_do_not_depend_on_adapters.<locals>.<genexpr> at 0x000001C8C7FEA190>)
+
+tests\test_package_layout.py:52: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[core.files]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[core.config]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[inspection.runner]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[inspection.rules.nodes]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[notifications.bridge.server]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[notifications.delivery.store]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[notifications.providers.feishu]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[reporting.writers]
+FAILED tests/test_package_layout.py::test_domain_modules_are_discoverable[monitoring.inventory]
+FAILED tests/test_package_layout.py::test_core_import_does_not_load_service_dependencies
+FAILED tests/test_package_layout.py::test_delivery_import_does_not_initialize_bridge_or_providers
+FAILED tests/test_package_layout.py::test_shared_core_and_pure_rules_do_not_depend_on_adapters
+12 failed in 0.71s

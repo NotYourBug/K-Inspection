@@ -5,18 +5,18 @@ import json
 
 import pytest
 
-from k8s_inspector import models
+from k8s_inspector.core import models
 
 
 def api():
     # Keep a missing feature a focused assertion instead of a collection error.
-    from k8s_inspector import observation_models as o
+    from k8s_inspector.core import observations as o
     return o
 
 
 def test_observation_contract_exists():
     import importlib.util
-    assert importlib.util.find_spec('k8s_inspector.observation_models') is not None
+    assert importlib.util.find_spec('k8s_inspector.core.observations') is not None
 
 
 @pytest.fixture

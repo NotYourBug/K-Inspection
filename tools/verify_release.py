@@ -85,7 +85,7 @@ def install_package(project_dir: Path, *, python_executable: Path, output_dir: P
         site_dir=Path(child.stdout.strip())
         site_dir.mkdir(parents=True,exist_ok=True)
         (site_dir/'offline-dependencies.pth').write_text('\n'.join(parent_paths)+'\n',encoding='utf-8')
-    code='import k8s_inspector,k8s_inspector.observation_state,k8s_inspector.compatibility;print(k8s_inspector.__file__)'
+    code='import k8s_inspector,k8s_inspector.inspection.state,k8s_inspector.inspection.compatibility;print(k8s_inspector.__file__)'
     checks['imports']=_command([python,'-I','-c',code],cwd=output_dir,log=output_dir/'imports.log')
     if checks['imports'].success:
         module_path=(output_dir/'imports.log').read_text(encoding='utf-8').strip()

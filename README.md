@@ -77,19 +77,23 @@
 核心组件：
 
 - `k8s_inspector/cli.py`：巡检任务入口（短任务）
-- `k8s_inspector/checks.py`：巡检规则
-- `k8s_inspector/report.py`：报告输出（JSON/CSV/HTML）
-- `k8s_inspector/metrics.py`：Pushgateway 指标推送
-- `k8s_inspector/alertmanager_bridge.py`：接收 Alertmanager webhook 的桥接服务（常驻）
+- `k8s_inspector/core/`：共享配置、模型、资源解析与原子文件写入
+- `k8s_inspector/inspection/`：采集、快照、执行编排与状态；`rules/` 存放纯巡检规则
+- `k8s_inspector/reporting/`：报告输出（JSON/CSV/HTML）与输出结果记录
+- `k8s_inspector/monitoring/`：Pushgateway 指标与期望巡检目标导出
+- `k8s_inspector/notifications/`：`bridge/` 负责 HTTP、鉴权与路由，`delivery/` 负责持久投递，`providers/` 负责飞书适配
+- `k8s_inspector/alertmanager_bridge.py`：桥接服务的稳定命令入口，实现在 `notifications/bridge/server.py`
 - `deploy/`：Kustomize 部署清单（RBAC/CronJobs/监控/告警/存储）
 
 ## 目录结构
 
-- `k8s_inspector/`：核心代码（巡检/报告/指标/告警桥接）
+- `k8s_inspector/`：按职责分包的代码；根目录保留命令入口
 - `deploy/`：集群内部署（Kustomize）
 - `deploy/storage/`：PV/PVC 示例（NFS RWX）
 - `tests/`：单元测试
 - `README-MCP.md` ：项目简介
+
+完整目录、依赖边界与旧模块导入路径的迁移表见 [Python 包结构说明](docs/reference/package-layout.md)。现有 `python -m` 和 `k8s-inspector` 命令入口保持可用；直接导入旧内部模块的扩展脚本需按迁移表更新。
 
 ## 快速开始（本地）
 

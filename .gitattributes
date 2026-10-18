@@ -28,3 +28,8 @@
 
 /审计/24-* -text
 /审计/2026-10-18-GitHub整合验证/** -text
+
+/审计/25-* -text
+/审计/2026-10-18-包结构验证/** -text whitespace=cr-at-eol
+# Captured test output can contain significant spaces in tracebacks.
+/审计/2026-10-18-包结构验证/*.log -whitespace

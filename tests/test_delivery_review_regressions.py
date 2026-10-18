@@ -7,12 +7,12 @@ from types import SimpleNamespace
 
 import pytest
 
-from k8s_inspector import bridge_store as storage
-from k8s_inspector.bridge_store import DeliveryStore, StorageUnavailable
-from k8s_inspector.delivery_adapter import DeliveryAdapter
-from k8s_inspector.delivery_identity import canonical_content_hash
-from k8s_inspector.delivery_models import DeliveryResult
-from k8s_inspector.feishu_app import FeishuAppClient, FeishuAppConfig
+from k8s_inspector.notifications.delivery import store as storage
+from k8s_inspector.notifications.delivery.store import DeliveryStore, StorageUnavailable
+from k8s_inspector.notifications.delivery.adapter import DeliveryAdapter
+from k8s_inspector.notifications.delivery.identity import canonical_content_hash
+from k8s_inspector.notifications.delivery.models import DeliveryResult
+from k8s_inspector.notifications.providers.feishu import FeishuAppClient, FeishuAppConfig
 from tests.delivery_factories import NOW, batch, target
 from tests.test_delivery_worker import Clock, worker
 
@@ -92,7 +92,7 @@ def test_sdk_non_integer_zero_cannot_confirm_delivery(tmp_path, monkeypatch, cod
 
 
 def test_dead_can_be_disposed_with_reason_without_erasing_history(tmp_path):
-    from k8s_inspector.bridge_admin import main
+    from k8s_inspector.notifications.bridge.admin import main
     store = DeliveryStore(tmp_path / "bridge.db", max_backlog=1)
     job_id = accept(store, content()).new_job_ids[0]
     job = store.claim_due(NOW)
@@ -106,7 +106,7 @@ def test_dead_can_be_disposed_with_reason_without_erasing_history(tmp_path):
     assert store.events(job_id)[-1]["event_type"] == "dead_handled"
     assert accept(store, content(), NOW, "team-b").new_job_ids
     mark_sent(store)
-    from k8s_inspector.bridge_observability import render_metrics
+    from k8s_inspector.notifications.bridge.observability import render_metrics
     assert b"inspector_bridge_unhandled_dead_jobs 0.0" in render_metrics(store, NOW, NOW)
     # Requeue is explicit and starts a new unresolved handling cycle if it fails.
     store.requeue(job_id, "retry specifically authorized", NOW)
@@ -116,7 +116,7 @@ def test_dead_can_be_disposed_with_reason_without_erasing_history(tmp_path):
 
 
 def test_unknown_can_be_acknowledged_with_audit_and_retention_from_confirmation(tmp_path):
-    from k8s_inspector.bridge_admin import main
+    from k8s_inspector.notifications.bridge.admin import main
     store = DeliveryStore(tmp_path / "bridge.db")
     now = datetime.now(timezone.utc)
     old = now - timedelta(days=31)

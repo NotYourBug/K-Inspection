@@ -6,14 +6,14 @@ from datetime import timedelta
 import pytest
 from prometheus_client.parser import text_string_to_metric_families
 
-from k8s_inspector.bridge_store import DeliveryStore
-from k8s_inspector.delivery_models import DeliveryResult
+from k8s_inspector.notifications.delivery.store import DeliveryStore
+from k8s_inspector.notifications.delivery.models import DeliveryResult
 from tests.delivery_factories import NOW, batch, target
 from tests.test_bridge_ingress import serve, post, PAYLOAD, TOKEN
 
 
 def obs():
-    return importlib.import_module("k8s_inspector.bridge_observability")
+    return importlib.import_module("k8s_inspector.notifications.bridge.observability")
 
 
 def get(server, path):
@@ -79,7 +79,7 @@ def test_stats_track_backlog_age_dead_unknown_and_last_commit(tmp_path):
 
 
 def test_requeue_requires_reason_and_retains_old_attempt_audit(tmp_path, capsys):
-    admin = importlib.import_module("k8s_inspector.bridge_admin")
+    admin = importlib.import_module("k8s_inspector.notifications.bridge.admin")
     store = DeliveryStore(tmp_path / "bridge.db")
     store.accept("am", batch(), (target(),), NOW)
     job = store.claim_due(NOW)

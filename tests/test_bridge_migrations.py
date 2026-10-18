@@ -3,9 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from k8s_inspector import bridge_store as storage
-from k8s_inspector.bridge_store import DeliveryStore, StorageUnavailable, UnsupportedSchema
-from k8s_inspector.delivery_models import DeliveryResult
+from k8s_inspector.notifications.delivery import store as storage
+from k8s_inspector.notifications.delivery.store import DeliveryStore, StorageUnavailable, UnsupportedSchema
+from k8s_inspector.notifications.delivery.models import DeliveryResult
 from tests.delivery_factories import NOW, batch, target
 
 
@@ -104,7 +104,7 @@ def test_restoring_old_backup_can_replay_a_confirmed_external_send(store, tmp_pa
 
 
 def test_local_admin_backup_uses_consistent_snapshot(store, tmp_path, capsys):
-    from k8s_inspector.bridge_admin import main
+    from k8s_inspector.notifications.bridge.admin import main
     backup = tmp_path / "admin-backup.db"
     assert main(["--db", str(store.path), "backup", "--destination", str(backup)]) == 0
     assert len(DeliveryStore(backup).list_jobs()) == 1

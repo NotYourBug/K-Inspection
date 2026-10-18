@@ -1,10 +1,10 @@
-"""Tests for k8s_inspector.common."""
+"""Tests for k8s_inspector.core.resources."""
 
 from unittest.mock import MagicMock
 
 import pytest
 
-from k8s_inspector.common import (
+from k8s_inspector.core.resources import (
     BAD_POD_REASONS,
     cpu_to_millicores,
     deep_get,

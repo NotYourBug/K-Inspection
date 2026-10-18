@@ -4,8 +4,8 @@ import pytest
 from prometheus_client import CollectorRegistry
 
 from k8s_inspector import cli
-from k8s_inspector.metrics import populate_registry
-from k8s_inspector.models import CheckResult, Report, Status
+from k8s_inspector.monitoring.metrics import populate_registry
+from k8s_inspector.core.models import CheckResult, Report, Status
 from tests.test_report_persistence import run_cli
 
 
@@ -14,7 +14,7 @@ def denied():
 
 
 def test_report_failure_does_not_block_metrics_or_notification():
-    from k8s_inspector.sinks import run_sinks
+    from k8s_inspector.reporting.sinks import run_sinks
     calls = []
     results = run_sinks({"json": denied, "metrics": lambda: calls.append("metrics"),
                          "notification": lambda: calls.append("notification")},
@@ -63,7 +63,7 @@ def test_warn_fail_exit_codes_remain_compatible(run_cli, tmp_path, status, fail_
 
 
 def test_failed_sink_is_exported_without_claiming_business_recovery():
-    from k8s_inspector.sinks import SinkResult
+    from k8s_inspector.reporting.sinks import SinkResult
     report = Report("2026-10-15T00:00:00Z", "prod",
                     [CheckResult("nodes", Status.FAIL, "Node not ready")])
     registry = CollectorRegistry()

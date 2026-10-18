@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from k8s_inspector.alert_routing import FixedChatRoute, load_fixed_chat_routes, normalize_payload, route_alerts
+from k8s_inspector.notifications.bridge.routing import FixedChatRoute, load_fixed_chat_routes, normalize_payload, route_alerts
 
 
 def alert(status="firing", **labels):

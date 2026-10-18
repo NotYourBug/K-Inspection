@@ -7,7 +7,7 @@ from tests.delivery_factories import batch
 
 
 def identity():
-    return importlib.import_module("k8s_inspector.delivery_identity")
+    return importlib.import_module("k8s_inspector.notifications.delivery.identity")
 
 
 def test_alert_order_group_key_and_receiver_are_irrelevant():

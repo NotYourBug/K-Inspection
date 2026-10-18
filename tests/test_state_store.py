@@ -1,10 +1,10 @@
-"""Tests for k8s_inspector.state_store."""
+"""Tests for k8s_inspector.notifications.bridge.legacy_state."""
 
 import json
 import tempfile
 from pathlib import Path
 
-from k8s_inspector.state_store import ChatRecord, JsonStateStore
+from k8s_inspector.notifications.bridge.legacy_state import ChatRecord, JsonStateStore
 
 
 class TestJsonStateStore:

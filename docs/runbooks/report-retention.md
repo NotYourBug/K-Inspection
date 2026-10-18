@@ -1,6 +1,6 @@
 # Report retention and scheduling
 
-Generated jobs consume `k8s_inspector.profiles.PROFILES`; regenerate using `python -m tools.render_cronjobs`. Run Kustomize contract tests after generation. The scheduled profiles are5m/10m/hourly/daily; full is manual. Runner deadlines240/480/900/1800s receive30s Job margin:270/510/930/1830. Each job uses Forbid, backoffLimit0 and explicit Asia/Shanghai. Jobs start suspended; no sample is a release authorization.
+Generated jobs consume `k8s_inspector.core.profiles.PROFILES`; regenerate using `python -m tools.render_cronjobs`. Run Kustomize contract tests after generation. The scheduled profiles are5m/10m/hourly/daily; full is manual. Runner deadlines240/480/900/1800s receive30s Job margin:270/510/930/1830. Each job uses Forbid, backoffLimit0 and explicit Asia/Shanghai. Jobs start suspended; no sample is a release authorization.
 
 CronJob timeZone requires a target Kubernetes version supporting the field (stable in1.27). Server dry-run and controller behavior must be verified before unsuspending; do not silently remove the timezone and assume Shanghai schedules on an older cluster. See [Kubernetes CronJob time zones](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones).
 

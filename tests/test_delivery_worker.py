@@ -5,8 +5,8 @@ from datetime import timedelta
 
 import pytest
 
-from k8s_inspector.bridge_store import DeliveryStore, StorageUnavailable
-from k8s_inspector.delivery_models import DeliveryResult
+from k8s_inspector.notifications.delivery.store import DeliveryStore, StorageUnavailable
+from k8s_inspector.notifications.delivery.models import DeliveryResult
 from tests.delivery_factories import NOW, batch, target
 
 
@@ -28,7 +28,7 @@ class Provider:
 
 
 def worker(store, provider, clock, **kwargs):
-    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+    cls = importlib.import_module("k8s_inspector.notifications.delivery.worker").DeliveryWorker
     return cls(store, provider, clock, jitter=lambda: 0, **kwargs)
 
 

@@ -5,8 +5,8 @@ import hashlib
 from pathlib import Path
 import yaml
 
-from k8s_inspector.expected_targets import load_expected_targets
-from k8s_inspector.rule_catalog import CATALOG
+from k8s_inspector.monitoring.inventory import load_expected_targets
+from k8s_inspector.inspection.catalog import CATALOG
 
 
 def render_monitoring(catalog, targets, output: Path, *, shadow=True, quality_receiver_url=None):

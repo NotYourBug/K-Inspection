@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 
 from kubernetes import client
 
-from k8s_inspector import checks
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.models import Status
+from k8s_inspector.inspection import checks
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.models import Status
 from tests.factories import node, pod
 
 

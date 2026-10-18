@@ -19,15 +19,15 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import time
-from .runner import run_inspection
-from .config import read_config, resolve_config
-from .kube import load_kube
-from .metrics import PushGatewayConfig, push_report_to_gateway
-from .models import Report
-from .observation_state import ObservationStateStore, profile_run_lock
-from .notify import send_feishu_text
-from .report import format_failed_summary, write_csv, write_html, write_json
-from .sinks import run_sinks, write_run_status, write_run_manifest
+from k8s_inspector.inspection.runner import run_inspection
+from k8s_inspector.core.config import read_config, resolve_config
+from k8s_inspector.inspection.kube import load_kube
+from k8s_inspector.monitoring.metrics import PushGatewayConfig, push_report_to_gateway
+from k8s_inspector.core.models import Report
+from k8s_inspector.inspection.state import ObservationStateStore, profile_run_lock
+from k8s_inspector.notifications.providers.webhook import send_feishu_text
+from k8s_inspector.reporting.writers import format_failed_summary, write_csv, write_html, write_json
+from k8s_inspector.reporting.sinks import run_sinks, write_run_status, write_run_manifest
 
 logger = logging.getLogger(__name__)
 

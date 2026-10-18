@@ -8,13 +8,13 @@ from urllib.error import HTTPError
 
 import pytest
 
-from k8s_inspector.bridge_store import DeliveryStore
-from k8s_inspector.feishu_app import FeishuAppClient, FeishuAppConfig
+from k8s_inspector.notifications.delivery.store import DeliveryStore
+from k8s_inspector.notifications.providers.feishu import FeishuAppClient, FeishuAppConfig
 from tests.delivery_factories import NOW, batch, target
 
 
 def adapter(**kwargs):
-    return importlib.import_module("k8s_inspector.delivery_adapter").DeliveryAdapter(**kwargs)
+    return importlib.import_module("k8s_inspector.notifications.delivery.adapter").DeliveryAdapter(**kwargs)
 
 
 @pytest.fixture
@@ -45,7 +45,7 @@ def test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport(job, monkey
 @pytest.mark.parametrize("code,status,retryable", [(230002, 400, False), (99991672, 400, False),
     (99991400, 200, True), (999, 200, True), (999, 503, True)])
 def test_business_or_http_failure_is_never_success(job, monkeypatch, code, status, retryable):
-    from k8s_inspector import feishu_app
+    from k8s_inspector.notifications.providers import feishu as feishu_app
     client = FeishuAppClient.__new__(FeishuAppClient)
     client._client = SimpleNamespace(im=SimpleNamespace(v1=SimpleNamespace(message=SimpleNamespace(
         create=lambda _req: SimpleNamespace(success=lambda: False, code=code, msg="secret-token",
@@ -59,7 +59,7 @@ def test_business_or_http_failure_is_never_success(job, monkeypatch, code, statu
 
 
 def test_webhook_business_failure_timeout_and_credentials_are_redacted(job, monkeypatch):
-    from k8s_inspector import notify
+    from k8s_inspector.notifications.providers import webhook as notify
     job = replace(job, payload={"mode": "webhook", "text": "alert"})
     sender = adapter(webhooks={job.destination_id: "https://example.invalid/secret-token"})
     class Response:
@@ -81,7 +81,7 @@ def test_webhook_business_failure_timeout_and_credentials_are_redacted(job, monk
 
 
 def test_webhook_http_rate_limit_and_missing_credentials(job, monkeypatch):
-    from k8s_inspector import notify
+    from k8s_inspector.notifications.providers import webhook as notify
     job = replace(job, payload={"mode": "webhook", "text": "alert"})
     assert adapter().send(job).error_kind == "configuration"
     def fail(*args, **kwargs):

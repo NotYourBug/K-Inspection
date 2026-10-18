@@ -1,0 +1,206 @@
+{
+  "base": "e90ac7e9b4bdff0a24341f020cd78b5e79afffce",
+  "allowed_changes": [
+    "module imports",
+    "rule catalog dynamic import path",
+    "atomic helper extraction with identical functions"
+  ],
+  "atomic_helpers_identical": true,
+  "modules": [
+    {
+      "old": "k8s_inspector.common",
+      "new": "k8s_inspector.core.resources",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.config",
+      "new": "k8s_inspector.core.config",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.models",
+      "new": "k8s_inspector.core.models",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.observation_models",
+      "new": "k8s_inspector.core.observations",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.profiles",
+      "new": "k8s_inspector.core.profiles",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.collector",
+      "new": "k8s_inspector.inspection.collector",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.snapshot",
+      "new": "k8s_inspector.inspection.snapshot",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.kube",
+      "new": "k8s_inspector.inspection.kube",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.checks",
+      "new": "k8s_inspector.inspection.checks",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.compatibility",
+      "new": "k8s_inspector.inspection.compatibility",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.observation_state",
+      "new": "k8s_inspector.inspection.state",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.runner",
+      "new": "k8s_inspector.inspection.runner",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rule_catalog",
+      "new": "k8s_inspector.inspection.catalog",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rule_evaluation",
+      "new": "k8s_inspector.inspection.rules.evaluation",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rules_nodes",
+      "new": "k8s_inspector.inspection.rules.nodes",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rules_pods",
+      "new": "k8s_inspector.inspection.rules.pods",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rules_storage",
+      "new": "k8s_inspector.inspection.rules.storage",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rules_events",
+      "new": "k8s_inspector.inspection.rules.events",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.rules_control",
+      "new": "k8s_inspector.inspection.rules.control",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.alertmanager_bridge",
+      "new": "k8s_inspector.notifications.bridge.server",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.alert_routing",
+      "new": "k8s_inspector.notifications.bridge.routing",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.bridge_auth",
+      "new": "k8s_inspector.notifications.bridge.auth",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.bridge_admin",
+      "new": "k8s_inspector.notifications.bridge.admin",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.bridge_observability",
+      "new": "k8s_inspector.notifications.bridge.observability",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.state_store",
+      "new": "k8s_inspector.notifications.bridge.legacy_state",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.bridge_store",
+      "new": "k8s_inspector.notifications.delivery.store",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.delivery_models",
+      "new": "k8s_inspector.notifications.delivery.models",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.delivery_identity",
+      "new": "k8s_inspector.notifications.delivery.identity",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.delivery_adapter",
+      "new": "k8s_inspector.notifications.delivery.adapter",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.delivery_worker",
+      "new": "k8s_inspector.notifications.delivery.worker",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.feishu_app",
+      "new": "k8s_inspector.notifications.providers.feishu",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.notify",
+      "new": "k8s_inspector.notifications.providers.webhook",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.provider_error",
+      "new": "k8s_inspector.notifications.providers.errors",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.report",
+      "new": "k8s_inspector.reporting.writers",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.sinks",
+      "new": "k8s_inspector.reporting.sinks",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.metrics",
+      "new": "k8s_inspector.monitoring.metrics",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.expected_targets",
+      "new": "k8s_inspector.monitoring.inventory",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.cli",
+      "new": "k8s_inspector.cli",
+      "logic_equal_excluding_imports_docstrings": true
+    },
+    {
+      "old": "k8s_inspector.mcp_server",
+      "new": "k8s_inspector.mcp_server",
+      "logic_equal_excluding_imports_docstrings": true
+    }
+  ]
+}

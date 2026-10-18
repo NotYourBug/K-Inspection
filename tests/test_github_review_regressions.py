@@ -7,10 +7,10 @@ import stat
 
 import pytest
 
-from k8s_inspector.collector import KubeCollector
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.observation_models import ObservationHealth as H, Severity
-from k8s_inspector.runner import run_inspection
+from k8s_inspector.inspection.collector import KubeCollector
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.observations import ObservationHealth as H, Severity
+from k8s_inspector.inspection.runner import run_inspection
 from tests.observation_factories import NOW
 from tests.test_collector import page
 
@@ -62,7 +62,7 @@ def test_slow_unhealthy_api_retains_confirmed_failure():
 
 
 def test_posix_publication_syncs_file_then_replace_then_parent(tmp_path, monkeypatch):
-    from k8s_inspector import report as reports
+    from k8s_inspector.core import files as reports
     path = tmp_path / 'state.json'
     events = []
     real_fsync, real_replace = os.fsync, os.replace
@@ -89,8 +89,8 @@ def test_posix_publication_syncs_file_then_replace_then_parent(tmp_path, monkeyp
 
 
 def test_new_state_directory_entries_are_synced(tmp_path, monkeypatch):
-    from k8s_inspector import report as reports
-    from k8s_inspector.observation_state import profile_run_lock
+    from k8s_inspector.core import files as reports
+    from k8s_inspector.inspection.state import profile_run_lock
     synced = []
     monkeypatch.setattr(reports, '_WINDOWS', False, raising=False)
     monkeypatch.setattr(reports, '_sync_directory', synced.append, raising=False)
@@ -101,9 +101,9 @@ def test_new_state_directory_entries_are_synced(tmp_path, monkeypatch):
 
 
 def test_directory_sync_failure_is_required_state_sink_failure(tmp_path, monkeypatch):
-    from k8s_inspector import report as reports
-    from k8s_inspector.observation_state import ObservationStateStore
-    from k8s_inspector.sinks import run_sinks, execution_success
+    from k8s_inspector.core import files as reports
+    from k8s_inspector.inspection.state import ObservationStateStore
+    from k8s_inspector.reporting.sinks import run_sinks, execution_success
     from tests.test_report_v2 import report
 
     def fail(directory):
@@ -121,7 +121,7 @@ def test_directory_sync_failure_is_required_state_sink_failure(tmp_path, monkeyp
 
 @pytest.mark.parametrize('succeeds', [True, False])
 def test_windows_replacement_requests_write_through_and_propagates_errors(tmp_path, monkeypatch, succeeds):
-    from k8s_inspector import report as reports
+    from k8s_inspector.core import files as reports
     path = tmp_path / 'state.json'
     path.write_text('old', encoding='utf-8')
     calls = []
@@ -148,7 +148,7 @@ def test_windows_replacement_requests_write_through_and_propagates_errors(tmp_pa
 
 @pytest.mark.skipif(os.name == 'nt', reason='POSIX directory descriptors are validated by Linux CI')
 def test_native_posix_publication_fsyncs_directory_descriptor(tmp_path, monkeypatch):
-    from k8s_inspector import report as reports
+    from k8s_inspector.core import files as reports
     synced = []
     real_fsync = os.fsync
 

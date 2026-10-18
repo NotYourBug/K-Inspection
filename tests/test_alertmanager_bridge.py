@@ -9,8 +9,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from k8s_inspector import alertmanager_bridge as bridge
-from k8s_inspector.alert_routing import FixedChatRoute
+from k8s_inspector.notifications.bridge import server as bridge
+from k8s_inspector.notifications.bridge.routing import FixedChatRoute
 
 
 def payload(*profiles, status="firing", cluster="prod"):
@@ -277,7 +277,7 @@ def test_http_webhook_business_error_is_500(cfg, monkeypatch):
     response.read.return_value = b'{"code": 19024, "msg": "keyword rejected"}'
     urlopen = MagicMock()
     urlopen.return_value.__enter__.return_value = response
-    monkeypatch.setattr("k8s_inspector.notify.urllib.request.urlopen", urlopen)
+    monkeypatch.setattr("k8s_inspector.notifications.providers.webhook.urllib.request.urlopen", urlopen)
     server = bridge.create_server(cfg)
     worker = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01}, daemon=True)
     worker.start()

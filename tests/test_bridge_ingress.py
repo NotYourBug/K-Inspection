@@ -9,9 +9,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from k8s_inspector import alertmanager_bridge as bridge
-from k8s_inspector.alert_routing import FixedChatRoute
-from k8s_inspector.bridge_store import DeliveryStore
+from k8s_inspector.notifications.bridge import server as bridge
+from k8s_inspector.notifications.bridge.routing import FixedChatRoute
+from k8s_inspector.notifications.delivery.store import DeliveryStore
 from tests.delivery_factories import NOW
 
 TOKEN = "test-token-with-32-characters-0001"
@@ -23,7 +23,7 @@ PAYLOAD = {"source_id": "untrusted", "alerts": [
 
 
 def credentials():
-    module = importlib.import_module("k8s_inspector.bridge_auth")
+    module = importlib.import_module("k8s_inspector.notifications.bridge.auth")
     return (module.SourceCredential("prod-am", TOKEN),)
 
 
@@ -134,7 +134,7 @@ def test_async_startup_requires_database_and_auth(tmp_path):
 
 
 def test_auth_rotation_keeps_logical_source_and_rejects_ambiguous_token():
-    auth = importlib.import_module("k8s_inspector.bridge_auth")
+    auth = importlib.import_module("k8s_inspector.notifications.bridge.auth")
     sources = credentials() + (auth.SourceCredential("prod-am", "rotated-token-with-32-characters-1"),)
     assert auth.authenticate({"Authorization": "Bearer " + TOKEN}, sources) == "prod-am"
     assert auth.authenticate({"Authorization": "Bearer rotated-token-with-32-characters-1"}, sources) == "prod-am"

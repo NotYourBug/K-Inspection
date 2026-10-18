@@ -6,12 +6,12 @@ from unittest.mock import Mock
 import pytest
 from kubernetes import client
 from prometheus_client import CollectorRegistry
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.observation_models import ExecutionStatus as E, ObservationHealth as H, Severity
-from k8s_inspector.snapshot import Collection
-from k8s_inspector.rule_catalog import CATALOG
-from k8s_inspector.metrics import populate_registry
-from k8s_inspector.observation_state import ObservationStateStore
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.observations import ExecutionStatus as E, ObservationHealth as H, Severity
+from k8s_inspector.inspection.snapshot import Collection
+from k8s_inspector.inspection.catalog import CATALOG
+from k8s_inspector.monitoring.metrics import populate_registry
+from k8s_inspector.inspection.state import ObservationStateStore
 from tests.test_rule_observations import NOW, snapshot, event
 from tests.factories import node, pod, pvc
 from tests.test_collector import page
@@ -46,7 +46,7 @@ def healthy_snapshot():
 
 
 def test_r4_malformed_sibling_metric_cannot_hide_node_not_ready(monkeypatch):
-    from k8s_inspector import runner
+    from k8s_inspector.inspection import runner
     from tests.test_runner import context
     ctx = context()
     ctx.custom.list_cluster_custom_object.return_value = page([{'metadata': {'name': []}, 'usage': {}}])
@@ -144,7 +144,7 @@ def test_r10_event_created_during_collection_is_not_future_or_lost():
 
 
 def test_r3_default_v2_keeps_active_legacy_selectors_and_node_measurements():
-    from k8s_inspector.runner import run_inspection
+    from k8s_inspector.inspection.runner import run_inspection
     snap = healthy_snapshot()
     core = NS(list_node=Mock(return_value=page(snap.collections.get('nodes').items)),
         list_pod_for_all_namespaces=Mock(return_value=page(snap.collections.get('pods').items)),
@@ -175,7 +175,7 @@ def test_r7_older_current_report_cannot_export_resurrected_fault(tmp_path):
 
 
 def test_r7_multi_time_partial_fault_waits_for_health_after_latest_evidence(tmp_path):
-    from k8s_inspector.observation_models import CheckEvaluation,Coverage
+    from k8s_inspector.core.observations import CheckEvaluation,Coverage
     from tests.observation_factories import failed_evaluation
     ev=failed_evaluation()
     ev=replace(ev,execution=replace(ev.execution,execution_status=E.PARTIAL,coverage=Coverage(None,1,False)),
@@ -200,9 +200,9 @@ def test_r3_unknown_rule_does_not_export_fake_legacy_issue_zero():
 
 def test_r3_csv_keeps_rule_identity_and_uid_when_root_results_use_legacy_groups(tmp_path):
     import csv
-    from k8s_inspector.report import write_csv
+    from k8s_inspector.reporting.writers import write_csv
     r=report()
-    from k8s_inspector.models import CheckResult,Status
+    from k8s_inspector.core.models import CheckResult,Status
     r.results=[CheckResult('pods',Status.FAIL,'Pod failure')]
     rows=list(csv.DictReader(write_csv(r,tmp_path).open(encoding='utf-8')))
     assert rows[0]['rule_id']=='pods.current'

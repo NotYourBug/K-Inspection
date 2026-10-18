@@ -1,8 +1,8 @@
-"""Tests for k8s_inspector.models."""
+"""Tests for k8s_inspector.core.models."""
 
 import pytest
 
-from k8s_inspector.models import CheckResult, Report, Status
+from k8s_inspector.core.models import CheckResult, Report, Status
 
 
 class TestStatus:

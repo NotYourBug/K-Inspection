@@ -1,0 +1,28 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+____________ test_domain_packages_are_usable_from_installed_wheel _____________
+
+installed_env = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1540/installed-package0/project'), WindowsPath(...wsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1540/installed-package0/artifacts/wheel-build.log'))))
+
+    def test_domain_packages_are_usable_from_installed_wheel(installed_env):
+        result=run(installed_env,'''import pathlib,k8s_inspector
+    from k8s_inspector.core.files import atomic_write_text
+    from k8s_inspector.inspection.catalog import CATALOG
+    from k8s_inspector.notifications.delivery.store import DeliveryStore
+    from k8s_inspector.reporting.writers import write_json
+    from k8s_inspector.monitoring.inventory import load_inventory
+    assert len(CATALOG)==10
+    assert len(list(pathlib.Path(k8s_inspector.__file__).parent.glob('*.py')))==6
+    ''')
+>       assert result.returncode==0,result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 2, in <module>
+E         ModuleNotFoundError: No module named 'k8s_inspector.core'
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1540\\installed-package0\\arti...nt call last):\n  File "<string>", line 2, in <module>\nModuleNotFoundError: No module named \'k8s_inspector.core\'\n').returncode
+
+tests\test_installed_package.py:56: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_installed_package.py::test_domain_packages_are_usable_from_installed_wheel
+1 failed, 10 deselected in 29.10s

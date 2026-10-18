@@ -1,10 +1,10 @@
-"""Tests for k8s_inspector.checks with mocked K8s API."""
+"""Tests for k8s_inspector.inspection.checks with mocked K8s API."""
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from k8s_inspector.checks import (
+from k8s_inspector.inspection.checks import (
     _pod_issue_from_obj,
     check_control_plane,
     check_kube_system_addons,
@@ -14,8 +14,8 @@ from k8s_inspector.checks import (
     check_warning_events,
     run_all,
 )
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.models import Status
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.models import Status
 from tests.factories import pod as make_sdk_pod, container_status, pvc as make_pvc, storage_class
 
 
@@ -51,7 +51,7 @@ class TestCheckNodes:
         core.list_node.return_value.items = [_make_node("n1"), _make_node("n2")]
         custom = MagicMock()
 
-        with patch("k8s_inspector.checks.get_node_metrics", return_value={}):
+        with patch("k8s_inspector.inspection.checks.get_node_metrics", return_value={}):
             result = check_nodes(core, custom, cfg, include_metrics=False)
 
         assert result.status == Status.PASS
@@ -65,7 +65,7 @@ class TestCheckNodes:
         ]
         custom = MagicMock()
 
-        with patch("k8s_inspector.checks.get_node_metrics", return_value={}):
+        with patch("k8s_inspector.inspection.checks.get_node_metrics", return_value={}):
             result = check_nodes(core, custom, cfg, include_metrics=False)
 
         assert result.status == Status.FAIL
@@ -79,7 +79,7 @@ class TestCheckNodes:
         core.list_node.return_value.items = [_make_node("n1", taints=[taint])]
         custom = MagicMock()
 
-        with patch("k8s_inspector.checks.get_node_metrics", return_value={}):
+        with patch("k8s_inspector.inspection.checks.get_node_metrics", return_value={}):
             result = check_nodes(core, custom, cfg, include_metrics=False)
 
         assert result.status == Status.WARN
@@ -94,7 +94,7 @@ class TestCheckNodes:
         core.list_node.return_value.items = [_make_node("n1", taints=[taint])]
         custom = MagicMock()
 
-        with patch("k8s_inspector.checks.get_node_metrics", return_value={}):
+        with patch("k8s_inspector.inspection.checks.get_node_metrics", return_value={}):
             result = check_nodes(core, custom, cfg, include_metrics=False)
 
         assert result.status == Status.PASS
@@ -106,7 +106,7 @@ class TestCheckNodes:
 
         # 3.6 / 4 = 0.9 > 0.80 threshold
         metrics = {"n1": {"cpu": "3600m", "memory": "1Gi"}}
-        with patch("k8s_inspector.checks.get_node_metrics", return_value=metrics):
+        with patch("k8s_inspector.inspection.checks.get_node_metrics", return_value=metrics):
             result = check_nodes(core, custom, cfg, include_metrics=True)
 
         assert result.status == Status.WARN
@@ -117,7 +117,7 @@ class TestCheckNodes:
         core.list_node.return_value.items = [_make_node("n1")]
         custom = MagicMock()
 
-        with patch("k8s_inspector.checks.get_node_metrics", return_value=None):
+        with patch("k8s_inspector.inspection.checks.get_node_metrics", return_value=None):
             result = check_nodes(core, custom, cfg, include_metrics=True)
 
         # include_metrics=True but metrics unavailable
@@ -259,7 +259,7 @@ class TestCheckControlPlane:
         core = MagicMock()
         api_client = MagicMock()
 
-        with patch("k8s_inspector.checks.apiserver_healthz",
+        with patch("k8s_inspector.inspection.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 50}):
             # Mock healthy component pods
             pod = make_sdk_pod("apiserver-1")
@@ -272,7 +272,7 @@ class TestCheckControlPlane:
         core = MagicMock()
         api_client = MagicMock()
 
-        with patch("k8s_inspector.checks.apiserver_healthz",
+        with patch("k8s_inspector.inspection.checks.apiserver_healthz",
                    return_value={"ok": False, "latency_ms": 100, "error": "timeout"}):
             pod = make_sdk_pod("apiserver-1")
             core.list_namespaced_pod.return_value.items = [pod]
@@ -284,7 +284,7 @@ class TestCheckControlPlane:
         core = MagicMock()
         api_client = MagicMock()
 
-        with patch("k8s_inspector.checks.apiserver_healthz",
+        with patch("k8s_inspector.inspection.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 50}):
             core.list_namespaced_pod.return_value.items = []
 
@@ -295,7 +295,7 @@ class TestCheckControlPlane:
         core = MagicMock()
         api_client = MagicMock()
 
-        with patch("k8s_inspector.checks.apiserver_healthz",
+        with patch("k8s_inspector.inspection.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 600}):
             pod = make_sdk_pod("apiserver-1")
             core.list_namespaced_pod.return_value.items = [pod]
@@ -351,7 +351,7 @@ class TestRunAll:
     def test_10m_profile_returns_control_plane_only(self, cfg):
         core, storage, custom, api = self._mocks()
 
-        with patch("k8s_inspector.checks.apiserver_healthz",
+        with patch("k8s_inspector.inspection.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 10}):
             pod = MagicMock()
             pod.status.phase = "Running"
@@ -370,7 +370,7 @@ class TestRunAll:
         core.list_persistent_volume_claim_for_all_namespaces.return_value.items = []
         core.list_event_for_all_namespaces.return_value.items = []
 
-        with patch("k8s_inspector.checks.apiserver_healthz",
+        with patch("k8s_inspector.inspection.checks.apiserver_healthz",
                    return_value={"ok": True, "latency_ms": 10}):
             core.list_namespaced_pod.return_value.items = [MagicMock()]
 

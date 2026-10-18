@@ -3,10 +3,10 @@ from types import SimpleNamespace
 
 from kubernetes import client
 
-from k8s_inspector import checks
-from k8s_inspector.common import pod_issue
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.models import Status
+from k8s_inspector.inspection import checks
+from k8s_inspector.core.resources import pod_issue
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.models import Status
 from tests.factories import NOW, container_status, pod
 
 

@@ -9,7 +9,7 @@ from tests.delivery_factories import NOW, batch, target
 
 
 def api():
-    return importlib.import_module("k8s_inspector.bridge_store")
+    return importlib.import_module("k8s_inspector.notifications.delivery.store")
 
 
 def test_pending_jobs_survive_reopen(tmp_path):
