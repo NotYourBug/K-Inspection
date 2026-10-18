@@ -1,0 +1,15 @@
+........................................................................ [ 15%]
+........................................................................ [ 30%]
+........................................................................ [ 45%]
+........................................................................ [ 60%]
+........................................................................ [ 75%]
+...........................ss........................................... [ 90%]
+..............................................                           [100%]
+============================== warnings summary ===============================
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\s3147\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+476 passed, 2 skipped, 1 warning in 413.50s (0:06:53)
+

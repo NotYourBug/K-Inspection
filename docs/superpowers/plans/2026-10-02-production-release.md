@@ -208,7 +208,7 @@ def test_documented_cli_commands_match_parser(documented_commands, installed_env
 
 | 任务 | 本地交付 | 未完成的真实验收 |
 |---|---|---|
-| E1 | 源码快照、依赖单源/选择性约束、wheel子包发现、源码外安装 | 3.9/3.11/3.14与干净依赖安装；离线bootstrap共享已装依赖 |
+| E1 | 源码快照、依赖单源/选择性约束、wheel子包发现、源码外安装；2026-10-18 完成 Windows 3.9/3.11/3.14 干净安装与完整回归 | 实际 Linux CI 与容器平台验证；历史离线 bootstrap 共享依赖的证据仍按原范围保留 |
 | E2 | 暂停的最小base、可选组件/example、分profile状态卷、非root/权限/ingress契约 | server dry-run、实际CSI/PV权限/锁/故障恢复、按CNI落实egress |
 | E3 | catalog生成期限/时区/重试策略、清理dry-run与保留手册 | 实际控制器timeZone、耗时/API规模/容量观测 |
 | E4 | 失败闭合校验器、源码/制品hash、官方固定base digest、CI示例 | Docker build/smoke、CI实际执行、发布后的镜像digest |
@@ -216,3 +216,11 @@ def test_documented_cli_commands_match_parser(documented_commands, installed_env
 | E6 | 安装包help/本地inspect/备份恢复验证、操作/责任/能力/交接模板 | 实际维护人签收与真实环境长期运行记录 |
 
 MCP部署组件/extra的实际可用性属于F；当前源码独立性问题未在E绕过。版本约束不是完整传递依赖锁。G2/G3继续开放，G4仍由D验收。原始未完成项不得因为离线交付完成就全部勾选。
+
+## 2026-10-18 本地运行时验收补充
+
+用户选择先推进本地运行时验收。Windows CPython 3.9.25、3.11.16、3.14.7 分别使用全新源 venv 和全新运行时 wheel venv：每个版本完整源码回归 476 passed、2 Docker skips；干净依赖安装、隔离安装路径、pip check、本地工具检查均通过，安装包额外探针共 27/27 通过。3.9/3.11/3.14 的上游警告分别为 7/0/1 条。主发布 Python3.11 计划保持不变。
+
+校验器 `local_checks_success=true`，完整发布 `success=false`，仅 Docker 和真实环境验收继续待验。使用短路径和关闭安装时字节码编译的 Windows 结果不覆盖任意深路径、默认安装耗时、Linux CI 或容器行为。原始失败尝试、参数修正、每个 wheel、候选哈希与完整输出见审计/22、23 及审计/2026-10-18-运行时验证；产品源码与依赖没有因此调整。
+
+后续依次完成 Linux CI/容器 build 与入口 smoke、专用 namespace 的 RBAC/CSI/CNI、独立通知目的地的故障恢复及多次 daily shadow。E4 中将 build/隔离导入与 Docker/实际 CI 合并的复合检查框继续留空，避免把部分完成记成全部完成；G2/G3 仍开放。

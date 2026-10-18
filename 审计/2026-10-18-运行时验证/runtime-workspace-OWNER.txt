@@ -1,0 +1,2 @@
+Plan: docs/superpowers/plans/2026-10-02-production-release.md
+Scope: 2026-10-18 local runtime acceptance only

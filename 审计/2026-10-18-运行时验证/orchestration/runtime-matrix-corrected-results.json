@@ -1,0 +1,32 @@
+{
+  "3.11.16": {
+    "exit": 0,
+    "seconds": 436.08,
+    "local_checks_success": true,
+    "release_success": false,
+    "failed_checks": {
+      "docker": "PENDING: Docker unavailable or offline mode forbids image pulls/builds",
+      "environment_acceptance": "PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance"
+    }
+  },
+  "3.9.25": {
+    "exit": 0,
+    "seconds": 625.3,
+    "local_checks_success": true,
+    "release_success": false,
+    "failed_checks": {
+      "docker": "PENDING: Docker unavailable or offline mode forbids image pulls/builds",
+      "environment_acceptance": "PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance"
+    }
+  },
+  "3.14.7": {
+    "exit": 0,
+    "seconds": 532.44,
+    "local_checks_success": true,
+    "release_success": false,
+    "failed_checks": {
+      "docker": "PENDING: Docker unavailable or offline mode forbids image pulls/builds",
+      "environment_acceptance": "PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance"
+    }
+  }
+}

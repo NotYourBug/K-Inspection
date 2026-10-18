@@ -1,0 +1,181 @@
+{
+  "wheel_sha256": {
+    "package\\wheel\\k8s_inspector-0.1.0-py3-none-any.whl": "eae12aedbb8952c82abd1b48b4663d5dd1bce116ab463d5268331a2b3d810bc8"
+  },
+  "source_sha256": {
+    "k8s_inspector/__init__.py": "fed0283d1c479515a79ea6101553c9a93ab4efde33a22687831697000444bd42",
+    "k8s_inspector/alert_routing.py": "d3491c16b91c48169c4df6a4c1eafdab945ddbe5155cd2699a78c5579d3328fa",
+    "k8s_inspector/alertmanager_bridge.py": "3666c8eaa91865436e72a25881a3074de994e1b58d148c53804665c907fdcd8e",
+    "k8s_inspector/bridge_admin.py": "31096dba964f71598c0d05d9f7a94f0f04431df0c951e3dde48a3b60f891f7c1",
+    "k8s_inspector/bridge_auth.py": "a5bab8d6f81d8fab333af2fc410c9fd0eb49b001c814ee94440371a36a083175",
+    "k8s_inspector/bridge_observability.py": "451965f58bdd307cc39a04f5bbd3c250362ec36caee2325270ddef8926c1de1c",
+    "k8s_inspector/bridge_store.py": "49227de7557e24ec81ee798b7797c9ab814d6fafaffada766f657ad0ae89a900",
+    "k8s_inspector/checks.py": "a3cc7a12ecba6285493dc8490bf34ce4e503e6cfbfdec4a22f38f6d1d3865035",
+    "k8s_inspector/cli.py": "ce95774c5172a2484b7c1875812d17586deeee17f45e5924677fc4ecbb56e04c",
+    "k8s_inspector/collector.py": "06eb4a1d8d0399f09d59e8162236d329d169c8e66357ee467a4d604e6255064a",
+    "k8s_inspector/common.py": "6aabdd21f2723f99e729e05515a2e0d5aef1738553fac5d183471d562475d6d4",
+    "k8s_inspector/compatibility.py": "c40f7c2c57c8576a658970e41d0bc074f42e0fbf114cac93f102432583fd2bf2",
+    "k8s_inspector/config.py": "2ccefa309f95068c07ddff9aec77fb70ad7c066d9c0ec86adc3ad02b6d539399",
+    "k8s_inspector/delivery_adapter.py": "4b3874972c85233d7525de05a7ef438e75f19a39ce540dd0d06be98b3de7fad7",
+    "k8s_inspector/delivery_identity.py": "140acb25214dd7814fa30b61867b82f7b98f425235d233c946344a06b808c33a",
+    "k8s_inspector/delivery_models.py": "ff52b361b63d8da2067b758f1d4ded5c5df350f3c90166804fb85db79c22f779",
+    "k8s_inspector/delivery_worker.py": "a88d01243dcddbc4e6e529036e8cf22273e630370899e813eadc2df3910ba92a",
+    "k8s_inspector/expected_targets.py": "132a2115efa50c7400c7e99fcad7b094980128767d2dcb4297ef8ad951322600",
+    "k8s_inspector/feishu_app.py": "94547fbb37a2674299b1e7a2ebcbddd14bd6171a5baf0f66d86817042575176d",
+    "k8s_inspector/kube.py": "208cf45e19c1bfc9857e357bb5ff44c95acdfa190d675327ff7d389a5a18082f",
+    "k8s_inspector/mcp_server.py": "2158a64ce9a8ea51f762739af5b5ba3fd1ef8fedcfa7744ae1a0c41045ba7a4d",
+    "k8s_inspector/metrics.py": "9ef9e84d7dd90ba0f91ed8d6660a90ee3ff10350ee9563355c5bd62e2669deb4",
+    "k8s_inspector/models.py": "4b21e5fb7fd2d8bd35d9121c6fdb4777af2adbe1a8c3779ffb39452a2fd3cfce",
+    "k8s_inspector/notify.py": "30df72c4321c5bb1e3f7c976e361fcbc819ea51264bcc15abbd5317e002894a4",
+    "k8s_inspector/observation_models.py": "226e87654a75783668223c9937843d6c82184bf595ebf81066ae3ad8c45837a5",
+    "k8s_inspector/observation_state.py": "0dca8d7ee8e6f36511123d1a7fd8aebcc864145365407818c59e1c64932656f6",
+    "k8s_inspector/profiles.py": "aa764009cd60d47f57f483efd3b8d1c2463dc5dfc256e669c121c02fb6390bbd",
+    "k8s_inspector/provider_error.py": "8af29772ee34897936fc4d40390ff145d8c88268134c062f3fc767d32a4d9f6d",
+    "k8s_inspector/report.py": "4662956e3e4e9dab8f5342bfdf972e7c33d799de863e1b300d7c88938a29f20b",
+    "k8s_inspector/rule_catalog.py": "70e4e28cd9cb3dad7e4c5e827d120c7875d194bcb28cb1002075125a222c8870",
+    "k8s_inspector/rule_evaluation.py": "644dc28af0f35d20e393b4fd13f72c64e9064d8e2970d07b84851f46d3eca3c7",
+    "k8s_inspector/rules_control.py": "f43ffc983ba07da49943d3b1b7a2fd50f0a35efd2312bee2470be58cfc061c2b",
+    "k8s_inspector/rules_events.py": "e47184155be0eedf151a04a7d8381b0c7b0401f0b81efe0733c452c9cf6ce1ed",
+    "k8s_inspector/rules_nodes.py": "dfef1a5a6e3e3259bea669cb86b99df4688f8cb009d15fdfc623d75f6e77a5bb",
+    "k8s_inspector/rules_pods.py": "8ce11ad5ebcd408013a43e009d4a8e6de6487277eb41893d021a31ebea8468d6",
+    "k8s_inspector/rules_storage.py": "cd577e69780721b2e16d42a6b9629e39ab9098349c021c98949464628417d26a",
+    "k8s_inspector/runner.py": "8b283da96d1b6b7ecb83764d0ca3e96145640bd3b8a83725d06cec50a16d9ef4",
+    "k8s_inspector/sinks.py": "c85a9f719b67728868c86cfe6113ae19f580332a35b52776e8e8b595f2b6d081",
+    "k8s_inspector/snapshot.py": "478461a1259cf5c9e02c8d0f3f150e38b35182b7653c99bda1d37f0b32c22d57",
+    "k8s_inspector/state_store.py": "997369873a2f98579c8820007cc54d4ca6ec17265050a3360ec722a03d364a69",
+    "tools/render_cronjobs.py": "622216d8892c64b79b1fe5eed0b18a0ae9cfcccca72329875625ecdce29b7efa",
+    "tools/render_monitoring.py": "1933c44e02edf0d730754ccf3cc60cfb607e65418570f82c56621e0d728d8e39",
+    "tools/rollout.py": "765ccec0110a94b2bd0a852541c3409106718f3db36f10e690a41e167f912670",
+    "tools/templates/inspector-cronjob.yaml": "1f7fc6f4ceeccaada68bbf11f943cc4f8c8608b1556c819b97c0e2b1e9ba3b39",
+    "tools/verify_release.py": "8c2c98616c7b2afd43bd3dcb81edac151298fddab325d87547223e738492219b",
+    "deploy/alertmanager-config-snippet.yaml": "6b4f5b9597d6586052bf5b0decf34ae066dd0c42a8e7a2b9b4037cea73b1c1f5",
+    "deploy/alertmanager-feishu-bridge.yaml": "cb99229a7ad255515370d337abea76668fc55eceb7bfcf04b4dd42ef9fc6d306",
+    "deploy/base/cleanup-cronjob.yaml": "dabd24225725575c42d7a0c418c3924e7d94456f0d78f386896fe2a87a64cd3a",
+    "deploy/base/cronjobs-by-frequency.yaml": "3d1462cd2eb803c72cccd426f01377dd14ed3607b27da0dc6a4c40fc7abf052e",
+    "deploy/base/kustomization.yaml": "4fac11f24d7c28a92f8e00aa4a805d1d0c826437f9412d5e4be44b9e2f12f760",
+    "deploy/base/rbac.yaml": "1628f2ee8bbf2099489cdd6f361f9f92330755c06604327577edb6fee38e37cf",
+    "deploy/base/storage.yaml": "e8dfa7751b5e078e4dcfaf6ec37fb229bf51bbffabe4842ff627e2e1f265ddf9",
+    "deploy/cleanup-cronjob.yaml": "dabd24225725575c42d7a0c418c3924e7d94456f0d78f386896fe2a87a64cd3a",
+    "deploy/components/bridge/kustomization.yaml": "ef65dbdd2c61791aff9cad7573d42f6be990e7f5652102db0198bf8d4622ebb5",
+    "deploy/components/bridge/resources.yaml": "8ca878cb10a959bfba3fae65fc8487f5e56b4fd63702b0f7f1c1142b9d7025c4",
+    "deploy/components/bridge-async/alertmanager-config.yaml": "af92db99ff6b743f55ec0642bdb37bd2452b2ecbe8ae5c4bf9c9e0db6bb341e0",
+    "deploy/components/bridge-async/alertmanager.yaml": "4d407fa83800c49dad51229d3f8e2d50a7f32101c9a4cc1d091be98047bdd319",
+    "deploy/components/bridge-async/bridge.yaml": "15c67fcce356cbee354adbfffe79e9ea9f66a08742c2ea0bc01901603691691b",
+    "deploy/components/bridge-async/kustomization.yaml": "bbda968ebc198230d0d02cdc8c0129dceaa099622b9ca3a5fb4e0a8009e611f5",
+    "deploy/components/bridge-async/state-pvc.yaml": "144ed8211f9052769901951d7e38e304461b2d6304d54b1d7169c297a7c78d55",
+    "deploy/components/monitoring/kustomization.yaml": "ef65dbdd2c61791aff9cad7573d42f6be990e7f5652102db0198bf8d4622ebb5",
+    "deploy/components/monitoring/resources.yaml": "21932a44ac6eb6de1b12af1a3c5c4f5679b42c353d97e29d1d60db176cde4558",
+    "deploy/components/monitoring-bridge-auth/alertmanager-config.yaml": "bf1212f84f8524b3c5bd0e7aea7c4d780837cb6d096e0c771e47749b9fa4d354",
+    "deploy/components/monitoring-bridge-auth/alertmanager.yaml": "069a942d8174086773a747de8897286225e8ea5167a695128d580568bfa99689",
+    "deploy/components/monitoring-bridge-auth/kustomization.yaml": "4fe39297d114a8f82cdf893bb838d6ed88110e7622315575ff9cacf6cdb7405f",
+    "deploy/cronjob.yaml": "d3d0df75f76c2d28d1f8f86beeba25b5bc2418d711f4275449f047287cb46536",
+    "deploy/cronjobs-by-frequency.yaml": "3d1462cd2eb803c72cccd426f01377dd14ed3607b27da0dc6a4c40fc7abf052e",
+    "deploy/feishu-routes.example.yaml": "51e881074f2980257a67263aa4d85b2fa3fe6a86de62d32f103e0ea82c240525",
+    "deploy/kustomization.yaml": "5b95073b3ba22da0c4092d2957fa03b493be958f38614a50dfac3600f7a9c9e8",
+    "deploy/monitoring/bridge-rules.yaml": "a76416f7e13cc4bdcb0c9728a7f0cf09be491cb360da9548914116b6f72491ce",
+    "deploy/monitoring/expected-targets.example.yaml": "44f3a3d75dedf0aed599c7cd1dcf5c6da3398a06abc58763fa3c9d0dd65c73e1",
+    "deploy/monitoring/generated/alertmanager-snippet.yaml": "eca53b7558bbc0fc42029271db991411954c6fd91760f380f06ee44cdfd8f710",
+    "deploy/monitoring/generated/inspection-rules.yaml": "87444be4f4be20b9be1c32b85d53d1611f90e989236b0fc0fc5355eaf7fbb1f4",
+    "deploy/monitoring/generated/inventory.yaml": "8f80102fe0ca7cc0d31e7da27e17cdb990efbd6f47b81a5419363c21320ff602",
+    "deploy/monitoring/generated/scrape-snippet.yaml": "7ff17c0446103f894e91e04773a0fadf7517b17c62803e66e76c1332ab3be7bf",
+    "deploy/monitoring-alertmanager.yaml": "eca4c88cd8e0bcdac15b2b166941c1ba2b6ce7591a3f85ae73090da777f283eb",
+    "deploy/monitoring-prometheus.yaml": "8f83dc4d3780c4f05ed013b615dc6bbfc51c0bfc5c65395aaf25358e1b474748",
+    "deploy/overlays/example/kustomization.yaml": "cd36c42598724999da13c517d80c0a61671efaf7b7c733933db7b495fe216af0",
+    "deploy/overlays/shadow/am-auth-shadow.yaml": "63a1a45e0c41e527f23547443119552de05562d8d75a80c1f399c6b49b708dfb",
+    "deploy/overlays/shadow/am-shadow.yaml": "f01ea55e220fd77c320ad4aea18ae7d8480153b445a59c489e85e48b1331fa9e",
+    "deploy/overlays/shadow/bridge-shadow.yaml": "465df8def296456bf1823777028c8de4e3a7f88529186aca720643c298683795",
+    "deploy/overlays/shadow/control-role.yaml": "b9776877573fbf1c4a2489603ea43af40f0ef26de4e29a120398c721476d9602",
+    "deploy/overlays/shadow/control-rolebinding.yaml": "918e4888c27cc40a3557b263fd957772e6f0b73824f048674cfc5881a6f7a313",
+    "deploy/overlays/shadow/inventory.yaml": "eff62a9e701b7609004e19652eadb6e17bcd978d687580f0640e0264fdc0a2a2",
+    "deploy/overlays/shadow/kustomization.yaml": "a4899553f96ebd29f565ca58db1d8f8748fc1cd796a9a5bfdf2bfb3f742ae639",
+    "deploy/overlays/shadow/namespace-transformer.yaml": "83ceb1c8e19f1a9a150f5b7d1dc5b85c77d690db0f0af3e63b2e06fbe272e9c1",
+    "deploy/overlays/shadow/namespace.yaml": "cf4f50da041f653f6a5a97bc9bcbdfa001d17ae72157d8003448467de4e0951d",
+    "deploy/overlays/shadow/prom-shadow.yaml": "74984f7b96f9e42d89509ecd4cbe21483f908a169bf45febe3bce5a3e94004ce",
+    "deploy/overlays/shadow/rbac-transformer.yaml": "5fbf222579903246ac62a95b3f781e92018a71eca2731654f5a15755e2d9a61f",
+    "deploy/overlays/shadow/rules-shadow.yaml": "b4213dcf98d9c4ce39d50144c22c8efbffe229315cef3b8b377261e71e11ea2f",
+    "deploy/prometheus-alert-rules-k8s-inspector.yaml": "86b486c5dbce28300b4edd556c88f7181e9d183ec940a10289231f9558794615",
+    "deploy/prometheus-scrape-pushgateway-snippet.yaml": "bccd5c94fa4109fbc62c25c38f51f3d6a08f095539da132ba05b95cc0f2e07cb",
+    "deploy/pushgateway.yaml": "d68929eeb895571f1eb0bb5d29bf4ebbf2cb930496ea96ec93b7ea5eea7e6e65",
+    "deploy/rbac.yaml": "71c80ffc9d4ee85340cd6985582e60dd06aa9701a123069076520cf7de9a62e1",
+    "deploy/secret-feishu.example.yaml": "6fdc7205385c7f5c25ebb270b534bcbfc40b60c6746bdec951b41228a5533671",
+    "deploy/storage/bridge-state-pvc.yaml": "e2231e3a0f841fe9d8716746cb98a85c1d3884dea2c1955aa52b2ea30e04d77c",
+    "deploy/storage/pv-nfs.yaml": "7232f5554b937c73474b9aef547e193fa5f6ff043f62cac9b61b2cacc10b03e6",
+    "deploy/storage/pvc-k8s-inspector-out.yaml": "18198cb3a825390002cd6819b1e25f749347f8502d1e4bb7d65dc0017da340d2",
+    "constraints/build.txt": "c7bcb7f5c9c19959d0d9570e649ea71c0814074d7748513db67acd08eac89200",
+    "constraints/runtime.txt": "8d49adf0c6e6859ea6d49c6d40b1a9c7b2f14ccfdac274cffddde7bbd28f4383",
+    "pyproject.toml": "c5f7005be792edfd1d086b7a690585db4d0371572bd3b1839eb5e76ce4d20422",
+    "Dockerfile": "b9df4c3aa053ae2c8086cd406ad27d23a28c9d2e0dd875bed925573b65d05bd0"
+  },
+  "schema": {
+    "bridge": 3,
+    "report": 2
+  },
+  "offline": false,
+  "release_ready": false,
+  "checks": {
+    "wheel": {
+      "success": true,
+      "detail": "exit=0; evidence=wheel-build.log"
+    },
+    "venv": {
+      "success": true,
+      "detail": "exit=0; evidence=venv.log"
+    },
+    "install": {
+      "success": true,
+      "detail": "exit=0; evidence=install.log"
+    },
+    "imports": {
+      "success": true,
+      "detail": "Installed module path=C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w3925\\package\\venv\\lib\\site-packages\\k8s_inspector\\__init__.py"
+    },
+    "source_tests": {
+      "success": true,
+      "detail": "exit=0; evidence=source-tests.log"
+    },
+    "kustomize_base": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-base.log"
+    },
+    "kustomize_example": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-example.log"
+    },
+    "kustomize_shadow": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-shadow.log"
+    },
+    "kustomize": {
+      "success": true,
+      "detail": "See per-overlay render checks"
+    },
+    "promtool": {
+      "success": true,
+      "detail": "exit=0; evidence=example-promconfig.log; exit=0; evidence=shadow-promconfig.log; exit=0; evidence=rules-check.log; exit=0; evidence=rules-test.log; exit=0; evidence=bridge-rules-check.log; exit=0; evidence=bridge-rules-test.log"
+    },
+    "amtool": {
+      "success": true,
+      "detail": "exit=0; evidence=example-amconfig.log; exit=0; evidence=shadow-amconfig.log"
+    },
+    "docker": {
+      "success": false,
+      "detail": "PENDING: Docker unavailable or offline mode forbids image pulls/builds"
+    },
+    "environment_acceptance": {
+      "success": false,
+      "detail": "PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance"
+    },
+    "clean_dependency_install": {
+      "success": true,
+      "detail": "Clean venv install result"
+    },
+    "runtime_metadata": {
+      "success": true,
+      "detail": "exit=0; evidence=runtime-metadata.log"
+    },
+    "selected_constraints": {
+      "success": true,
+      "detail": "Installed pins verified"
+    }
+  }
+}

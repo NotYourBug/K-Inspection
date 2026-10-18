@@ -1,0 +1,96 @@
+{
+  "success": false,
+  "local_checks_success": true,
+  "exit_gate": "local",
+  "checks": {
+    "wheel": {
+      "success": true,
+      "detail": "exit=0; evidence=wheel-build.log"
+    },
+    "venv": {
+      "success": true,
+      "detail": "exit=0; evidence=venv.log"
+    },
+    "install": {
+      "success": true,
+      "detail": "exit=0; evidence=install.log"
+    },
+    "imports": {
+      "success": true,
+      "detail": "Installed module path=C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\venv\\Lib\\site-packages\\k8s_inspector\\__init__.py"
+    },
+    "source_tests": {
+      "success": true,
+      "detail": "exit=0; evidence=source-tests.log"
+    },
+    "kustomize_base": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-base.log"
+    },
+    "kustomize_example": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-example.log"
+    },
+    "kustomize_shadow": {
+      "success": true,
+      "detail": "exit=0; evidence=kustomize-shadow.log"
+    },
+    "kustomize": {
+      "success": true,
+      "detail": "See per-overlay render checks"
+    },
+    "promtool": {
+      "success": true,
+      "detail": "exit=0; evidence=example-promconfig.log; exit=0; evidence=shadow-promconfig.log; exit=0; evidence=rules-check.log; exit=0; evidence=rules-test.log; exit=0; evidence=bridge-rules-check.log; exit=0; evidence=bridge-rules-test.log"
+    },
+    "amtool": {
+      "success": true,
+      "detail": "exit=0; evidence=example-amconfig.log; exit=0; evidence=shadow-amconfig.log"
+    },
+    "docker": {
+      "success": false,
+      "detail": "PENDING: Docker unavailable or offline mode forbids image pulls/builds"
+    },
+    "environment_acceptance": {
+      "success": false,
+      "detail": "PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance"
+    },
+    "clean_dependency_install": {
+      "success": true,
+      "detail": "Clean venv install result"
+    },
+    "runtime_metadata": {
+      "success": true,
+      "detail": "exit=0; evidence=runtime-metadata.log"
+    },
+    "selected_constraints": {
+      "success": true,
+      "detail": "Installed pins verified"
+    }
+  },
+  "artifacts": [
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\wheel\\k8s_inspector-0.1.0-py3-none-any.whl",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\venv\\Scripts\\python.exe",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\imports.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\install.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\venv.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\wheel-build.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\base.yaml",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\example.yaml",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\shadow.yaml",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\candidate-manifest.json",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\bridge-rules-check.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\bridge-rules-test.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\example-amconfig.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\example-promconfig.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\kustomize-base.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\kustomize-example.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\kustomize-shadow.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\rules-check.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\rules-test.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\runtime-metadata.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\shadow-amconfig.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\shadow-promconfig.log",
+    "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\source-tests.log"
+  ]
+}

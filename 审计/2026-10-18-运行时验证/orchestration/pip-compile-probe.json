@@ -1,0 +1,12 @@
+{
+  "PIP_NO_COMPILE=1": {
+    "actual_compile": 1
+  },
+  "PIP_NO_COMPILE=0": {
+    "actual_compile": 0
+  },
+  "PIP_COMPILE=0": {
+    "actual_compile": 0
+  },
+  "meaning": "Observed with selected clean Python3.11 pip InstallCommand parser; corrected orchestration uses positive PIP_COMPILE=0 and removes negative variable."
+}

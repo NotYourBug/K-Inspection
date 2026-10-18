@@ -1,0 +1,2 @@
+{"python": "3.11.16", "dependencies": {"kubernetes": "37.0.1", "lark-oapi": "1.7.5", "PyYAML": "6.0.3", "prometheus-client": "0.26.0", "setuptools": "84.0.0", "wheel": "0.48.0", "build": "1.6.1", "pytest": "9.1.1"}}
+

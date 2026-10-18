@@ -1,0 +1,14 @@
+usage: k8s-inspector [-h] {run,cleanup} ...
+
+positional arguments:
+  {run,cleanup}
+    run          Execute inspection
+    cleanup      Remove expired archive directories
+
+optional arguments:
+  -h, --help     show this help message and exit
+
+C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3925\package\venv\lib\site-packages\google\auth\__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3925\package\venv\lib\site-packages\google\oauth2\__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)

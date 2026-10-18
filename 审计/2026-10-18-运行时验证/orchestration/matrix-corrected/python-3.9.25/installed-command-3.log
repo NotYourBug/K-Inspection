@@ -1,0 +1,51 @@
+usage: k8s-inspector-alert-bridge [-h] [--listen-host LISTEN_HOST]
+                                  [--listen-port LISTEN_PORT]
+                                  [--report-dir REPORT_DIR]
+                                  [--report-max-results REPORT_MAX_RESULTS]
+                                  [--report-max-items REPORT_MAX_ITEMS]
+                                  [--feishu-webhook FEISHU_WEBHOOK]
+                                  [--mode {webhook,app}]
+                                  [--feishu-chat-id FEISHU_CHAT_ID]
+                                  [--routes-file ROUTES_FILE]
+                                  [--chat-policy {fixed}] [--timeout TIMEOUT]
+                                  [--delivery-mode {sync,async}]
+                                  [--state-db STATE_DB]
+                                  [--sources-file SOURCES_FILE]
+                                  [--max-requests MAX_REQUESTS]
+                                  [--max-body-bytes MAX_BODY_BYTES]
+                                  [--max-backlog MAX_BACKLOG]
+                                  [--dedup-seconds DEDUP_SECONDS]
+                                  [--webhook-destination-id WEBHOOK_DESTINATION_ID]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --listen-host LISTEN_HOST
+  --listen-port LISTEN_PORT
+  --report-dir REPORT_DIR
+                        Inspection report root directory
+  --report-max-results REPORT_MAX_RESULTS
+  --report-max-items REPORT_MAX_ITEMS
+  --feishu-webhook FEISHU_WEBHOOK
+                        Feishu bot webhook (also FEISHU_WEBHOOK env)
+  --mode {webhook,app}  Feishu push mode: webhook=bot webhook; app=enterprise
+                        app bot
+  --feishu-chat-id FEISHU_CHAT_ID
+                        Existing fallback chat_id (also FEISHU_CHAT_ID)
+  --routes-file ROUTES_FILE
+                        JSON/YAML exact-label routing file (also
+                        FEISHU_ROUTES_FILE)
+  --chat-policy {fixed}
+                        Chat policy (default: fixed); automatic chat creation
+                        is disabled
+  --timeout TIMEOUT
+  --delivery-mode {sync,async}
+  --state-db STATE_DB
+  --sources-file SOURCES_FILE
+                        Secret-mounted JSON source credentials (also
+                        BRIDGE_SOURCES_FILE)
+  --max-requests MAX_REQUESTS
+  --max-body-bytes MAX_BODY_BYTES
+  --max-backlog MAX_BACKLOG
+  --dedup-seconds DEDUP_SECONDS
+  --webhook-destination-id WEBHOOK_DESTINATION_ID
+

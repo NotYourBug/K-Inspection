@@ -21,3 +21,7 @@
 /审计/2[01]-* -text
 
 /pyproject.toml text eol=lf
+
+/审计/2026-10-18-运行时验证/** -text
+
+/审计/2[23]-* -text

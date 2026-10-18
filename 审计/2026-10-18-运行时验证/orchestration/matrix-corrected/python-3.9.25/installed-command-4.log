@@ -1,0 +1,11 @@
+usage: inspector-bridge-admin [-h] --db DB
+                              {inspect,requeue,resolve-dead,acknowledge-unknown,backup,prune}
+                              ...
+
+positional arguments:
+  {inspect,requeue,resolve-dead,acknowledge-unknown,backup,prune}
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --db DB
+

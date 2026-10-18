@@ -1,0 +1,129 @@
+Obtaining file:///C:/Users/23033/Desktop/Cluster-Stability-Inspector (from -r C:\Users\23033\Desktop\Cluster-Stability-Inspector\requirements.txt (line 4))
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Collecting PyYAML<7,>=6.0.1
+  Downloading pyyaml-6.0.3-cp39-cp39-win_amd64.whl (158 kB)
+     ------------------------------------ 158.8/158.8 kB 594.1 kB/s eta 0:00:00
+Collecting kubernetes<38,>=29.0.0
+  Downloading kubernetes-29.0.0-py2.py3-none-any.whl (1.6 MB)
+     ---------------------------------------- 1.6/1.6 MB 1.6 MB/s eta 0:00:00
+Collecting lark-oapi==1.7.5
+  Downloading lark_oapi-1.7.5-py3-none-any.whl (7.7 MB)
+     ---------------------------------------- 7.7/7.7 MB 4.8 MB/s eta 0:00:00
+Collecting prometheus-client<1,>=0.20.0
+  Downloading prometheus_client-0.26.0-py3-none-any.whl (64 kB)
+     ---------------------------------------- 64.5/64.5 kB 1.2 MB/s eta 0:00:00
+Collecting setuptools<85,>=68
+  Downloading setuptools-80.9.0-py3-none-any.whl (1.2 MB)
+     ---------------------------------------- 1.2/1.2 MB 3.3 MB/s eta 0:00:00
+Collecting tomli>=2
+  Downloading tomli-2.3.0-py3-none-any.whl (14 kB)
+Collecting pytest<10,>=8.4
+  Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+     -------------------------------------- 365.8/365.8 kB 2.3 MB/s eta 0:00:00
+Collecting wheel<0.49,>=0.45
+  Downloading wheel-0.48.0-py3-none-any.whl (33 kB)
+Collecting build<2,>=1.2
+  Downloading build-1.2.2.post1-py3-none-any.whl (22 kB)
+Collecting pycryptodome>=3.9
+  Downloading pycryptodome-4.0.1-cp39-abi3-win_amd64.whl (1.3 MB)
+     ---------------------------------------- 1.3/1.3 MB 4.7 MB/s eta 0:00:00
+Collecting requests>=2.25
+  Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+     ---------------------------------------- 64.7/64.7 kB 1.2 MB/s eta 0:00:00
+Collecting requests_toolbelt>=0.9
+  Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+     -------------------------------------- 54.5/54.5 kB 941.3 kB/s eta 0:00:00
+Collecting websockets<16,>=11
+  Downloading websockets-15.0.1-cp39-cp39-win_amd64.whl (176 kB)
+     -------------------------------------- 176.8/176.8 kB 2.7 MB/s eta 0:00:00
+Collecting httpx<1.0,>=0.24
+  Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+     ---------------------------------------- 73.5/73.5 kB 1.0 MB/s eta 0:00:00
+Collecting packaging>=19.1
+  Downloading packaging-26.3-py3-none-any.whl (129 kB)
+     -------------------------------------- 130.0/130.0 kB 1.9 MB/s eta 0:00:00
+Collecting importlib-metadata>=4.6
+  Downloading importlib_metadata-8.7.1-py3-none-any.whl (27 kB)
+Collecting pyproject_hooks
+  Downloading pyproject_hooks-1.3.3-py3-none-any.whl (10 kB)
+Collecting colorama
+  Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Collecting python-dateutil>=2.5.3
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+     -------------------------------------- 229.9/229.9 kB 2.8 MB/s eta 0:00:00
+Collecting certifi>=14.05.14
+  Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+     -------------------------------------- 137.0/137.0 kB 2.7 MB/s eta 0:00:00
+Collecting google-auth>=1.0.1
+  Downloading google_auth-2.50.0-py3-none-any.whl (246 kB)
+     -------------------------------------- 246.5/246.5 kB 1.4 MB/s eta 0:00:00
+Collecting requests-oauthlib
+  Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
+Collecting websocket-client!=0.40.0,!=0.41.*,!=0.42.*,>=0.32.0
+  Downloading websocket_client-1.9.0-py3-none-any.whl (82 kB)
+     -------------------------------------- 82.6/82.6 kB 154.3 kB/s eta 0:00:00
+Collecting oauthlib>=3.2.2
+  Downloading oauthlib-4.0.0-py3-none-any.whl (159 kB)
+     ------------------------------------ 159.7/159.7 kB 265.5 kB/s eta 0:00:00
+Collecting urllib3>=1.24.2
+  Downloading urllib3-2.6.3-py3-none-any.whl (131 kB)
+     ------------------------------------ 131.6/131.6 kB 387.7 kB/s eta 0:00:00
+Collecting six>=1.9.0
+  Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Collecting iniconfig>=1
+  Downloading iniconfig-2.1.0-py3-none-any.whl (6.0 kB)
+Collecting pygments>=2.7.2
+  Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+     ---------------------------------------- 1.3/1.3 MB 620.0 kB/s eta 0:00:00
+Collecting exceptiongroup>=1
+  Downloading exceptiongroup-1.3.1-py3-none-any.whl (16 kB)
+Collecting pluggy<2,>=1.5
+  Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+Collecting typing-extensions>=4.6.0
+  Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+     -------------------------------------- 45.6/45.6 kB 252.4 kB/s eta 0:00:00
+Collecting pyasn1-modules>=0.2.1
+  Downloading pyasn1_modules-0.4.2-py3-none-any.whl (181 kB)
+     ------------------------------------ 181.3/181.3 kB 214.6 kB/s eta 0:00:00
+Collecting cryptography>=38.0.3
+  Downloading cryptography-50.0.2-cp39-abi3-win_amd64.whl (3.9 MB)
+     ---------------------------------------- 3.9/3.9 MB 1.5 MB/s eta 0:00:00
+Collecting anyio
+  Downloading anyio-4.12.1-py3-none-any.whl (113 kB)
+     ------------------------------------ 113.6/113.6 kB 244.9 kB/s eta 0:00:00
+Collecting httpcore==1.*
+  Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+     -------------------------------------- 78.8/78.8 kB 489.6 kB/s eta 0:00:00
+Collecting idna
+  Downloading idna-3.20-py3-none-any.whl (69 kB)
+     ---------------------------------------- 69.6/69.6 kB 1.3 MB/s eta 0:00:00
+Collecting h11>=0.16
+  Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Collecting zipp>=3.20
+  Downloading zipp-3.23.1-py3-none-any.whl (10 kB)
+Collecting charset_normalizer<4,>=2
+  Downloading charset_normalizer-3.5.2-cp39-cp39-win_amd64.whl (215 kB)
+     ------------------------------------ 215.8/215.8 kB 147.8 kB/s eta 0:00:00
+Collecting cffi>=2.0.0
+  Downloading cffi-2.0.0-cp39-cp39-win_amd64.whl (182 kB)
+     ------------------------------------ 182.8/182.8 kB 256.8 kB/s eta 0:00:00
+Collecting pyasn1<0.7.0,>=0.6.1
+  Downloading pyasn1-0.6.4-py3-none-any.whl (84 kB)
+     -------------------------------------- 84.4/84.4 kB 182.7 kB/s eta 0:00:00
+Collecting pycparser
+  Downloading pycparser-2.23-py3-none-any.whl (118 kB)
+     ------------------------------------ 118.1/118.1 kB 209.5 kB/s eta 0:00:00
+Building wheels for collected packages: k8s-inspector
+  Building editable for k8s-inspector (pyproject.toml): started
+  Building editable for k8s-inspector (pyproject.toml): finished with status 'done'
+  Created wheel for k8s-inspector: filename=k8s_inspector-0.1.0-0.editable-py3-none-any.whl size=15926 sha256=c23d2b106ea6b6478ffab3afb8372f9e830648c6583bc18f55526a7488f35ebc
+  Stored in directory: C:\Users\23033\AppData\Local\Temp\pip-ephem-wheel-cache-64ea_mx0\wheels\19\cf\21\6a6a643223437b45aabc3e512505089b6df507b1e56d9ec8e3
+Successfully built k8s-inspector
+Installing collected packages: zipp, websockets, websocket-client, urllib3, typing-extensions, tomli, six, setuptools, PyYAML, pyproject_hooks, pygments, pycryptodome, pycparser, pyasn1, prometheus-client, pluggy, packaging, oauthlib, iniconfig, idna, h11, colorama, charset_normalizer, certifi, wheel, requests, python-dateutil, pyasn1-modules, importlib-metadata, httpcore, exceptiongroup, cffi, requests_toolbelt, requests-oauthlib, pytest, cryptography, build, anyio, httpx, google-auth, lark-oapi, kubernetes, k8s-inspector
