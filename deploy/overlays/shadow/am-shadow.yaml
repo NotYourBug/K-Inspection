@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-alertmanager-config
+  namespace: kube-system
+data:
+  alertmanager.yml: "route:\n  receiver: feishu-bridge\n  group_by:\n  - cluster\n\
+    \  group_wait: 30s\n  group_interval: 5m\n  repeat_interval: 2h\n  routes:\n \
+    \ - matchers:\n    - shadow=\"true\"\n    receiver: shadow-null\ninhibit_rules:\n\
+    - source_matchers:\n  - alertname=\"K8sInspectorStale\"\n  target_matchers:\n\
+    \  - alertname=~\"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC\"\
+    \n  equal:\n  - cluster\n  - profile\nreceivers:\n- name: feishu-bridge\n  webhook_configs:\n\
+    \  - url: http://k8s-inspector-alert-bridge:8000/alert\n    send_resolved: true\n\
+    \    http_config:\n      authorization:\n        type: Bearer\n        credentials_file:\
+    \ /etc/bridge-auth/token\n- name: shadow-null\n"

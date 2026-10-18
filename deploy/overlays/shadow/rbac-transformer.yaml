@@ -1,0 +1,14 @@
+apiVersion: builtin
+kind: PrefixSuffixTransformer
+metadata:
+  name: shadow-rbac
+prefix: shadow-
+fieldSpecs:
+- kind: ClusterRole
+  path: metadata/name
+- kind: ClusterRoleBinding
+  path: metadata/name
+- kind: Role
+  path: metadata/name
+- kind: RoleBinding
+  path: metadata/name

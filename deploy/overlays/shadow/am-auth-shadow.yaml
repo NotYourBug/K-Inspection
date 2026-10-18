@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      volumes:
+      - name: bridge-auth
+        secret:
+          secretName: inspector-shadow-bridge-auth
+          defaultMode: 288
