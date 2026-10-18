@@ -29,7 +29,7 @@ from kubernetes.client import ApiClient
 from kubernetes.client.exceptions import ApiException
 from pydantic import Field
 
-from .common import (
+from k8s_inspector.core.resources import (
     BAD_POD_REASONS,
     cpu_to_millicores,
     deep_get,

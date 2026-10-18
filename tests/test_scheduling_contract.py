@@ -2,7 +2,7 @@ from dataclasses import replace
 from pathlib import Path
 import pytest
 import yaml
-from k8s_inspector.profiles import PROFILES
+from k8s_inspector.core.profiles import PROFILES
 from tests.deployment_helpers import render
 
 

@@ -3,11 +3,11 @@ from unittest.mock import Mock
 from kubernetes.client.exceptions import ApiException
 import pytest
 
-from k8s_inspector.observation_models import ExecutionStatus as E
+from k8s_inspector.core.observations import ExecutionStatus as E
 
 
 def make_collector(deadline=30, clock=lambda: 0):
-    from k8s_inspector.collector import KubeCollector
+    from k8s_inspector.inspection.collector import KubeCollector
     return KubeCollector(NS(), deadline, clock)
 
 

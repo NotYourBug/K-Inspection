@@ -7,11 +7,11 @@ import pytest
 from kubernetes import client
 from prometheus_client import CollectorRegistry
 
-from k8s_inspector import checks
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.metrics import populate_registry
-from k8s_inspector.models import Report, Status
-from k8s_inspector.sinks import execution_success
+from k8s_inspector.inspection import checks
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.monitoring.metrics import populate_registry
+from k8s_inspector.core.models import Report, Status
+from k8s_inspector.reporting.sinks import execution_success
 from tests.factories import NOW, container_status, node, pod, pvc, storage_class
 from tests.test_failure_preservation import addon_clients
 from tests.test_pvc_semantics import apis, inspect

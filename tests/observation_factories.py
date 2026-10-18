@@ -1,6 +1,6 @@
 """Shared C/D/F fixtures. Production modules must not import tests."""
 from datetime import datetime, timezone
-from k8s_inspector.observation_models import (
+from k8s_inspector.core.observations import (
     CheckEvaluation, CheckExecution, Coverage, ExecutionStatus, ObservationHealth,
     ResourceRef, RuleObservation, Severity, make_finding,
 )

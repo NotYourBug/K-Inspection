@@ -2,8 +2,8 @@ from dataclasses import replace
 from types import SimpleNamespace as NS
 from unittest.mock import Mock
 import pytest
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.observation_models import ExecutionStatus as E, Severity
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.observations import ExecutionStatus as E, Severity
 from tests.test_collector import page
 from tests.test_rule_observations import NOW, node
 
@@ -18,7 +18,7 @@ def context():
 
 
 def test_unknown_profile_is_rejected():
-    from k8s_inspector.runner import run_inspection
+    from k8s_inspector.inspection.runner import run_inspection
     ctx = context()
     with pytest.raises(ValueError, match='profile'):
         run_inspection(ctx, InspectorConfig(), 'typo', cluster_id='prod', now=NOW, monotonic=lambda: 0)
@@ -26,7 +26,7 @@ def test_unknown_profile_is_rejected():
 
 
 def test_profile_collections_match_existing_frequency_contract():
-    from k8s_inspector.rule_catalog import collection_keys, normalize_profile
+    from k8s_inspector.inspection.catalog import collection_keys, normalize_profile
     assert collection_keys('5m') == frozenset({'nodes', 'pods', 'pvcs', 'storage_classes'})
     assert collection_keys('10m') == frozenset({'api_health', 'pods'})
     assert 'node_metrics' in collection_keys('hourly')
@@ -35,7 +35,7 @@ def test_profile_collections_match_existing_frequency_contract():
 
 
 def test_run_deadline_marks_remaining_rules_unknown():
-    from k8s_inspector.runner import run_inspection
+    from k8s_inspector.inspection.runner import run_inspection
     ticks = iter([0] + [10000] * 100)
     report = run_inspection(context(), InspectorConfig(), '5m', cluster_id='prod',
                             now=NOW, monotonic=lambda: next(ticks))
@@ -45,9 +45,9 @@ def test_run_deadline_marks_remaining_rules_unknown():
 
 
 def test_known_failure_survives_later_rule_error(monkeypatch):
-    from k8s_inspector import runner
-    from k8s_inspector.rule_catalog import RuleSpec
-    from k8s_inspector.rules_nodes import evaluate_nodes
+    from k8s_inspector.inspection import runner
+    from k8s_inspector.inspection.catalog import RuleSpec
+    from k8s_inspector.inspection.rules.nodes import evaluate_nodes
     def broken(s, cfg):
         raise RuntimeError('credential must not leak')
     catalog = (
@@ -62,8 +62,8 @@ def test_known_failure_survives_later_rule_error(monkeypatch):
 
 
 def test_catalog_mismatched_identity_is_execution_error(monkeypatch):
-    from k8s_inspector import runner
-    from k8s_inspector.rule_catalog import RuleSpec
+    from k8s_inspector.inspection import runner
+    from k8s_inspector.inspection.catalog import RuleSpec
     from tests.observation_factories import failed_evaluation
     monkeypatch.setattr(runner, 'CATALOG', (
         RuleSpec('wanted', frozenset({'5m'}), '5m', frozenset(), lambda s,c: failed_evaluation()),))
@@ -72,7 +72,7 @@ def test_catalog_mismatched_identity_is_execution_error(monkeypatch):
 
 
 def test_missing_optional_client_keeps_confirmed_node_failure():
-    from k8s_inspector.runner import run_inspection
+    from k8s_inspector.inspection.runner import run_inspection
     ctx = context()
     ctx.storage = None
     report = run_inspection(ctx, InspectorConfig(), '5m', cluster_id='prod', now=NOW, monotonic=lambda: 0)

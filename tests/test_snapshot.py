@@ -10,7 +10,7 @@ def context():
 
 
 def test_snapshot_reuses_node_metrics():
-    from k8s_inspector.collector import KubeCollector
+    from k8s_inspector.inspection.collector import KubeCollector
     ctx = context()
     collector = KubeCollector(ctx, 30, lambda: 0)
     a = collector.snapshot(frozenset({'nodes', 'node_metrics'}), 'run-1', 'prod')
@@ -21,7 +21,7 @@ def test_snapshot_reuses_node_metrics():
 
 
 def test_5m_does_not_collect_metrics():
-    from k8s_inspector.collector import KubeCollector
+    from k8s_inspector.inspection.collector import KubeCollector
     ctx = context()
     collector = KubeCollector(ctx, 30, lambda: 0)
     snap = collector.snapshot(frozenset({'nodes', 'pods'}), 'run-1', 'prod')
@@ -30,7 +30,7 @@ def test_5m_does_not_collect_metrics():
 
 
 def test_api_health_uses_transport_timeout_and_namespace_scoped_addons():
-    from k8s_inspector.collector import KubeCollector
+    from k8s_inspector.inspection.collector import KubeCollector
     ctx = NS(api_client=NS(call_api=Mock(return_value=('ok', 200, {}))),
              apps=NS(list_namespaced_deployment=Mock(return_value=page()),
                      list_namespaced_daemon_set=Mock(return_value=page())))

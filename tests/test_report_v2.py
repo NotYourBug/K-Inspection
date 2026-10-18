@@ -3,9 +3,9 @@ import json
 from dataclasses import replace
 from datetime import timedelta
 import pytest
-from k8s_inspector.models import Report
-from k8s_inspector.observation_models import to_legacy_result
-from k8s_inspector import report as output
+from k8s_inspector.core.models import Report
+from k8s_inspector.core.observations import to_legacy_result
+from k8s_inspector.reporting import writers as output
 from tests.observation_factories import NOW, failed_evaluation, error_evaluation
 
 
@@ -49,7 +49,7 @@ def test_snapshot_scope_mismatch_omits_details():
 
 
 def test_manifest_failure_does_not_overwrite_report(tmp_path, monkeypatch):
-    from k8s_inspector import sinks
+    from k8s_inspector.reporting import sinks
     r = report()
     target = output.write_json(r, tmp_path)
     before = target.read_bytes()
@@ -67,7 +67,7 @@ def test_same_second_archive_directory_contains_report_run_id(tmp_path):
 
 
 def test_unknown_legacy_profile_is_rejected_before_api():
-    from k8s_inspector.checks import run_all
-    from k8s_inspector.config import InspectorConfig
+    from k8s_inspector.inspection.checks import run_all
+    from k8s_inspector.core.config import InspectorConfig
     with pytest.raises(ValueError, match='profile'):
         run_all(None, None, None, None, InspectorConfig(), 'bogus')

@@ -15,7 +15,7 @@ promtool test rules tests/prometheus/inspection-rules.test.yaml
 amtool check-config deploy/monitoring/generated/alertmanager-snippet.yaml
 ```
 
-The generated directory contains standalone rules, an inventory ConfigMap/Deployment/Service, a scrape snippet and a complete route example. The checked-in example is reproducible from the catalog. `rule_catalog` supplies the only primary notification profile mapping. The inventory process has no Kubernetes credentials, writable state or dependency on Pushgateway. Its read-only ConfigMap triggers a rollout through a content hash when regenerated.
+The generated directory contains standalone rules, an inventory ConfigMap/Deployment/Service, a scrape snippet and a complete route example. The checked-in example is reproducible from the catalog. `k8s_inspector.inspection.catalog` supplies the only primary notification profile mapping. The inventory process has no Kubernetes credentials, writable state or dependency on Pushgateway. Its read-only ConfigMap triggers a rollout through a content hash when regenerated.
 
 The repository's Prometheus image is 2.53.0 and Alertmanager image is 0.27.0. Offline tool checks use those versions; Kustomize rendering uses 5.4.3. Pin and verify official release checksums. Query and fixture semantics follow [Prometheus query functions](https://prometheus.io/docs/prometheus/2.55/querying/functions/) and [rule unit testing](https://prometheus.io/docs/prometheus/2.55/configuration/unit_testing_rules/); executable 2.53.0 tests are the compatibility gate.
 

@@ -3,7 +3,7 @@ from pathlib import Path
 from copy import deepcopy
 import argparse
 import yaml
-from k8s_inspector.profiles import PROFILES
+from k8s_inspector.core.profiles import PROFILES
 
 NAMES={'5m':'dataplane-5m','10m':'controlplane-10m','hourly':'infra-hourly','daily':'daily'}
 

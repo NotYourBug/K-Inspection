@@ -1,5 +1,5 @@
 import pytest
-from k8s_inspector import config
+from k8s_inspector.core import config
 
 
 def test_cli_default_does_not_override_file_config():

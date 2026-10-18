@@ -5,8 +5,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from k8s_inspector import cli, report as reports
-from k8s_inspector.models import CheckResult, Status, Report
+from k8s_inspector import cli
+from k8s_inspector.reporting import writers as reports
+from k8s_inspector.core import files
+from k8s_inspector.core.models import CheckResult, Status, Report
 from tests.factories import NOW
 
 
@@ -33,7 +35,7 @@ def test_atomic_replace_failure_keeps_previous_report(tmp_path, monkeypatch):
     path.write_text('{"status":"FAIL"}', encoding="utf-8")
     def failing_replace(*args):
         raise OSError("replace failed")
-    monkeypatch.setattr(reports, "_replace_file", failing_replace)
+    monkeypatch.setattr(files, "_replace_file", failing_replace)
     with pytest.raises(OSError):
         reports.atomic_write_text(path, '{"status":"PASS"}')
     assert json.loads(path.read_text())["status"] == "FAIL"

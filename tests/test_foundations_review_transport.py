@@ -6,10 +6,10 @@ from types import SimpleNamespace as NS
 import json
 import socket
 import pytest
-from k8s_inspector.collector import KubeCollector
-from k8s_inspector.kube import load_kube
-from k8s_inspector.config import InspectorConfig
-from k8s_inspector.observation_models import ExecutionStatus as E, Severity
+from k8s_inspector.inspection.collector import KubeCollector
+from k8s_inspector.inspection.kube import load_kube
+from k8s_inspector.core.config import InspectorConfig
+from k8s_inspector.core.observations import ExecutionStatus as E, Severity
 from tests.test_rule_observations import NOW
 from tests.test_collector import page
 
@@ -85,7 +85,7 @@ def test_r11_default_identity_binds_actual_selected_cluster(tmp_path):
 
 
 def test_r12_sdk_health_http500_is_confirmed_api_failure(tmp_path):
-    from k8s_inspector.rule_catalog import CATALOG
+    from k8s_inspector.inspection.catalog import CATALOG
     with endpoint(status=500) as (url, attempts):
         ctx = load_kube(kubeconfig(tmp_path/'config', url))
         try:
@@ -99,9 +99,9 @@ def test_r12_sdk_health_http500_is_confirmed_api_failure(tmp_path):
 
 
 def test_r2_late_rule_cannot_claim_complete_healthy_coverage(monkeypatch):
-    from k8s_inspector import runner
-    from k8s_inspector.rule_catalog import RuleSpec
-    from k8s_inspector.rules_nodes import evaluate_nodes
+    from k8s_inspector.inspection import runner
+    from k8s_inspector.inspection.catalog import RuleSpec
+    from k8s_inspector.inspection.rules.nodes import evaluate_nodes
     from tests.test_runner import context
     tick=[0]
     def late(s,c):

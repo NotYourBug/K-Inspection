@@ -3,8 +3,8 @@ from datetime import timedelta
 from pathlib import Path
 import pytest
 from prometheus_client import CollectorRegistry
-from k8s_inspector.metrics import populate_registry
-from k8s_inspector.observation_models import CheckEvaluation, CheckExecution, Coverage, ExecutionStatus as E
+from k8s_inspector.monitoring.metrics import populate_registry
+from k8s_inspector.core.observations import CheckEvaluation, CheckExecution, Coverage, ExecutionStatus as E
 from tests.test_report_v2 import report
 from tests.observation_factories import NOW, failed_evaluation, error_evaluation, healthy_observation
 
@@ -19,7 +19,7 @@ def pass_report():
 
 
 def test_error_does_not_clear_last_valid_failure(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     store = ObservationStateStore(tmp_path/'state.json')
     store.update(report())
     last_valid = store.update(report(error_evaluation(now=NOW+timedelta(minutes=1))))
@@ -31,7 +31,7 @@ def test_error_does_not_clear_last_valid_failure(tmp_path):
 
 
 def test_valid_healthy_observation_clears_previous_failure(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     store = ObservationStateStore(tmp_path/'state.json')
     store.update(report())
     current = store.update(pass_report())
@@ -42,7 +42,7 @@ def test_valid_healthy_observation_clears_previous_failure(tmp_path):
 
 
 def test_unknown_without_history_has_no_healthy_sample(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     r = report(error_evaluation())
     states = ObservationStateStore(tmp_path/'state.json').update(r)
     reg = CollectorRegistry()
@@ -53,7 +53,7 @@ def test_unknown_without_history_has_no_healthy_sample(tmp_path):
 
 
 def test_state_loss_is_visible(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     path = tmp_path/'state.json'
     ObservationStateStore(path).update(report())
     path.unlink()
@@ -65,7 +65,7 @@ def test_state_loss_is_visible(tmp_path):
 
 
 def test_profile_lock_is_exclusive_and_recovers_after_release(tmp_path):
-    from k8s_inspector.observation_state import profile_run_lock
+    from k8s_inspector.inspection.state import profile_run_lock
     with profile_run_lock(tmp_path):
         with pytest.raises(OSError):
             with profile_run_lock(tmp_path):
@@ -75,7 +75,7 @@ def test_profile_lock_is_exclusive_and_recovers_after_release(tmp_path):
 
 
 def test_metrics_labels_have_bounded_cardinality(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     r = report()
     states = ObservationStateStore(tmp_path/'state.json').update(r)
     reg = CollectorRegistry()
@@ -87,9 +87,9 @@ def test_metrics_labels_have_bounded_cardinality(tmp_path):
 
 
 def test_state_write_failure_is_required_sink_and_keeps_failure(tmp_path, monkeypatch):
-    from k8s_inspector.observation_state import ObservationStateStore
-    from k8s_inspector import observation_state
-    from k8s_inspector.sinks import run_sinks, execution_success
+    from k8s_inspector.inspection.state import ObservationStateStore
+    from k8s_inspector.inspection import state as observation_state
+    from k8s_inspector.reporting.sinks import run_sinks, execution_success
     store = ObservationStateStore(tmp_path/'state.json')
     previous = store.update(report())
     monkeypatch.setattr(observation_state, 'atomic_write_text', lambda *a: (_ for _ in ()).throw(OSError('full')))
@@ -123,7 +123,7 @@ def test_always0_still_exports_run_failure(tmp_path, monkeypatch):
 
 
 def test_state_rejects_cross_cluster_observations(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     r = report()
     r.observations = (replace(r.observations[0], cluster_id='other'),)
     with pytest.raises(ValueError, match='identity'):
@@ -131,7 +131,7 @@ def test_state_rejects_cross_cluster_observations(tmp_path):
 
 
 def test_registry_replacement_drops_removed_rule_labelsets(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
+    from k8s_inspector.inspection.state import ObservationStateStore
     store = ObservationStateStore(tmp_path/'state.json')
     old = store.update(report())
     ev = CheckEvaluation(CheckExecution('nodes.ready', E.OK, NOW, 1, Coverage(1, 1, True)), (),
@@ -143,9 +143,9 @@ def test_registry_replacement_drops_removed_rule_labelsets(tmp_path):
 
 
 def test_event_baseline_is_cluster_and_profile_bound(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
-    from k8s_inspector.rules_events import evaluate_events
-    from k8s_inspector.config import InspectorConfig
+    from k8s_inspector.inspection.state import ObservationStateStore
+    from k8s_inspector.inspection.rules.events import evaluate_events
+    from k8s_inspector.core.config import InspectorConfig
     from tests.test_rule_observations import snapshot, event
     cfg = InspectorConfig()
     cfg.thresholds.warning_events_max = 0
@@ -160,15 +160,15 @@ def test_event_baseline_is_cluster_and_profile_bound(tmp_path):
 
 def test_cli_lock_contention_stops_before_cluster_access(tmp_path, monkeypatch):
     from k8s_inspector import cli
-    from k8s_inspector.observation_state import profile_run_lock
+    from k8s_inspector.inspection.state import profile_run_lock
     monkeypatch.setattr(cli, 'load_kube', lambda **kw: pytest.fail('held lock reached cluster'))
     with profile_run_lock(tmp_path/'latest/5m'):
         assert cli.main(['run', '--profile', '5m', '--output-dir', str(tmp_path), '--exit-mode', 'always0']) == 1
 
 
 def test_partial_finding_survives_following_error_without_claiming_valid_coverage(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
-    from k8s_inspector.observation_models import ObservationHealth as H
+    from k8s_inspector.inspection.state import ObservationStateStore
+    from k8s_inspector.core.observations import ObservationHealth as H
     ev = failed_evaluation()
     ev = replace(ev, execution=replace(ev.execution, execution_status=E.PARTIAL, coverage=Coverage(None, 1, False)),
         observations=tuple(replace(o, health=H.UNKNOWN, complete=False) for o in ev.observations))
@@ -186,8 +186,8 @@ def test_partial_finding_survives_following_error_without_claiming_valid_coverag
 
 
 def test_error_cannot_reuse_older_healthy_state_to_clear_partial_finding(tmp_path):
-    from k8s_inspector.observation_state import ObservationStateStore
-    from k8s_inspector.observation_models import ObservationHealth as H
+    from k8s_inspector.inspection.state import ObservationStateStore
+    from k8s_inspector.core.observations import ObservationHealth as H
     store = ObservationStateStore(tmp_path/'state.json')
     healthy = pass_report()
     store.update(healthy)

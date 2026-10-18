@@ -1,10 +1,10 @@
-"""Tests for k8s_inspector.metrics."""
+"""Tests for k8s_inspector.monitoring.metrics."""
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from k8s_inspector.metrics import (
+from k8s_inspector.monitoring.metrics import (
     _extract_issue_counts,
     _extract_node_utilization,
     _parse_iso_to_epoch,
@@ -13,7 +13,7 @@ from k8s_inspector.metrics import (
     push_report_to_gateway,
     PushGatewayConfig,
 )
-from k8s_inspector.models import CheckResult, Report, Status
+from k8s_inspector.core.models import CheckResult, Report, Status
 
 
 class TestStatusToNumber:
@@ -138,7 +138,7 @@ class TestPushReportToGateway:
         )
         cfg = PushGatewayConfig(url="http://localhost:9091", job="test-job", timeout_s=3.0)
 
-        with patch("k8s_inspector.metrics._import_prometheus_client") as mock_pc:
+        with patch("k8s_inspector.monitoring.metrics._import_prometheus_client") as mock_pc:
             mock_client = MagicMock()
             mock_pc.return_value = mock_client
 
@@ -155,7 +155,7 @@ class TestPushReportToGateway:
         report = Report(generated_at="2025-01-01T00:00:00+00:00", cluster="c1", results=[])
         cfg = PushGatewayConfig(url="http://localhost:9091")
 
-        with patch("k8s_inspector.metrics._import_prometheus_client") as mock_pc:
+        with patch("k8s_inspector.monitoring.metrics._import_prometheus_client") as mock_pc:
             mock_client = MagicMock()
             mock_pc.return_value = mock_client
 
