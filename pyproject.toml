@@ -19,7 +19,7 @@ dependencies = [
 k8s-inspector = "k8s_inspector.cli:main"
 
 [project.optional-dependencies]
-dev = ["build>=1.2,<2", "pytest>=8.4,<10", "tomli>=2; python_version<'3.11'"]
+dev = ["build>=1.2,<2", "setuptools>=68,<85", "wheel>=0.45,<0.49", "pytest>=8.4,<10", "tomli>=2; python_version<'3.11'"]
 
 [tool.setuptools.packages.find]
 include = ["k8s_inspector", "k8s_inspector.*"]

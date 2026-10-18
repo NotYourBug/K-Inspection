@@ -25,6 +25,19 @@ class VerificationResult:
     artifacts: tuple[Path, ...]
 
 
+LOCAL_REQUIRED_CHECKS = (
+    'wheel', 'venv', 'install', 'imports', 'source_tests',
+    'kustomize_base', 'kustomize_example', 'kustomize_shadow',
+    'kustomize', 'promtool', 'amtool', 'runtime_metadata', 'selected_constraints',
+)
+
+
+def local_checks_success(result: VerificationResult) -> bool:
+    """Local CI evidence only; this never approves external release acceptance."""
+    return all(result.checks.get(name, CheckOutcome(False, 'Missing')).success
+               for name in LOCAL_REQUIRED_CHECKS)
+
+
 def _command(command, *, cwd, log, timeout=180):
     try:
         result=subprocess.run([str(x) for x in command],cwd=cwd,capture_output=True,text=True,
@@ -151,6 +164,8 @@ def verify_release(project_dir: Path, *, python_executable: Path, output_dir: Pa
     if promtool:
         prom_checks.append(_command(promtool+['check','rules',str(project/'deploy/monitoring/generated/inspection-rules.yaml')],cwd=project,log=output/'rules-check.log'))
         prom_checks.append(_command(promtool+['test','rules',str(project/'tests/prometheus/inspection-rules.test.yaml')],cwd=project,log=output/'rules-test.log'))
+        prom_checks.append(_command(promtool+['check','rules',str(project/'deploy/monitoring/bridge-rules.yaml')],cwd=project,log=output/'bridge-rules-check.log'))
+        prom_checks.append(_command(promtool+['test','rules',str(project/'tests/prometheus/bridge-rules.test.yml')],cwd=project,log=output/'bridge-rules-test.log'))
     checks['promtool']=CheckOutcome(bool(prom_checks) and all(c.success for c in prom_checks),
         '; '.join(c.detail for c in prom_checks) if prom_checks else 'PENDING: promtool unavailable')
     checks['amtool']=CheckOutcome(bool(am_checks) and all(c.success for c in am_checks),
@@ -210,13 +225,18 @@ def main(argv=None):
     parser.add_argument('--python',type=Path,default=Path(sys.executable))
     parser.add_argument('--output-dir',type=Path,required=True)
     parser.add_argument('--offline',action='store_true')
+    parser.add_argument('--local-checks-only',action='store_true',
+                        help='Exit on mandatory local CI checks only; release acceptance stays pending in JSON')
     args=parser.parse_args(argv)
     result=verify_release(args.project_dir,python_executable=args.python,output_dir=args.output_dir,offline=args.offline)
-    data={'success':result.success,'checks':{k:vars(v) for k,v in result.checks.items()},
+    local_success=local_checks_success(result)
+    data={'success':result.success,'local_checks_success':local_success,
+          'exit_gate':'local' if args.local_checks_only else 'release',
+          'checks':{k:vars(v) for k,v in result.checks.items()},
           'artifacts':[str(p) for p in result.artifacts]}
     (args.output_dir/'verification.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
     print(json.dumps(data,indent=2))
-    return 0 if result.success else 1
+    return 0 if (local_success if args.local_checks_only else result.success) else 1
 
 
 if __name__=='__main__':

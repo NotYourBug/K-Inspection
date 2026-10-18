@@ -369,6 +369,8 @@ kustomize build deploy/overlays/shadow
 
 The verifier writes per-check evidence and returns1 while any mandatory check is failed/pending; offline mode never pulls/builds Docker images and explicitly records shared dependency bootstrap. `.github/workflows/ci.yml` is a prepared GitHub example, not a run CI result. No package/image is automatically published.
 
+CI adds `--local-checks-only` to use the mandatory local outcomes as its exit gate, including composed Prometheus/Alertmanager configs and both inspection/Bridge rule suites. The resulting JSON separates `local_checks_success` from full `success`, which remains false while external release acceptance is pending. The default command above keeps the full release gate.
+
 The default `deploy` now contains only suspended inspector jobs/RBAC/storage. The full example and namespace-isolated shadow monitoring/async Bridge are explicit overlays. Configure actual image digest/StorageClasses/Secrets/cluster identity and complete real release gates before unsuspending. Report storage and four per-profile state claims are separate; cleanup defaults to dry-run. Legacy root YAML files are historical standalone examples and are not the canonical deployment entry point.
 
 See [rollout/rollback](docs/runbooks/rollout.md), [retention/scheduling](docs/runbooks/report-retention.md) and [operations/ownership](docs/runbooks/operations.md). Real environment acceptance remains pending; ordinary alert delivery continues to existing fixed groups. D/F features are outside this preparation.

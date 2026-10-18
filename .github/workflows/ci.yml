@@ -41,21 +41,20 @@ jobs:
           (cd "$work" && sha256sum --check --ignore-missing checksums)
           tar -xzf "$work/$archive" -C "$work" kustomize
           install "$work/kustomize" "$HOME/.local/bin/kustomize"
-      - name: Source, installed wheel and rendered deployment contracts
-        run: python -m pytest tests/ -v
-      - name: Rule syntax and temporal behavior
-        run: |
-          promtool check rules deploy/monitoring/generated/inspection-rules.yaml
-          promtool test rules tests/prometheus/inspection-rules.test.yaml
-      - name: Build and record candidate
-        run: |
-          python -m build
-          python -m pip freeze > dependency-versions.txt
+      - name: Source, installed wheel, rendered monitoring and both rule suites
+        run: python -m tools.verify_release --offline --local-checks-only --output-dir out/ci-release
+      - name: Record resolved dependencies
+        run: python -m pip freeze > dependency-versions.txt
       - uses: actions/upload-artifact@v4
         with:
           name: wheel-python-${{ matrix.python }}
           path: |
-            dist/
+            out/ci-release/*.json
+            out/ci-release/*.log
+            out/ci-release/*.yaml
+            out/ci-release/configs/
+            out/ci-release/package/wheel/
+            out/ci-release/package/*.log
             dependency-versions.txt
   container:
     runs-on: ubuntu-latest
