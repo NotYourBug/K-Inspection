@@ -1,0 +1,6 @@
+Checking deploy/prometheus-alert-rules-k8s-inspector.yaml
+  SUCCESS: 5 rules found
+
+Checking .superpowers/sdd/2026-10-02-inspection-foundations-and-monitoring/base-k8s-inspector-rules.yaml
+  SUCCESS: 5 rules found
+

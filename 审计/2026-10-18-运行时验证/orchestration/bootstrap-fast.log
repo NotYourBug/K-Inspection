@@ -1,0 +1,95 @@
+3.11.16 create-venv
+3.11.16 clean-before
+3.11.16 install-dev
+3.11.16 pip-check
+3.11.16 freeze
+BOOTSTRAP PASSED 3.11.16
+3.9.25 create-venv
+3.9.25 clean-before
+3.9.25 install-dev
+3.9.25 pip-check
+3.9.25 freeze
+BOOTSTRAP PASSED 3.9.25
+3.14.7 create-venv
+3.14.7 clean-before
+3.14.7 install-dev
+3.14.7 pip-check
+3.14.7 freeze
+BOOTSTRAP PASSED 3.14.7
+{
+  "3.11.16": {
+    "version": "3.11.16",
+    "base_executable": "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\python-runtimes\\cpython-3.11.16-windows-x86_64-none\\python.exe",
+    "executable_sha256": "f2bb6d49cdd2fb49d0ce63c2a0143da37d9a4d52694803c2f92fd31db7fcb88b",
+    "create-venv": {
+      "exit": 0,
+      "seconds": 42.73
+    },
+    "clean-before": {
+      "exit": 0,
+      "seconds": 0.45
+    },
+    "install-dev": {
+      "exit": 0,
+      "seconds": 155.88
+    },
+    "pip-check": {
+      "exit": 0,
+      "seconds": 3.25
+    },
+    "freeze": {
+      "exit": 0,
+      "seconds": 2.52
+    }
+  },
+  "3.9.25": {
+    "version": "3.9.25",
+    "base_executable": "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\python-runtimes\\cpython-3.9.25-windows-x86_64-none\\python.exe",
+    "executable_sha256": "ffed286d02cbd97203fad2ac6e147c954851548e06c699b25a8b68c1a18c99b6",
+    "create-venv": {
+      "exit": 0,
+      "seconds": 44.55
+    },
+    "clean-before": {
+      "exit": 0,
+      "seconds": 0.5
+    },
+    "install-dev": {
+      "exit": 0,
+      "seconds": 148.44
+    },
+    "pip-check": {
+      "exit": 0,
+      "seconds": 4.92
+    },
+    "freeze": {
+      "exit": 0,
+      "seconds": 2.59
+    }
+  },
+  "3.14.7": {
+    "version": "3.14.7",
+    "base_executable": "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\python-runtimes\\cpython-3.14.7-windows-x86_64-none\\python.exe",
+    "executable_sha256": "915e54a0ed76d317bd1ed91fe0a6fa0afcf0c1a1733b132a28edea2f3db63bfd",
+    "create-venv": {
+      "exit": 0,
+      "seconds": 31.89
+    },
+    "clean-before": {
+      "exit": 0,
+      "seconds": 0.75
+    },
+    "install-dev": {
+      "exit": 0,
+      "seconds": 102.17
+    },
+    "pip-check": {
+      "exit": 0,
+      "seconds": 4.23
+    },
+    "freeze": {
+      "exit": 0,
+      "seconds": 1.7
+    }
+  }
+}

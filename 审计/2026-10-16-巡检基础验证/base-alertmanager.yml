@@ -1,0 +1,26 @@
+route:
+  receiver: feishu-bridge
+  # 通知聚合与事件身份分开；Bridge 按每条告警标签路由到已有群。
+  group_by: ["cluster"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 2h
+
+inhibit_rules:
+  - source_matchers:
+      - alertname="K8sInspectorStale"
+    target_matchers:
+      - alertname=~"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC"
+    equal: ["cluster", "profile"]
+
+receivers:
+  - name: feishu-bridge
+    webhook_configs:
+      - url: http://k8s-inspector-alert-bridge.kube-system.svc:8000/alert
+        send_resolved: true
+        # Async cutover: enable only after mounting the matching Secret in
+        # both processes. See docs/runbooks/bridge-delivery.md.
+        # http_config:
+        #   authorization:
+        #     type: Bearer
+        #     credentials_file: /etc/bridge-auth/token

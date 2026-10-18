@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+      - name: bridge
+        env:
+        - name: FEISHU_MODE
+          value: app
+        - name: FEISHU_CHAT_POLICY
+          value: fixed
+        - name: FEISHU_CHAT_ID
+          valueFrom:
+            secretKeyRef:
+              name: k8s-inspector-shadow-feishu
+              key: fixed_chat_id
+        - name: FEISHU_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              name: k8s-inspector-shadow-feishu
+              key: feishu_webhook
+              optional: true
+        - name: FEISHU_APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: k8s-inspector-shadow-feishu
+              key: app_id
+        - name: FEISHU_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: k8s-inspector-shadow-feishu
+              key: app_secret
+        - name: INSPECTOR_REPORT_DIR
+          value: /data/shadow
+        - name: INSPECTOR_REPORT_MAX_RESULTS
+          value: '5'
+        - name: INSPECTOR_REPORT_MAX_ITEMS
+          value: '3'
+        - name: PYTHONDONTWRITEBYTECODE
+          value: '1'
+        - name: HOME
+          value: /tmp
+        volumeMounts:
+        - name: out
+          mountPath: /data/shadow
+          readOnly: true
+      volumes:
+      - name: bridge-auth
+        secret:
+          secretName: inspector-shadow-bridge-auth
+          defaultMode: 288

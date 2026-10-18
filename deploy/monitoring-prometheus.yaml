@@ -1,3 +1,5 @@
+# Legacy monitoring baseline. V2 inventory/rules/scrape candidates: monitoring/generated.
+# Validate the composed shadow rollout before cutover; see docs/runbooks/inspection-monitoring.md.
 apiVersion: v1
 kind: ConfigMap
 metadata:

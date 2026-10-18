@@ -1,0 +1,8 @@
+Checking C:\Users\23033\Desktop\Cluster-Stability-Inspector\.superpowers\sdd\2026-10-02-production-release\pre-review-offline\configs\example-prometheus.yml
+  SUCCESS: 1 rule files found
+ SUCCESS: C:\Users\23033\Desktop\Cluster-Stability-Inspector\.superpowers\sdd\2026-10-02-production-release\pre-review-offline\configs\example-prometheus.yml is valid prometheus config file syntax
+
+Checking C:\Users\23033\Desktop\Cluster-Stability-Inspector\.superpowers\sdd\2026-10-02-production-release\pre-review-offline\configs\example-k8s-inspector-rules.yaml
+  SUCCESS: 5 rules found
+
+

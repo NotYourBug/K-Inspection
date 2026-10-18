@@ -1,0 +1,11 @@
+Checking C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3147\configs\shadow-prometheus.yml
+  SUCCESS: 2 rule files found
+ SUCCESS: C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3147\configs\shadow-prometheus.yml is valid prometheus config file syntax
+
+Checking C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3147\configs\shadow-inspection-v2-shadow.yaml
+  SUCCESS: 20 rules found
+
+Checking C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3147\configs\shadow-k8s-inspector-rules.yaml
+  SUCCESS: 5 rules found
+
+

@@ -1,0 +1,15 @@
+{
+  "3.11.16": {
+    "version": "3.11.16",
+    "base_executable": "C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\python-runtimes\\cpython-3.11.16-windows-x86_64-none\\python.exe",
+    "executable_sha256": "f2bb6d49cdd2fb49d0ce63c2a0143da37d9a4d52694803c2f92fd31db7fcb88b",
+    "create-venv": {
+      "exit": 0,
+      "seconds": 39.09
+    },
+    "clean-before": {
+      "exit": 0,
+      "seconds": 0.38
+    }
+  }
+}

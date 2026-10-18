@@ -1,0 +1,64 @@
+PRE-REVIEW WHEEL: C:\Users\23033\Desktop\Cluster-Stability-Inspector\.superpowers\sdd\2026-10-02-inspection-foundations-and-monitoring\installed\k8s_inspector\__init__.py
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____ test_r3_real_cli_preserves_shipped_legacy_metrics_and_report_groups _____
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1484/test_r3_real_cli_preserves_shi0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x00000222564469F0>
+
+    def test_r3_real_cli_preserves_shipped_legacy_metrics_and_report_groups(tmp_path,monkeypatch):
+        from k8s_inspector import cli
+        for key in ('INSPECTOR_CLUSTER','INSPECTOR_PROFILE','INSPECTOR_STATE_DIR','PUSHGATEWAY_URL','FEISHU_WEBHOOK'):
+            monkeypatch.delenv(key,raising=False)
+        snap=healthy_snapshot()
+        with ApiClient() as serializer:
+            objects={
+                '/api/v1/nodes':serializer.sanitize_for_serialization(snap.collections['nodes'].items),
+                '/api/v1/pods':serializer.sanitize_for_serialization(snap.collections['pods'].items),
+                '/api/v1/persistentvolumeclaims':serializer.sanitize_for_serialization([pvc('pending',phase='Pending',storage_class='')]),
+                '/apis/storage.k8s.io/v1/storageclasses':[],
+                '/apis/metrics.k8s.io/v1beta1/nodes':list(snap.collections['node_metrics'].items)}
+        pushed=[]
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                path=urlsplit(self.path).path
+                if path=='/healthz':
+                    body=b'ok'
+                elif path in objects:
+                    body=json.dumps({'metadata':{'resourceVersion':'1'},'items':objects[path]}).encode()
+                else:
+                    self.send_error(404)
+                    return
+                self.send_response(200)
+                self.send_header('Content-Type','application/json')
+                self.send_header('Content-Length',str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            def do_PUT(self):
+                pushed.append(self.rfile.read(int(self.headers['Content-Length'])).decode())
+                self.send_response(200)
+                self.end_headers()
+            def log_message(self,*args):
+                pass
+        server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+        thread=Thread(target=server.serve_forever,daemon=True)
+        thread.start()
+        try:
+            url=f'http://127.0.0.1:{server.server_port}'
+            config=kubeconfig(tmp_path/'config',url)
+            result=cli.main(['run','--kubeconfig',config,'--cluster','prod','--profile','hourly',
+                '--output-dir',str(tmp_path/'out'),'--formats','json,csv,html','--pushgateway-url',url])
+            assert result==2
+            assert len(pushed)==1
+            samples=[s for metric in text_string_to_metric_families(pushed[0]) for s in metric.samples]
+            def value(name,labels):
+                return next((s.value for s in samples if s.name==name and s.labels==labels),None)
+>           assert value('k8s_inspector_check_issue_count',
+                {'cluster':'prod','profile':'hourly','check':'pvcs','issue':'pending'})==1
+E               AssertionError: assert None == 1
+E                +  where None = <function test_r3_real_cli_preserves_shipped_legacy_metrics_and_report_groups.<locals>.value at 0x0000022258C9D300>('k8s_inspector_check_issue_count', {'cluster': 'prod', 'profile': 'hourly', 'check': 'pvcs', 'issue': 'pending'})
+
+tests\test_foundations_review_http_cli.py:61: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_http_cli.py::test_r3_real_cli_preserves_shipped_legacy_metrics_and_report_groups
+1 failed in 14.03s

@@ -1,0 +1,152 @@
+FFFFFFF                                                                  [100%]
+================================== FAILURES ===================================
+_______ test_backup_restore_preserves_pending_and_schema_including_wal ________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA2418F80>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1434/test_backup_restore_preserves_0')
+
+    def test_backup_restore_preserves_pending_and_schema_including_wal(store, tmp_path):
+        # Keep an independent live reader so committed data can still reside in WAL.
+        reader = sqlite3.connect(store.path)
+        try:
+            reader.execute("BEGIN")
+            reader.execute("select * from outbox").fetchall()
+            store.accept("am", batch(), (target("b"),), NOW)
+>           backup = store.backup(tmp_path / "backup.db")
+                     ^^^^^^^^^^^^
+E           AttributeError: 'DeliveryStore' object has no attribute 'backup'
+
+tests\test_bridge_migrations.py:26: AttributeError
+_________ test_backup_never_overwrites_existing_destination_or_source _________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA2418DD0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1434/test_backup_never_overwrites_e0')
+
+    def test_backup_never_overwrites_existing_destination_or_source(store, tmp_path):
+        destination = tmp_path / "existing.db"
+        destination.write_bytes(b"existing-backup")
+        with pytest.raises((ValueError, StorageUnavailable)):
+>           store.backup(destination)
+            ^^^^^^^^^^^^
+E           AttributeError: 'DeliveryStore' object has no attribute 'backup'
+
+tests\test_bridge_migrations.py:39: AttributeError
+_____________ test_migration_backups_before_transactional_upgrade _____________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA2327440>
+
+    def test_migration_backups_before_transactional_upgrade(store):
+        downgrade_fixture_to_v1(store)
+>       storage.migrate(store.path, 2)
+        ^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.bridge_store' has no attribute 'migrate'
+
+tests\test_bridge_migrations.py:54: AttributeError
+_____________ test_interrupted_migration_rolls_back_and_can_retry _____________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA2418B90>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001BEA2418C50>
+
+    def test_interrupted_migration_rolls_back_and_can_retry(store, monkeypatch):
+        downgrade_fixture_to_v1(store)
+        def interrupted(db, backup):
+            db.execute("create table incomplete (value TEXT)")
+            raise sqlite3.OperationalError("interrupted")
+        with monkeypatch.context() as scoped:
+>           scoped.setitem(storage.MIGRATIONS, 2, interrupted)
+                           ^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.bridge_store' has no attribute 'MIGRATIONS'
+
+tests\test_bridge_migrations.py:71: AttributeError
+________________ test_newer_or_incomplete_schema_fails_closed _________________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA2418F50>
+
+    def test_newer_or_incomplete_schema_fails_closed(store):
+        with sqlite3.connect(store.path) as db:
+            db.execute("update schema_version set version=999")
+        with pytest.raises(UnsupportedSchema):
+            DeliveryStore(store.path)
+        with pytest.raises(UnsupportedSchema):
+>           storage.migrate(store.path, 2)
+            ^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.bridge_store' has no attribute 'migrate'
+
+tests\test_bridge_migrations.py:87: AttributeError
+_______ test_restoring_old_backup_can_replay_a_confirmed_external_send ________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA241A480>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1434/test_restoring_old_backup_can_0')
+
+    def test_restoring_old_backup_can_replay_a_confirmed_external_send(store, tmp_path):
+>       backup = store.backup(tmp_path / "pending-backup.db")
+                 ^^^^^^^^^^^^
+E       AttributeError: 'DeliveryStore' object has no attribute 'backup'
+
+tests\test_bridge_migrations.py:96: AttributeError
+______________ test_local_admin_backup_uses_consistent_snapshot _______________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x000001BEA241AFF0>
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1434/test_local_admin_backup_uses_c0')
+capsys = <_pytest.capture.CaptureFixture object at 0x000001BEA241B4D0>
+
+    def test_local_admin_backup_uses_consistent_snapshot(store, tmp_path, capsys):
+        from k8s_inspector.bridge_admin import main
+        backup = tmp_path / "admin-backup.db"
+>       assert main(["--db", str(store.path), "backup", "--destination", str(backup)]) == 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_migrations.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+argv = ['--db', 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1434\\test_local_admin_backup_uses_c0\\bridg...:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1434\\test_local_admin_backup_uses_c0\\admin-backup.db']
+
+    def main(argv=None) -> int:
+        parser = argparse.ArgumentParser(prog="inspector-bridge-admin")
+        parser.add_argument("--db", required=True)
+        sub = parser.add_subparsers(dest="command", required=True)
+        inspect = sub.add_parser("inspect")
+        inspect.add_argument("--delivery-id")
+        inspect.add_argument("--include-payload", action="store_true")
+        requeue = sub.add_parser("requeue")
+        requeue.add_argument("--delivery-id", required=True)
+        requeue.add_argument("--reason", required=True)
+        backup = sub.add_parser("backup")
+        backup.add_argument("--destination", required=True)
+        prune = sub.add_parser("prune")
+        prune.add_argument("--retention-days", type=int, default=30)
+        args = parser.parse_args(argv)
+        now = datetime.now(timezone.utc)
+        try:
+            if not Path(args.db).is_file():
+                raise ValueError("maintenance requires an existing delivery database")
+            store = DeliveryStore(Path(args.db))
+            if args.command == "inspect":
+                jobs = (store.get_job(args.delivery_id),) if args.delivery_id else store.list_jobs()
+                data = []
+                for job in jobs:
+                    item = asdict(job)
+                    if not args.include_payload:
+                        item.pop("payload")
+                    if args.delivery_id:
+                        item["events"] = store.events(job.delivery_id)
+                    data.append(item)
+                result = {"stats": asdict(store.stats(now)), "jobs": data}
+            elif args.command == "requeue":
+                store.requeue(args.delivery_id, args.reason, now)
+                result = {"requeued": args.delivery_id}
+            elif args.command == "backup":
+>               result = {"backup": str(store.backup(Path(args.destination)))}
+                                        ^^^^^^^^^^^^
+E               AttributeError: 'DeliveryStore' object has no attribute 'backup'
+
+k8s_inspector\bridge_admin.py:46: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_migrations.py::test_backup_restore_preserves_pending_and_schema_including_wal
+FAILED tests/test_bridge_migrations.py::test_backup_never_overwrites_existing_destination_or_source
+FAILED tests/test_bridge_migrations.py::test_migration_backups_before_transactional_upgrade
+FAILED tests/test_bridge_migrations.py::test_interrupted_migration_rolls_back_and_can_retry
+FAILED tests/test_bridge_migrations.py::test_newer_or_incomplete_schema_fails_closed
+FAILED tests/test_bridge_migrations.py::test_restoring_old_backup_can_replay_a_confirmed_external_send
+FAILED tests/test_bridge_migrations.py::test_local_admin_backup_uses_consistent_snapshot
+7 failed in 1.01s

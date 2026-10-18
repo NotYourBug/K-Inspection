@@ -1,0 +1,3915 @@
+# Review package: ac2a8b9..1eb94083a330f98f6ee17c1464ff2a56e2df5af1
+
+## Commits
+1eb9408 docs: document offline release operations and pending acceptance
+f4cb166 feat: prepare isolated shadow rollout and rollback guards
+129c984 build: verify installed artifacts and prepare container CI
+93ba9c1 feat: generate bounded schedules from inspection profiles
+89f4c37 feat: separate inspector base and optional deployment components
+d40e652 build: establish constrained wheel installation verification
+
+## Files changed
+ .dockerignore                                      |  16 +
+ .gitattributes                                     |   7 +
+ .github/workflows/ci.yml                           |  77 +++++
+ AGENTS.md                                          |  10 +
+ Dockerfile                                         |  29 +-
+ README.md                                          |  20 ++
+ constraints/build.txt                              |  10 +
+ constraints/runtime.txt                            |   7 +
+ deploy/base/cleanup-cronjob.yaml                   |  62 ++++
+ deploy/base/cronjobs-by-frequency.yaml             | 315 +++++++++++++++++
+ deploy/base/kustomization.yaml                     |  15 +
+ deploy/base/rbac.yaml                              |  81 +++++
+ deploy/base/storage.yaml                           |  79 +++++
+ deploy/cleanup-cronjob.yaml                        |  98 ++++--
+ deploy/components/bridge-async/bridge.yaml         |  42 +--
+ deploy/components/bridge-async/kustomization.yaml  |   8 +-
+ deploy/components/bridge-async/state-pvc.yaml      |  15 +
+ deploy/components/bridge/kustomization.yaml        |   4 +
+ deploy/components/bridge/resources.yaml            | 151 ++++++++
+ .../alertmanager-config.yaml                       |  14 +
+ .../monitoring-bridge-auth/alertmanager.yaml       |  21 ++
+ .../monitoring-bridge-auth/kustomization.yaml      |   5 +
+ deploy/components/monitoring/kustomization.yaml    |   4 +
+ deploy/components/monitoring/resources.yaml        | 366 ++++++++++++++++++++
+ deploy/cronjobs-by-frequency.yaml                  | 380 ++++++++++++++-------
+ deploy/kustomization.yaml                          |  13 +-
+ deploy/overlays/example/kustomization.yaml         |  22 ++
+ deploy/overlays/shadow/am-auth-shadow.yaml         |  13 +
+ deploy/overlays/shadow/am-shadow.yaml              |  15 +
+ deploy/overlays/shadow/bridge-shadow.yaml          |  55 +++
+ deploy/overlays/shadow/control-role.yaml           |   7 +
+ deploy/overlays/shadow/control-rolebinding.yaml    |   7 +
+ deploy/overlays/shadow/inventory.yaml              |  94 +++++
+ deploy/overlays/shadow/kustomization.yaml          |  59 ++++
+ deploy/overlays/shadow/namespace-transformer.yaml  |  28 ++
+ deploy/overlays/shadow/namespace.yaml              |   4 +
+ deploy/overlays/shadow/prom-shadow.yaml            |  12 +
+ deploy/overlays/shadow/rbac-transformer.yaml       |  14 +
+ deploy/overlays/shadow/rules-shadow.yaml           | 141 ++++++++
+ deploy/storage/pv-nfs.yaml                         |  29 +-
+ docs/runbooks/operations.md                        |  44 +++
+ docs/runbooks/report-retention.md                  |  19 ++
+ docs/runbooks/rollout.md                           |  38 +++
+ .../plans/2026-10-02-production-release.md         |  54 ++-
+ .../plans/2026-10-02-remediation-roadmap.md        |   5 +
+ pyproject.toml                                     |  16 +-
+ requirements.txt                                   |   8 +-
+ tests/deployment_helpers.py                        |  21 ++
+ tests/test_deployment_contract.py                  |  68 ++++
+ tests/test_installed_package.py                    |  74 ++++
+ tests/test_release_artifacts.py                    |  44 +++
+ tests/test_rollout_scenarios.py                    |  58 ++++
+ tests/test_scheduling_contract.py                  |  53 +++
+ tools/render_cronjobs.py                           |  57 ++++
+ tools/rollout.py                                   |  34 ++
+ tools/templates/inspector-cronjob.yaml             |  70 ++++
+ tools/verify_release.py                            | 223 ++++++++++++
+ 57 files changed, 2978 insertions(+), 257 deletions(-)
+
+## Diff
+diff --git a/.dockerignore b/.dockerignore
+new file mode 100644
+index 0000000..9a7daa6
+--- /dev/null
++++ b/.dockerignore
+@@ -0,0 +1,16 @@
++.git
++.venv
++.superpowers
++.env
++.env.*
++.kube
++*.pem
++*.key
++out
++审计
++tests
++docs
++build
++dist
++__pycache__
++*.egg-info
+diff --git a/.gitattributes b/.gitattributes
+index d304859..78f4060 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -1,8 +1,15 @@
+ # These audit artifacts are hashed as captured. Keep their original bytes on
+ # every checkout; platform newline conversion would invalidate the manifest.
+ /审计/2026-10-15-可靠投递验证/** -text
+ /审计/1[345]-* -text
+ /deploy/monitoring/generated/** text eol=lf
+ 
+ /审计/2026-10-16-巡检基础验证/** -text
+ /审计/1[678]-* -text
++
++/deploy/base/cronjobs-by-frequency.yaml text eol=lf
++/deploy/cronjobs-by-frequency.yaml text eol=lf
++
++/Dockerfile text eol=lf
++
++/deploy/storage/pv-nfs.yaml text eol=lf
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+new file mode 100644
+index 0000000..a7e775f
+--- /dev/null
++++ b/.github/workflows/ci.yml
+@@ -0,0 +1,77 @@
++name: Offline release preparation
++on:
++  push:
++  pull_request:
++  workflow_dispatch:
++permissions:
++  contents: read
++jobs:
++  source-and-wheel:
++    runs-on: ubuntu-latest
++    strategy:
++      fail-fast: false
++      matrix:
++        python: ['3.9', '3.11', '3.14']
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: ${{ matrix.python }}
++      - name: Install constrained development environment
++        run: python -m pip install -r requirements.txt
++      - name: Install fixed validation tools with official checksums
++        shell: bash
++        run: |
++          set -euo pipefail
++          mkdir -p "$HOME/.local/bin"
++          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
++          work="$(mktemp -d)"
++          for spec in prometheus:2.53.0:promtool alertmanager:0.27.0:amtool; do
++            IFS=: read -r project version executable <<< "$spec"
++            archive="$project-$version.linux-amd64.tar.gz"
++            curl -fsSL "https://github.com/prometheus/$project/releases/download/v$version/$archive" -o "$work/$archive"
++            curl -fsSL "https://github.com/prometheus/$project/releases/download/v$version/sha256sums.txt" -o "$work/checksums"
++            (cd "$work" && sha256sum --check --ignore-missing checksums)
++            tar -xzf "$work/$archive" -C "$work" "$project-$version.linux-amd64/$executable"
++            install "$work/$project-$version.linux-amd64/$executable" "$HOME/.local/bin/$executable"
++          done
++          archive=kustomize_v5.4.3_linux_amd64.tar.gz
++          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/$archive" -o "$work/$archive"
++          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/checksums.txt" -o "$work/checksums"
++          (cd "$work" && sha256sum --check --ignore-missing checksums)
++          tar -xzf "$work/$archive" -C "$work" kustomize
++          install "$work/kustomize" "$HOME/.local/bin/kustomize"
++      - name: Source, installed wheel and rendered deployment contracts
++        run: python -m pytest tests/ -v
++      - name: Rule syntax and temporal behavior
++        run: |
++          promtool check rules deploy/monitoring/generated/inspection-rules.yaml
++          promtool test rules tests/prometheus/inspection-rules.test.yaml
++      - name: Build and record candidate
++        run: |
++          python -m build
++          python -m pip freeze > dependency-versions.txt
++      - uses: actions/upload-artifact@v4
++        with:
++          name: wheel-python-${{ matrix.python }}
++          path: |
++            dist/
++            dependency-versions.txt
++  container:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-python@v5
++        with:
++          python-version: '3.11'
++      - run: python -m pip install -r requirements.txt
++      - run: docker build -t k8s-inspector:ci .
++      - name: Real CLI and Bridge container smoke
++        env:
++          INSPECTOR_TEST_IMAGE: k8s-inspector:ci
++        run: python -m pytest tests/test_release_artifacts.py -k image_cli -v
++      - run: docker image inspect k8s-inspector:ci > image-metadata.json
++      - uses: actions/upload-artifact@v4
++        with:
++          name: image-metadata
++          path: image-metadata.json
+diff --git a/AGENTS.md b/AGENTS.md
+index d9e3607..333ce48 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -109,10 +109,20 @@ deploy/               # Kustomize manifests: RBAC, CronJobs (by frequency), Prom
+ - **Two Feishu providers, fixed chat policy**: `webhook` sends text to an existing group; `app` sends cards to existing chat IDs with optional exact-label responsibility routing and a required fallback. No automatic create/invite/rename operations. Manual incident escalation remains D work.
+ - **Bridge delivery contract**: default sync200 confirms provider success; opt-in async202 confirms atomic persistent acceptance only. Async requires source authentication and SQLite on a verified local/block PVC, replicas1/Recreate; no NFS/HA SQLite. Stable delivery ID/UUID, lease60s, provider HTTP timeout10s, max6 attempts, retry5/15/45/120/300s + jitter,900s retry deadline from first claim. Unknown results remain auditable; no exactly-once claim. See docs/runbooks/bridge-delivery.md for cutover/recovery/release gates.
+ - **Bridge order and disposition**: schema3 persists source/destination FIFO and per-alert cycle membership; A→B→A is a new transition even while old A is pending, unrelated HA interleaving still deduplicates. FIFO can delay later same-channel notifications. Local resolve-dead/acknowledge-unknown append reasoned audit and distinguish historical facts from unresolved counts. Backup requires a prepared directory and durable non-overwriting publication.
+ - **The MCP server** (`mcp_server.py`) is fully self-contained — it duplicates `parse_quantity`, `_BAD_POD_REASONS`, `_pod_issue`, and client init rather than importing from the shared modules. This is intentional so it can be deployed independently.
+ - **Report storage layering**: every run atomically refreshes latest/<profile>/report.json, even with persist-level issue/none; extra output/archive respects persistence policy. Canonical deployed latest/archive paths remain supported. Archives use UTC buckets plus unique run directories. cleanup supports --dry-run, rejects symlink/reparse targets and reports deletion failures; hourly7/daily30 days retained.
+ - **Output evidence**: run-status.json records attempted sinks and execution quality independently of the legacy Report root. Prometheus run/sink metrics describe completed attempts before metrics push; that push result is in status/logs. Persistent last-valid and confirmed-positive state now preserve faults through unknown collection; independent expected inventory and primary-profile rules are generated under deploy/monitoring/generated in shadow mode. Real volume/runtime/receiver/cutover gates remain E work; see docs/runbooks/inspection-monitoring.md.
+ 
+ - C review closure: per-rule Node/control/Pod evaluators isolate siblings; SDK retries disabled in the shared loader; page/rule deadlines rechecked after response/evaluation. API health supports old/new SDK call interfaces. In-cluster requires explicit cluster identity; kubeconfig fallback binds selected source/context/server via hash.
+ - INFO evidence carries healthy utilization and ordinary Event cursors; only WARN/FAIL count as faults. Event deltas require a trustworthy recent baseline/window. Addon shortage requires complete selector membership. UID observations describe seen resources only.
+ - compatibility.py projects v2 evidence to legacy check groups and existing metric selectors, omitting unknown counters; CSV keeps independent rule_id/UID rows. Older positive writes/exports cannot override newer complete healthy evidence.
++
++
++## Offline release preparation (E)
++
++- pyproject.toml is dependency declaration source; requirements.txt installs constrained .[dev]. Direct runtime/tool constraints are not a full transitive lock. Actual Python3.9/3.11/3.14 CI and container results remain required.
++- tools/verify_release.py builds an installed wheel and records source/tool/config checks. --offline shares preinstalled dependency paths only for source-isolated import smoke, never pulls Docker images and leaves clean install/runtime/storage/receiver acceptance pending; result success is false until every mandatory check passes.
++- deploy/ is suspended inspector base only. Explicit overlays/example adds optional Bridge async/monitoring; overlays/shadow isolates namespace, outputs, job and Secret references. The control-plane Role stays in kube-system; namespace changes require matching RBAC.
++- tools/render_cronjobs.py consumes PROFILES, adds30s deadline margin and explicit Asia/Shanghai (target API support must be verified). Forbid/backoffLimit0; full remains manual. Each scheduled profile uses a separate block-state claim; report storage is separate. Cleanup is dry-run by default.
++- Dockerfile uses a verified official Python3.11 manifest digest and installs a wheel as nonroot. Building/smoking it, selecting an actual published image digest and validating volumes/CNI/separate real notification destinations remain external gates. No auto-publish or deployment.
++- tools/rollout.py is a read-only planning guard; it does not inspect actual DB counts or authorize rollback. Preserve outbox/observation state and compatible schema. See rollout.md, operations.md and report-retention.md.
+diff --git a/Dockerfile b/Dockerfile
+index 1fa304f..93bf15a 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -1,12 +1,17 @@
+-FROM python:3.11-slim
+-
+-WORKDIR /app
+-
+-COPY requirements.txt /app/requirements.txt
+-RUN pip install --no-cache-dir -r /app/requirements.txt
+-
+-COPY k8s_inspector /app/k8s_inspector
+-COPY pyproject.toml /app/pyproject.toml
+-COPY README.md /app/README.md
+-
+-ENTRYPOINT ["python", "-m", "k8s_inspector.cli"]
++# Official multi-platform manifest digest verified from registry-1.docker.io.
++FROM python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89 AS builder
++WORKDIR /build
++COPY constraints /build/constraints
++RUN python -m pip install --no-cache-dir -c constraints/build.txt build setuptools wheel
++COPY pyproject.toml README.md /build/
++COPY k8s_inspector /build/k8s_inspector
++RUN python -m build --wheel --no-isolation --outdir /wheel
++
++FROM python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89
++ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/tmp
++WORKDIR /app
++COPY constraints/runtime.txt /constraints/runtime.txt
++COPY --from=builder /wheel /wheel
++RUN python -m pip install --no-cache-dir -c /constraints/runtime.txt /wheel/*.whl && python -m pip check
++USER 10001:10001
++ENTRYPOINT ["python", "-m", "k8s_inspector.cli"]
+diff --git a/README.md b/README.md
+index 7e98699..cce1891 100644
+--- a/README.md
++++ b/README.md
+@@ -345,10 +345,30 @@ Only complete known aggregate observations replace last-valid state. FAIL → ER
+ 
+ The new bounded `inspector_*` metrics separate run success, collection completeness, current observation validity, last-valid time/failures and sink success. Object UIDs, Pod names, fingerprints and run IDs remain in reports/state, outside these metric labels. Legacy `k8s_inspector_*` metrics remain for compatibility. Each push uses a new registry and PUT replacement for the same job/cluster/profile grouping key. Remove an old job/grouping key only after validating the new shadow rules; do not broadly delete other clusters' metrics. Persistent event cursors bind cluster/profile/UID and distinguish repeated series from count increments; counts without a prior cursor remain explicitly cumulative.
+ 
+ ## Independent expected-target monitoring
+ 
+ `deploy/monitoring/expected-targets.example.yaml` defines expected cluster/profile/rule targets even before their first successful run. Generate candidates with `python -m tools.render_monitoring --targets deploy/monitoring/expected-targets.example.yaml --output deploy/monitoring/generated`. The independent inventory service exposes expected metrics from a read-only ConfigMap; its own scrape failure or removal also alerts. New business rules have exactly one primary profile per catalog rule and retain confirmed failures through collection errors. Positive partial evidence is persisted separately without becoming a complete valid observation.
+ 
+ New rules default to `shadow="true"`; install the null shadow route before loading them. Existing active rules remain until controlled cutover. Activation requires an independent quality receiver and the storage, runtime, API and real-cluster gates in [the cutover runbook](docs/runbooks/inspection-monitoring.md). Local generation and tests do not deploy resources or send notifications.
+ 
+ Local kubeconfig runs derive a stable connection-bound fallback identity; production and in-cluster runs should use an explicit `--cluster` / `INSPECTOR_CLUSTER` / config `cluster_id` (mandatory in-cluster). INFO findings preserve measurements and Event cursors without counting as faults. Event totals without a trustworthy window/baseline remain UNKNOWN. See the monitoring runbook for shadow rollout and release gates.
++
++
++## Offline release preparation
++
++`pyproject.toml` owns runtime/development declarations; `requirements.txt` is the constrained development install entry point. `constraints/runtime.txt` pins selected direct dependencies (SDK29 for Python3.9, SDK37 for newer Python); `constraints/build.txt` selects compatible build/test tools. Transitive versions and the declared runtime matrix still require actual clean-install evidence.
++
++```sh
++python -m pip install -r requirements.txt
++python -m tools.render_cronjobs --output deploy/base/cronjobs-by-frequency.yaml
++python -m tools.verify_release --offline --output-dir ./out/release-check
++kustomize build deploy
++kustomize build deploy/overlays/example
++kustomize build deploy/overlays/shadow
++```
++
++The verifier writes per-check evidence and returns1 while any mandatory check is failed/pending; offline mode never pulls/builds Docker images and explicitly records shared dependency bootstrap. `.github/workflows/ci.yml` is a prepared GitHub example, not a run CI result. No package/image is automatically published.
++
++The default `deploy` now contains only suspended inspector jobs/RBAC/storage. The full example and namespace-isolated shadow monitoring/async Bridge are explicit overlays. Configure actual image digest/StorageClasses/Secrets/cluster identity and complete real release gates before unsuspending. Report storage and four per-profile state claims are separate; cleanup defaults to dry-run. Legacy root YAML files are historical standalone examples and are not the canonical deployment entry point.
++
++See [rollout/rollback](docs/runbooks/rollout.md), [retention/scheduling](docs/runbooks/report-retention.md) and [operations/ownership](docs/runbooks/operations.md). Real environment acceptance remains pending; ordinary alert delivery continues to existing fixed groups. D/F features are outside this preparation.
+diff --git a/constraints/build.txt b/constraints/build.txt
+new file mode 100644
+index 0000000..845f8a5
+--- /dev/null
++++ b/constraints/build.txt
+@@ -0,0 +1,10 @@
++# Primary >=3.10 tools match the locally tested baseline.
++# Python3.9 retains older compatible tools; actual matrix runs remain required.
++setuptools==80.9.0; python_version < "3.10"
++setuptools==84.0.0; python_version >= "3.10"
++wheel==0.48.0
++build==1.2.2.post1; python_version < "3.10"
++build==1.6.1; python_version >= "3.10"
++pytest==8.4.2; python_version < "3.10"
++pytest==9.1.1; python_version >= "3.10"
++tomli==2.3.0; python_version < "3.11"
+diff --git a/constraints/runtime.txt b/constraints/runtime.txt
+new file mode 100644
+index 0000000..3a5701f
+--- /dev/null
++++ b/constraints/runtime.txt
+@@ -0,0 +1,7 @@
++# Release direct-dependency constraints; transitive resolution is recorded per build.
++# Python3.9 compatibility uses the older supported SDK call interface.
++kubernetes==29.0.0; python_version < "3.10"
++kubernetes==37.0.1; python_version >= "3.10"
++PyYAML==6.0.3
++prometheus-client==0.26.0
++lark-oapi==1.7.5
+diff --git a/deploy/base/cleanup-cronjob.yaml b/deploy/base/cleanup-cronjob.yaml
+new file mode 100644
+index 0000000..47c8741
+--- /dev/null
++++ b/deploy/base/cleanup-cronjob.yaml
+@@ -0,0 +1,62 @@
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-cleanup
++  namespace: kube-system
++spec:
++  schedule: 30 3 * * *
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: cleanup
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - cleanup
++            - --root
++            - /data/out/archive
++            - --hourly-days
++            - '7'
++            - --daily-days
++            - '30'
++            - --dry-run
++            env:
++            - name: INSPECTOR_EXIT_MODE
++              value: always0
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 10m
++                memory: 64Mi
++              limits:
++                cpu: 200m
++                memory: 256Mi
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          automountServiceAccountToken: false
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++      activeDeadlineSeconds: 930
++      backoffLimit: 0
++  suspend: true
++  timeZone: Asia/Shanghai
+diff --git a/deploy/base/cronjobs-by-frequency.yaml b/deploy/base/cronjobs-by-frequency.yaml
+new file mode 100644
+index 0000000..5971b59
+--- /dev/null
++++ b/deploy/base/cronjobs-by-frequency.yaml
+@@ -0,0 +1,315 @@
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-dataplane-5m
++  namespace: kube-system
++spec:
++  schedule: '*/5 * * * *'
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - 5m
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/latest/5m
++            - --persist-level
++            - issue
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-5m
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 270
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
++---
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-controlplane-10m
++  namespace: kube-system
++spec:
++  schedule: '*/10 * * * *'
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - 10m
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/latest/10m
++            - --persist-level
++            - issue
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-10m
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 510
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
++---
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-infra-hourly
++  namespace: kube-system
++spec:
++  schedule: 0 * * * *
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - hourly
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/archive/hourly
++            - --archive
++            - hourly
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-hourly
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 930
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
++---
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-daily
++  namespace: kube-system
++spec:
++  schedule: 0 2 * * *
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - daily
++            - --formats
++            - json,html
++            - --output-dir
++            - /data/out/archive/daily
++            - --archive
++            - daily
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-daily
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 1830
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
+diff --git a/deploy/base/kustomization.yaml b/deploy/base/kustomization.yaml
+new file mode 100644
+index 0000000..dad978a
+--- /dev/null
++++ b/deploy/base/kustomization.yaml
+@@ -0,0 +1,15 @@
++apiVersion: kustomize.config.k8s.io/v1beta1
++kind: Kustomization
++resources:
++- rbac.yaml
++- storage.yaml
++- cronjobs-by-frequency.yaml
++- cleanup-cronjob.yaml
++configMapGenerator:
++- name: k8s-inspector-runtime
++  namespace: kube-system
++  literals:
++  - INSPECTOR_CLUSTER=replace-with-cluster-id
++  - INSPECTOR_EXIT_MODE=always0
++  - PUSHGATEWAY_URL=
++  - PUSHGATEWAY_JOB=k8s-inspector
+diff --git a/deploy/base/rbac.yaml b/deploy/base/rbac.yaml
+new file mode 100644
+index 0000000..2026b29
+--- /dev/null
++++ b/deploy/base/rbac.yaml
+@@ -0,0 +1,81 @@
++apiVersion: v1
++kind: ServiceAccount
++metadata:
++  name: k8s-inspector
++  namespace: kube-system
++---
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRole
++metadata:
++  name: k8s-inspector
++rules:
++- apiGroups:
++  - ''
++  resources:
++  - nodes
++  - pods
++  - events
++  - persistentvolumeclaims
++  verbs:
++  - get
++  - list
++- apiGroups:
++  - storage.k8s.io
++  resources:
++  - storageclasses
++  verbs:
++  - get
++  - list
++- apiGroups:
++  - metrics.k8s.io
++  resources:
++  - nodes
++  verbs:
++  - get
++  - list
++- nonResourceURLs:
++  - /healthz
++  verbs:
++  - get
++---
++apiVersion: rbac.authorization.k8s.io/v1
++kind: Role
++metadata:
++  name: k8s-inspector-addon-observer
++  namespace: kube-system
++rules:
++- apiGroups:
++  - apps
++  resources:
++  - deployments
++  - daemonsets
++  verbs:
++  - get
++  - list
++---
++apiVersion: rbac.authorization.k8s.io/v1
++kind: RoleBinding
++metadata:
++  name: k8s-inspector-addon-observer
++  namespace: kube-system
++roleRef:
++  apiGroup: rbac.authorization.k8s.io
++  kind: Role
++  name: k8s-inspector-addon-observer
++subjects:
++- kind: ServiceAccount
++  name: k8s-inspector
++  namespace: kube-system
++---
++apiVersion: rbac.authorization.k8s.io/v1
++kind: ClusterRoleBinding
++metadata:
++  name: k8s-inspector
++roleRef:
++  apiGroup: rbac.authorization.k8s.io
++  kind: ClusterRole
++  name: k8s-inspector
++subjects:
++- kind: ServiceAccount
++  name: k8s-inspector
++  namespace: kube-system
+diff --git a/deploy/base/storage.yaml b/deploy/base/storage.yaml
+new file mode 100644
+index 0000000..ff09b06
+--- /dev/null
++++ b/deploy/base/storage.yaml
+@@ -0,0 +1,79 @@
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-out
++  namespace: kube-system
++  labels:
++    inspector.storage: report
++spec:
++  accessModes:
++  - ReadWriteMany
++  volumeMode: Filesystem
++  storageClassName: replace-with-report-sc
++  resources:
++    requests:
++      storage: 10Gi
++---
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-state-5m
++  namespace: kube-system
++  labels:
++    inspector.storage: state
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: replace-with-verified-block-sc
++  resources:
++    requests:
++      storage: 1Gi
++---
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-state-10m
++  namespace: kube-system
++  labels:
++    inspector.storage: state
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: replace-with-verified-block-sc
++  resources:
++    requests:
++      storage: 1Gi
++---
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-state-hourly
++  namespace: kube-system
++  labels:
++    inspector.storage: state
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: replace-with-verified-block-sc
++  resources:
++    requests:
++      storage: 1Gi
++---
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-state-daily
++  namespace: kube-system
++  labels:
++    inspector.storage: state
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: replace-with-verified-block-sc
++  resources:
++    requests:
++      storage: 1Gi
+diff --git a/deploy/cleanup-cronjob.yaml b/deploy/cleanup-cronjob.yaml
+index ae79c48..47c8741 100644
+--- a/deploy/cleanup-cronjob.yaml
++++ b/deploy/cleanup-cronjob.yaml
+@@ -1,36 +1,62 @@
+-apiVersion: batch/v1
+-kind: CronJob
+-metadata:
+-  name: k8s-inspector-cleanup
+-  namespace: kube-system
+-spec:
+-  schedule: "30 3 * * *"
+-  concurrencyPolicy: Forbid
+-  jobTemplate:
+-    spec:
+-      template:
+-        spec:
+-          serviceAccountName: k8s-inspector
+-          restartPolicy: Never
+-          containers:
+-            - name: cleanup
+-              image: your-registry/k8s-inspector:0.1.0
+-              imagePullPolicy: IfNotPresent
+-              args:
+-                - cleanup
+-                - --root
+-                - /data/out/archive
+-                - --hourly-days
+-                - "7"
+-                - --daily-days
+-                - "30"
+-              env:
+-                - name: INSPECTOR_EXIT_MODE
+-                  value: "always0"
+-              volumeMounts:
+-                - name: out
+-                  mountPath: /data/out
+-          volumes:
+-            - name: out
+-              persistentVolumeClaim:
+-                claimName: k8s-inspector-out
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-cleanup
++  namespace: kube-system
++spec:
++  schedule: 30 3 * * *
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: cleanup
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - cleanup
++            - --root
++            - /data/out/archive
++            - --hourly-days
++            - '7'
++            - --daily-days
++            - '30'
++            - --dry-run
++            env:
++            - name: INSPECTOR_EXIT_MODE
++              value: always0
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 10m
++                memory: 64Mi
++              limits:
++                cpu: 200m
++                memory: 256Mi
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          automountServiceAccountToken: false
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++      activeDeadlineSeconds: 930
++      backoffLimit: 0
++  suspend: true
++  timeZone: Asia/Shanghai
+diff --git a/deploy/components/bridge-async/bridge.yaml b/deploy/components/bridge-async/bridge.yaml
+index ca39e3a..404ebf0 100644
+--- a/deploy/components/bridge-async/bridge.yaml
++++ b/deploy/components/bridge-async/bridge.yaml
+@@ -3,34 +3,34 @@ kind: Deployment
+ metadata:
+   name: k8s-inspector-alert-bridge
+   namespace: kube-system
+ spec:
+   replicas: 1
+   strategy:
+     type: Recreate
+   template:
+     spec:
+       securityContext:
+-        fsGroup: 65534
++        fsGroup: 10001
+       containers:
+-        - name: bridge
+-          env:
+-            - name: BRIDGE_DELIVERY_MODE
+-              value: async
+-            - name: BRIDGE_STATE_DB
+-              value: /var/lib/inspector/bridge.db
+-            - name: BRIDGE_SOURCES_FILE
+-              value: /etc/bridge-auth/sources.json
+-          volumeMounts:
+-            - name: bridge-state
+-              mountPath: /var/lib/inspector
+-            - name: bridge-auth
+-              mountPath: /etc/bridge-auth
+-              readOnly: true
+-      volumes:
++      - name: bridge
++        env:
++        - name: BRIDGE_DELIVERY_MODE
++          value: async
++        - name: BRIDGE_STATE_DB
++          value: /var/lib/inspector/bridge.db
++        - name: BRIDGE_SOURCES_FILE
++          value: /etc/bridge-auth/sources.json
++        volumeMounts:
+         - name: bridge-state
+-          persistentVolumeClaim:
+-            claimName: k8s-inspector-bridge-state
++          mountPath: /var/lib/inspector
+         - name: bridge-auth
+-          secret:
+-            secretName: inspector-bridge-auth
+-            defaultMode: 0440
++          mountPath: /etc/bridge-auth
++          readOnly: true
++      volumes:
++      - name: bridge-state
++        persistentVolumeClaim:
++          claimName: k8s-inspector-bridge-state
++      - name: bridge-auth
++        secret:
++          secretName: inspector-bridge-auth
++          defaultMode: 288
+diff --git a/deploy/components/bridge-async/kustomization.yaml b/deploy/components/bridge-async/kustomization.yaml
+index 7cd0e6c..54ced9b 100644
+--- a/deploy/components/bridge-async/kustomization.yaml
++++ b/deploy/components/bridge-async/kustomization.yaml
+@@ -1,10 +1,6 @@
+-# Opt-in component. Requires G2, an actual validated StorageClass and the Secret
+-# described in docs/runbooks/bridge-delivery.md. Base deployment remains sync.
+ apiVersion: kustomize.config.k8s.io/v1alpha1
+ kind: Component
+ resources:
+-  - ../../storage/bridge-state-pvc.yaml
++- state-pvc.yaml
+ patches:
+-  - path: bridge.yaml
+-  - path: alertmanager.yaml
+-  - path: alertmanager-config.yaml
++- path: bridge.yaml
+diff --git a/deploy/components/bridge-async/state-pvc.yaml b/deploy/components/bridge-async/state-pvc.yaml
+new file mode 100644
+index 0000000..67e73c2
+--- /dev/null
++++ b/deploy/components/bridge-async/state-pvc.yaml
+@@ -0,0 +1,15 @@
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-bridge-state
++  namespace: kube-system
++  labels:
++    inspector.storage: state
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: validated-block-storage
++  resources:
++    requests:
++      storage: 2Gi
+diff --git a/deploy/components/bridge/kustomization.yaml b/deploy/components/bridge/kustomization.yaml
+new file mode 100644
+index 0000000..ff244b4
+--- /dev/null
++++ b/deploy/components/bridge/kustomization.yaml
+@@ -0,0 +1,4 @@
++apiVersion: kustomize.config.k8s.io/v1alpha1
++kind: Component
++resources:
++- resources.yaml
+diff --git a/deploy/components/bridge/resources.yaml b/deploy/components/bridge/resources.yaml
+new file mode 100644
+index 0000000..9555e61
+--- /dev/null
++++ b/deploy/components/bridge/resources.yaml
+@@ -0,0 +1,151 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: k8s-inspector-alert-bridge
++  namespace: kube-system
++spec:
++  replicas: 1
++  strategy:
++    type: Recreate
++  selector:
++    matchLabels:
++      app: k8s-inspector-alert-bridge
++  template:
++    metadata:
++      labels:
++        app: k8s-inspector-alert-bridge
++    spec:
++      terminationGracePeriodSeconds: 30
++      restartPolicy: Always
++      containers:
++      - name: bridge
++        image: your-registry/k8s-inspector:0.1.0
++        imagePullPolicy: IfNotPresent
++        command:
++        - python
++        - -m
++        - k8s_inspector.alertmanager_bridge
++        env:
++        - name: FEISHU_MODE
++          value: app
++        - name: FEISHU_CHAT_POLICY
++          value: fixed
++        - name: FEISHU_CHAT_ID
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-feishu
++              key: fixed_chat_id
++        - name: FEISHU_WEBHOOK
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-feishu
++              key: feishu_webhook
++              optional: true
++        - name: FEISHU_APP_ID
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-feishu
++              key: app_id
++        - name: FEISHU_APP_SECRET
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-feishu
++              key: app_secret
++        - name: INSPECTOR_REPORT_DIR
++          value: /data/out
++        - name: INSPECTOR_REPORT_MAX_RESULTS
++          value: '5'
++        - name: INSPECTOR_REPORT_MAX_ITEMS
++          value: '3'
++        - name: PYTHONDONTWRITEBYTECODE
++          value: '1'
++        - name: HOME
++          value: /tmp
++        ports:
++        - name: http
++          containerPort: 8000
++        readinessProbe:
++          httpGet:
++            path: /readyz
++            port: http
++        livenessProbe:
++          httpGet:
++            path: /healthz
++            port: http
++          initialDelaySeconds: 10
++        resources:
++          requests:
++            cpu: 50m
++            memory: 64Mi
++          limits:
++            cpu: 500m
++            memory: 256Mi
++        volumeMounts:
++        - name: out
++          mountPath: /data/out
++          readOnly: true
++        - name: tmp
++          mountPath: /tmp
++        securityContext:
++          readOnlyRootFilesystem: true
++          allowPrivilegeEscalation: false
++          capabilities:
++            drop:
++            - ALL
++        startupProbe:
++          httpGet:
++            path: /healthz
++            port: http
++          failureThreshold: 30
++          periodSeconds: 2
++      volumes:
++      - name: out
++        persistentVolumeClaim:
++          claimName: k8s-inspector-out
++      - name: tmp
++        emptyDir:
++          sizeLimit: 16Mi
++      automountServiceAccountToken: false
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 10001
++        runAsGroup: 10001
++        fsGroup: 10001
++        seccompProfile:
++          type: RuntimeDefault
++---
++apiVersion: v1
++kind: Service
++metadata:
++  name: k8s-inspector-alert-bridge
++  namespace: kube-system
++spec:
++  selector:
++    app: k8s-inspector-alert-bridge
++  ports:
++  - name: http
++    port: 8000
++    targetPort: http
++---
++apiVersion: networking.k8s.io/v1
++kind: NetworkPolicy
++metadata:
++  name: k8s-inspector-alert-bridge
++  namespace: kube-system
++spec:
++  podSelector:
++    matchLabels:
++      app: k8s-inspector-alert-bridge
++  policyTypes:
++  - Ingress
++  ingress:
++  - from:
++    - podSelector:
++        matchLabels:
++          app: alertmanager
++    - podSelector:
++        matchLabels:
++          app: prometheus
++    ports:
++    - protocol: TCP
++      port: 8000
+diff --git a/deploy/components/monitoring-bridge-auth/alertmanager-config.yaml b/deploy/components/monitoring-bridge-auth/alertmanager-config.yaml
+new file mode 100644
+index 0000000..660641a
+--- /dev/null
++++ b/deploy/components/monitoring-bridge-auth/alertmanager-config.yaml
+@@ -0,0 +1,14 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-alertmanager-config
++  namespace: kube-system
++data:
++  alertmanager.yml: "route:\n  receiver: feishu-bridge\n  group_by: [\"cluster\"]\n\
++    \  group_wait: 30s\n  group_interval: 5m\n  repeat_interval: 2h\ninhibit_rules:\n\
++    \  - source_matchers:\n      - alertname=\"K8sInspectorStale\"\n    target_matchers:\n\
++    \      - alertname=~\"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC\"\
++    \n    equal: [\"cluster\", \"profile\"]\nreceivers:\n  - name: feishu-bridge\n\
++    \    webhook_configs:\n      - url: http://k8s-inspector-alert-bridge:8000/alert\n\
++    \        send_resolved: true\n        http_config:\n          authorization:\n\
++    \            type: Bearer\n            credentials_file: /etc/bridge-auth/token\n"
+diff --git a/deploy/components/monitoring-bridge-auth/alertmanager.yaml b/deploy/components/monitoring-bridge-auth/alertmanager.yaml
+new file mode 100644
+index 0000000..d39dae6
+--- /dev/null
++++ b/deploy/components/monitoring-bridge-auth/alertmanager.yaml
+@@ -0,0 +1,21 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: alertmanager
++  namespace: kube-system
++spec:
++  template:
++    spec:
++      securityContext:
++        fsGroup: 65534
++      containers:
++      - name: alertmanager
++        volumeMounts:
++        - name: bridge-auth
++          mountPath: /etc/bridge-auth
++          readOnly: true
++      volumes:
++      - name: bridge-auth
++        secret:
++          secretName: inspector-bridge-auth
++          defaultMode: 288
+diff --git a/deploy/components/monitoring-bridge-auth/kustomization.yaml b/deploy/components/monitoring-bridge-auth/kustomization.yaml
+new file mode 100644
+index 0000000..852ed0e
+--- /dev/null
++++ b/deploy/components/monitoring-bridge-auth/kustomization.yaml
+@@ -0,0 +1,5 @@
++apiVersion: kustomize.config.k8s.io/v1alpha1
++kind: Component
++patches:
++- path: alertmanager.yaml
++- path: alertmanager-config.yaml
+diff --git a/deploy/components/monitoring/kustomization.yaml b/deploy/components/monitoring/kustomization.yaml
+new file mode 100644
+index 0000000..ff244b4
+--- /dev/null
++++ b/deploy/components/monitoring/kustomization.yaml
+@@ -0,0 +1,4 @@
++apiVersion: kustomize.config.k8s.io/v1alpha1
++kind: Component
++resources:
++- resources.yaml
+diff --git a/deploy/components/monitoring/resources.yaml b/deploy/components/monitoring/resources.yaml
+new file mode 100644
+index 0000000..cef6ab7
+--- /dev/null
++++ b/deploy/components/monitoring/resources.yaml
+@@ -0,0 +1,366 @@
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-prometheus-data
++  namespace: kube-system
++  labels:
++    inspector.storage: monitoring
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: replace-with-report-sc
++  resources:
++    requests:
++      storage: 10Gi
++---
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-prometheus-config
++  namespace: kube-system
++data:
++  prometheus.yml: "global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\n\n\
++    rule_files:\n  - /etc/prometheus/rules/*.yaml\n\nalerting:\n  alertmanagers:\n\
++    \    - static_configs:\n        - targets:\n            - alertmanager:9093\n\n\
++    scrape_configs:\n  - job_name: prometheus\n    static_configs:\n      - targets:\
++    \ [\"127.0.0.1:9090\"]\n\n  - job_name: pushgateway\n    honor_labels: true\n\
++    \    static_configs:\n      - targets: [\"pushgateway:9091\"]\n"
++---
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-prometheus-rules
++  namespace: kube-system
++data:
++  k8s-inspector-rules.yaml: "groups:\n  - name: k8s-inspector\n    rules:\n      -\
++    \ alert: K8sInspectorStale\n        expr: |\n          (\n            time() -\
++    \ max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"5m\"})\n\
++    \          ) > 900\n          or\n          (\n            time() - max by (cluster,\
++    \ profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"})\n          ) >\
++    \ 1800\n          or\n          (\n            time() - max by (cluster, profile)\
++    \ (k8s_inspector_last_run_timestamp{profile=\"hourly\"})\n          ) > 7200\n\
++    \          or\n          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
++    daily|full\"})\n          ) > 129600\n        for: 5m\n        labels:\n     \
++    \     severity: critical\n        annotations:\n          summary: \"\u5DE1\u68C0\
++    \u4EFB\u52A1\u672A\u6309\u9884\u671F\u8FD0\u884C\uFF08stale\uFF09\"\n        \
++    \  description: \"k8s-inspector \u5728\u5BF9\u5E94 profile \u7684 last_run \u8D85\
++    \u8FC7\u9608\u503C\u672A\u66F4\u65B0\"\n\n      - alert: K8sInspectorHasFail\n\
++    \        expr: |\n          (\n            max by (cluster, profile) (k8s_inspector_report_summary{status=\"\
++    fail\",profile=\"5m\"}) > 0\n          )\n          and on (cluster, profile)\n\
++    \          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile) (k8s_inspector_report_summary{status=\"fail\",profile=\"10m\"}) > 0\n\
++    \          )\n          and on (cluster, profile)\n          (\n            time()\
++    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"\
++    }) < 1800\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile) (k8s_inspector_report_summary{status=\"fail\",profile=\"hourly\"})\
++    \ > 0\n          )\n          and on (cluster, profile)\n          (\n       \
++    \     time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    hourly\"}) < 7200\n          )\n          or\n          (\n            max by\
++    \ (cluster, profile) (k8s_inspector_report_summary{status=\"fail\",profile=~\"\
++    daily|full\"}) > 0\n          )\n          and on (cluster, profile)\n       \
++    \   (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
++    daily|full\"}) < 129600\n          )\n        for: 1m\n        labels:\n     \
++    \     severity: critical\n        annotations:\n          summary: \"\u5DE1\u68C0\
++    \u53D1\u73B0 FAIL\"\n          description: \"k8s-inspector report_summary{status=fail}\
++    \ > 0\"\n\n      - alert: K8sInspectorHasWarn\n        expr: |\n          (\n\
++    \            max by (cluster, profile) (k8s_inspector_report_summary{status=\"\
++    warn\",profile=\"5m\"}) > 0\n          )\n          and on (cluster, profile)\n\
++    \          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile) (k8s_inspector_report_summary{status=\"warn\",profile=\"10m\"}) > 0\n\
++    \          )\n          and on (cluster, profile)\n          (\n            time()\
++    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"\
++    }) < 1800\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile) (k8s_inspector_report_summary{status=\"warn\",profile=\"hourly\"})\
++    \ > 0\n          )\n          and on (cluster, profile)\n          (\n       \
++    \     time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    hourly\"}) < 7200\n          )\n          or\n          (\n            max by\
++    \ (cluster, profile) (k8s_inspector_report_summary{status=\"warn\",profile=~\"\
++    daily|full\"}) > 0\n          )\n          and on (cluster, profile)\n       \
++    \   (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
++    daily|full\"}) < 129600\n          )\n        for: 5m\n        labels:\n     \
++    \     severity: warning\n        annotations:\n          summary: \"\u5DE1\u68C0\
++    \u53D1\u73B0 WARN\"\n          description: \"k8s-inspector report_summary{status=warn}\
++    \ > 0\"\n\n      - alert: K8sInspectorCheckFail\n        expr: |\n          (\n\
++    \            max by (cluster, profile, check) (k8s_inspector_check_status{profile=\"\
++    5m\"}) == 2\n          )\n          and on (cluster, profile)\n          (\n \
++    \           time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile, check) (k8s_inspector_check_status{profile=\"10m\"}) == 2\n       \
++    \   )\n          and on (cluster, profile)\n          (\n            time() -\
++    \ max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"10m\"\
++    }) < 1800\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile, check) (k8s_inspector_check_status{profile=\"hourly\"}) == 2\n    \
++    \      )\n          and on (cluster, profile)\n          (\n            time()\
++    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"hourly\"\
++    }) < 7200\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile, check) (k8s_inspector_check_status{profile=~\"daily|full\"}) == 2\n\
++    \          )\n          and on (cluster, profile)\n          (\n            time()\
++    \ - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"daily|full\"\
++    }) < 129600\n          )\n        for: 1m\n        labels:\n          severity:\
++    \ critical\n        annotations:\n          summary: \"\u68C0\u67E5\u9879 FAIL\"\
++    \n          description: \"check={{ $labels.check }} \u8FD4\u56DE FAIL\uFF082\uFF09\
++    \"\n\n      - alert: K8sInspectorPendingPVC\n        expr: |\n          (\n  \
++    \          max by (cluster, profile) (k8s_inspector_check_issue_count{check=\"\
++    pvcs\",issue=\"pending\",profile=\"5m\"}) > 0\n          )\n          and on (cluster,\
++    \ profile)\n          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    5m\"}) < 900\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile) (k8s_inspector_check_issue_count{check=\"pvcs\",issue=\"pending\",profile=\"\
++    10m\"}) > 0\n          )\n          and on (cluster, profile)\n          (\n \
++    \           time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    10m\"}) < 1800\n          )\n          or\n          (\n            max by (cluster,\
++    \ profile) (k8s_inspector_check_issue_count{check=\"pvcs\",issue=\"pending\",profile=\"\
++    hourly\"}) > 0\n          )\n          and on (cluster, profile)\n          (\n\
++    \            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=\"\
++    hourly\"}) < 7200\n          )\n          or\n          (\n            max by\
++    \ (cluster, profile) (k8s_inspector_check_issue_count{check=\"pvcs\",issue=\"\
++    pending\",profile=~\"daily|full\"}) > 0\n          )\n          and on (cluster,\
++    \ profile)\n          (\n            time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~\"\
++    daily|full\"}) < 129600\n          )\n        for: 1m\n        labels:\n     \
++    \     severity: critical\n        annotations:\n          summary: \"\u5B58\u5728\
++    \ Pending PVC\"\n          description: \"pending pvc > 0\"\n"
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: prometheus
++  namespace: kube-system
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: prometheus
++  template:
++    metadata:
++      labels:
++        app: prometheus
++    spec:
++      containers:
++      - name: prometheus
++        image: prom/prometheus:v2.53.0
++        args:
++        - --config.file=/etc/prometheus/prometheus.yml
++        - --storage.tsdb.path=/prometheus
++        - --storage.tsdb.retention.time=45d
++        ports:
++        - name: http
++          containerPort: 9090
++        volumeMounts:
++        - name: config
++          mountPath: /etc/prometheus/prometheus.yml
++          subPath: prometheus.yml
++        - name: rules
++          mountPath: /etc/prometheus/rules
++        - name: data
++          mountPath: /prometheus
++        securityContext:
++          readOnlyRootFilesystem: true
++          allowPrivilegeEscalation: false
++          capabilities:
++            drop:
++            - ALL
++        resources:
++          requests:
++            cpu: 50m
++            memory: 128Mi
++          limits:
++            cpu: 500m
++            memory: 512Mi
++      volumes:
++      - name: config
++        configMap:
++          name: k8s-inspector-prometheus-config
++      - name: rules
++        configMap:
++          name: k8s-inspector-prometheus-rules
++      - name: data
++        persistentVolumeClaim:
++          claimName: k8s-inspector-prometheus-data
++      automountServiceAccountToken: false
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 65534
++        runAsGroup: 65534
++        fsGroup: 65534
++  strategy:
++    type: Recreate
++---
++apiVersion: v1
++kind: Service
++metadata:
++  name: prometheus
++  namespace: kube-system
++spec:
++  selector:
++    app: prometheus
++  ports:
++  - name: http
++    port: 9090
++    targetPort: http
++---
++apiVersion: v1
++kind: PersistentVolumeClaim
++metadata:
++  name: k8s-inspector-alertmanager-data
++  namespace: kube-system
++  labels:
++    inspector.storage: monitoring
++spec:
++  accessModes:
++  - ReadWriteOnce
++  volumeMode: Filesystem
++  storageClassName: replace-with-report-sc
++  resources:
++    requests:
++      storage: 10Gi
++---
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-alertmanager-config
++  namespace: kube-system
++data:
++  alertmanager.yml: "route:\n  receiver: feishu-bridge\n  # \u901A\u77E5\u805A\u5408\
++    \u4E0E\u4E8B\u4EF6\u8EAB\u4EFD\u5206\u5F00\uFF1BBridge \u6309\u6BCF\u6761\u544A\
++    \u8B66\u6807\u7B7E\u8DEF\u7531\u5230\u5DF2\u6709\u7FA4\u3002\n  group_by: [\"\
++    cluster\"]\n  group_wait: 30s\n  group_interval: 5m\n  repeat_interval: 2h\n\n\
++    inhibit_rules:\n  - source_matchers:\n      - alertname=\"K8sInspectorStale\"\n\
++    \    target_matchers:\n      - alertname=~\"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC\"\
++    \n    equal: [\"cluster\", \"profile\"]\n\nreceivers:\n  - name: feishu-bridge\n\
++    \    webhook_configs:\n      - url: http://k8s-inspector-alert-bridge:8000/alert\n\
++    \        send_resolved: true\n        # Async cutover: enable only after mounting\
++    \ the matching Secret in\n        # both processes. See docs/runbooks/bridge-delivery.md.\n\
++    \        # http_config:\n        #   authorization:\n        #     type: Bearer\n\
++    \        #     credentials_file: /etc/bridge-auth/token\n"
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: alertmanager
++  namespace: kube-system
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: alertmanager
++  template:
++    metadata:
++      labels:
++        app: alertmanager
++    spec:
++      containers:
++      - name: alertmanager
++        image: prom/alertmanager:v0.27.0
++        args:
++        - --config.file=/etc/alertmanager/alertmanager.yml
++        - --storage.path=/alertmanager
++        ports:
++        - name: http
++          containerPort: 9093
++        volumeMounts:
++        - name: config
++          mountPath: /etc/alertmanager/alertmanager.yml
++          subPath: alertmanager.yml
++        - name: data
++          mountPath: /alertmanager
++        securityContext:
++          readOnlyRootFilesystem: true
++          allowPrivilegeEscalation: false
++          capabilities:
++            drop:
++            - ALL
++        resources:
++          requests:
++            cpu: 50m
++            memory: 128Mi
++          limits:
++            cpu: 500m
++            memory: 512Mi
++      volumes:
++      - name: config
++        configMap:
++          name: k8s-inspector-alertmanager-config
++      - name: data
++        persistentVolumeClaim:
++          claimName: k8s-inspector-alertmanager-data
++      automountServiceAccountToken: false
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 65534
++        runAsGroup: 65534
++        fsGroup: 65534
++  strategy:
++    type: Recreate
++---
++apiVersion: v1
++kind: Service
++metadata:
++  name: alertmanager
++  namespace: kube-system
++spec:
++  selector:
++    app: alertmanager
++  ports:
++  - name: http
++    port: 9093
++    targetPort: http
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: pushgateway
++  namespace: kube-system
++spec:
++  replicas: 1
++  selector:
++    matchLabels:
++      app: pushgateway
++  template:
++    metadata:
++      labels:
++        app: pushgateway
++    spec:
++      containers:
++      - name: pushgateway
++        image: prom/pushgateway:v1.8.0
++        ports:
++        - name: http
++          containerPort: 9091
++        args:
++        - --web.listen-address=:9091
++        securityContext:
++          readOnlyRootFilesystem: true
++          allowPrivilegeEscalation: false
++          capabilities:
++            drop:
++            - ALL
++        resources:
++          requests:
++            cpu: 50m
++            memory: 128Mi
++          limits:
++            cpu: 500m
++            memory: 512Mi
++      automountServiceAccountToken: false
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 65534
++        runAsGroup: 65534
++        fsGroup: 65534
++  strategy:
++    type: Recreate
++---
++apiVersion: v1
++kind: Service
++metadata:
++  name: pushgateway
++  namespace: kube-system
++spec:
++  selector:
++    app: pushgateway
++  ports:
++  - name: http
++    port: 9091
++    targetPort: http
+diff --git a/deploy/cronjobs-by-frequency.yaml b/deploy/cronjobs-by-frequency.yaml
+index 6e156e3..5971b59 100644
+--- a/deploy/cronjobs-by-frequency.yaml
++++ b/deploy/cronjobs-by-frequency.yaml
+@@ -1,191 +1,315 @@
+ apiVersion: batch/v1
+ kind: CronJob
+ metadata:
+   name: k8s-inspector-dataplane-5m
+   namespace: kube-system
+ spec:
+-  schedule: "*/5 * * * *"
++  schedule: '*/5 * * * *'
+   concurrencyPolicy: Forbid
+   jobTemplate:
+     spec:
+       template:
+         spec:
+           serviceAccountName: k8s-inspector
+           restartPolicy: Never
+           containers:
+-            - name: inspector
+-              image: your-registry/k8s-inspector:0.1.0
+-              imagePullPolicy: IfNotPresent
+-              args:
+-                - run
+-                - --in-cluster
+-                - --profile
+-                - 5m
+-                - --formats
+-                - json
+-                - --output-dir
+-                - /data/out/latest/5m
+-                - --persist-level
+-                - issue
+-              env:
+-                - name: INSPECTOR_EXIT_MODE
+-                  value: "always0"
+-                - name: INSPECTOR_CLUSTER
+-                  value: "YOUR_CLUSTER_NAME"
+-                - name: FEISHU_WEBHOOK
+-                  value: ""
+-                - name: PUSHGATEWAY_URL
+-                  value: "http://pushgateway.kube-system.svc:9091"
+-                - name: PUSHGATEWAY_JOB
+-                  value: "k8s-inspector"
+-              volumeMounts:
+-                - name: out
+-                  mountPath: /data/out
+-          volumes:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - 5m
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/latest/5m
++            - --persist-level
++            - issue
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
+             - name: out
+-              persistentVolumeClaim:
+-                claimName: k8s-inspector-out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-5m
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 270
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
+ ---
+ apiVersion: batch/v1
+ kind: CronJob
+ metadata:
+   name: k8s-inspector-controlplane-10m
+   namespace: kube-system
+ spec:
+-  schedule: "*/10 * * * *"
++  schedule: '*/10 * * * *'
+   concurrencyPolicy: Forbid
+   jobTemplate:
+     spec:
+       template:
+         spec:
+           serviceAccountName: k8s-inspector
+           restartPolicy: Never
+           containers:
+-            - name: inspector
+-              image: your-registry/k8s-inspector:0.1.0
+-              imagePullPolicy: IfNotPresent
+-              args:
+-                - run
+-                - --in-cluster
+-                - --profile
+-                - 10m
+-                - --formats
+-                - json
+-                - --output-dir
+-                - /data/out/latest/10m
+-                - --persist-level
+-                - issue
+-              env:
+-                - name: INSPECTOR_EXIT_MODE
+-                  value: "always0"
+-                - name: INSPECTOR_CLUSTER
+-                  value: "YOUR_CLUSTER_NAME"
+-                - name: FEISHU_WEBHOOK
+-                  value: ""
+-                - name: PUSHGATEWAY_URL
+-                  value: "http://pushgateway.kube-system.svc:9091"
+-                - name: PUSHGATEWAY_JOB
+-                  value: "k8s-inspector"
+-              volumeMounts:
+-                - name: out
+-                  mountPath: /data/out
+-          volumes:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - 10m
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/latest/10m
++            - --persist-level
++            - issue
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
+             - name: out
+-              persistentVolumeClaim:
+-                claimName: k8s-inspector-out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-10m
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 510
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
+ ---
+ apiVersion: batch/v1
+ kind: CronJob
+ metadata:
+   name: k8s-inspector-infra-hourly
+   namespace: kube-system
+ spec:
+-  schedule: "0 * * * *"
++  schedule: 0 * * * *
+   concurrencyPolicy: Forbid
+   jobTemplate:
+     spec:
+       template:
+         spec:
+           serviceAccountName: k8s-inspector
+           restartPolicy: Never
+           containers:
+-            - name: inspector
+-              image: your-registry/k8s-inspector:0.1.0
+-              imagePullPolicy: IfNotPresent
+-              args:
+-                - run
+-                - --in-cluster
+-                - --profile
+-                - hourly
+-                - --formats
+-                - json
+-                - --output-dir
+-                - /data/out/archive/hourly
+-                - --archive
+-                - hourly
+-              env:
+-                - name: INSPECTOR_EXIT_MODE
+-                  value: "always0"
+-                - name: INSPECTOR_CLUSTER
+-                  value: "YOUR_CLUSTER_NAME"
+-                - name: FEISHU_WEBHOOK
+-                  value: ""
+-                - name: PUSHGATEWAY_URL
+-                  value: "http://pushgateway.kube-system.svc:9091"
+-                - name: PUSHGATEWAY_JOB
+-                  value: "k8s-inspector"
+-              volumeMounts:
+-                - name: out
+-                  mountPath: /data/out
+-          volumes:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - hourly
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/archive/hourly
++            - --archive
++            - hourly
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
+             - name: out
+-              persistentVolumeClaim:
+-                claimName: k8s-inspector-out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-hourly
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 930
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
+ ---
+ apiVersion: batch/v1
+ kind: CronJob
+ metadata:
+   name: k8s-inspector-daily
+   namespace: kube-system
+ spec:
+-  schedule: "0 2 * * *"
++  schedule: 0 2 * * *
+   concurrencyPolicy: Forbid
+   jobTemplate:
+     spec:
+       template:
+         spec:
+           serviceAccountName: k8s-inspector
+           restartPolicy: Never
+           containers:
+-            - name: inspector
+-              image: your-registry/k8s-inspector:0.1.0
+-              imagePullPolicy: IfNotPresent
+-              args:
+-                - run
+-                - --in-cluster
+-                - --profile
+-                - daily
+-                - --formats
+-                - json,html
+-                - --output-dir
+-                - /data/out/archive/daily
+-                - --archive
+-                - daily
+-              env:
+-                - name: INSPECTOR_EXIT_MODE
+-                  value: "always0"
+-                - name: INSPECTOR_CLUSTER
+-                  value: "YOUR_CLUSTER_NAME"
+-                - name: FEISHU_WEBHOOK
+-                  value: ""
+-                - name: PUSHGATEWAY_URL
+-                  value: "http://pushgateway.kube-system.svc:9091"
+-                - name: PUSHGATEWAY_JOB
+-                  value: "k8s-inspector"
+-              volumeMounts:
+-                - name: out
+-                  mountPath: /data/out
+-          volumes:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - daily
++            - --formats
++            - json,html
++            - --output-dir
++            - /data/out/archive/daily
++            - --archive
++            - daily
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
+             - name: out
+-              persistentVolumeClaim:
+-                claimName: k8s-inspector-out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-daily
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++          terminationGracePeriodSeconds: 30
++      activeDeadlineSeconds: 1830
++      backoffLimit: 0
++      ttlSecondsAfterFinished: 86400
++  suspend: true
++  timeZone: Asia/Shanghai
++  startingDeadlineSeconds: 60
++  successfulJobsHistoryLimit: 2
++  failedJobsHistoryLimit: 2
+diff --git a/deploy/kustomization.yaml b/deploy/kustomization.yaml
+index 3a920ff..4c2145a 100644
+--- a/deploy/kustomization.yaml
++++ b/deploy/kustomization.yaml
+@@ -1,15 +1,4 @@
+ apiVersion: kustomize.config.k8s.io/v1beta1
+ kind: Kustomization
+-
+-namespace: kube-system
+-
+ resources:
+-  - storage/pv-nfs.yaml
+-  - storage/pvc-k8s-inspector-out.yaml
+-  - rbac.yaml
+-  - pushgateway.yaml
+-  - monitoring-alertmanager.yaml
+-  - monitoring-prometheus.yaml
+-  - alertmanager-feishu-bridge.yaml
+-  - cronjobs-by-frequency.yaml
+-  - cleanup-cronjob.yaml
++- base
+diff --git a/deploy/overlays/example/kustomization.yaml b/deploy/overlays/example/kustomization.yaml
+new file mode 100644
+index 0000000..a389949
+--- /dev/null
++++ b/deploy/overlays/example/kustomization.yaml
+@@ -0,0 +1,22 @@
++apiVersion: kustomize.config.k8s.io/v1beta1
++kind: Kustomization
++resources:
++- ../../base
++components:
++- ../../components/bridge
++- ../../components/bridge-async
++- ../../components/monitoring
++- ../../components/monitoring-bridge-auth
++patches:
++- target:
++    kind: PersistentVolumeClaim
++    labelSelector: inspector.storage=state
++  patch: "- op: replace\n  path: /spec/storageClassName\n  value: replace-with-verified-block-sc"
++configMapGenerator:
++- name: k8s-inspector-runtime
++  namespace: kube-system
++  behavior: merge
++  literals:
++  - INSPECTOR_CLUSTER=example-cluster
++  - PUSHGATEWAY_URL=http://pushgateway:9091
++  - PUSHGATEWAY_JOB=k8s-inspector-example
+diff --git a/deploy/overlays/shadow/am-auth-shadow.yaml b/deploy/overlays/shadow/am-auth-shadow.yaml
+new file mode 100644
+index 0000000..0f5abe8
+--- /dev/null
++++ b/deploy/overlays/shadow/am-auth-shadow.yaml
+@@ -0,0 +1,13 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: alertmanager
++  namespace: kube-system
++spec:
++  template:
++    spec:
++      volumes:
++      - name: bridge-auth
++        secret:
++          secretName: inspector-shadow-bridge-auth
++          defaultMode: 288
+diff --git a/deploy/overlays/shadow/am-shadow.yaml b/deploy/overlays/shadow/am-shadow.yaml
+new file mode 100644
+index 0000000..43552c3
+--- /dev/null
++++ b/deploy/overlays/shadow/am-shadow.yaml
+@@ -0,0 +1,15 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-alertmanager-config
++  namespace: kube-system
++data:
++  alertmanager.yml: "route:\n  receiver: feishu-bridge\n  group_by:\n  - cluster\n\
++    \  group_wait: 30s\n  group_interval: 5m\n  repeat_interval: 2h\n  routes:\n \
++    \ - matchers:\n    - shadow=\"true\"\n    receiver: shadow-null\ninhibit_rules:\n\
++    - source_matchers:\n  - alertname=\"K8sInspectorStale\"\n  target_matchers:\n\
++    \  - alertname=~\"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC\"\
++    \n  equal:\n  - cluster\n  - profile\nreceivers:\n- name: feishu-bridge\n  webhook_configs:\n\
++    \  - url: http://k8s-inspector-alert-bridge:8000/alert\n    send_resolved: true\n\
++    \    http_config:\n      authorization:\n        type: Bearer\n        credentials_file:\
++    \ /etc/bridge-auth/token\n- name: shadow-null\n"
+diff --git a/deploy/overlays/shadow/bridge-shadow.yaml b/deploy/overlays/shadow/bridge-shadow.yaml
+new file mode 100644
+index 0000000..b267a17
+--- /dev/null
++++ b/deploy/overlays/shadow/bridge-shadow.yaml
+@@ -0,0 +1,55 @@
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: k8s-inspector-alert-bridge
++  namespace: kube-system
++spec:
++  template:
++    spec:
++      containers:
++      - name: bridge
++        env:
++        - name: FEISHU_MODE
++          value: app
++        - name: FEISHU_CHAT_POLICY
++          value: fixed
++        - name: FEISHU_CHAT_ID
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-shadow-feishu
++              key: fixed_chat_id
++        - name: FEISHU_WEBHOOK
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-shadow-feishu
++              key: feishu_webhook
++              optional: true
++        - name: FEISHU_APP_ID
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-shadow-feishu
++              key: app_id
++        - name: FEISHU_APP_SECRET
++          valueFrom:
++            secretKeyRef:
++              name: k8s-inspector-shadow-feishu
++              key: app_secret
++        - name: INSPECTOR_REPORT_DIR
++          value: /data/shadow
++        - name: INSPECTOR_REPORT_MAX_RESULTS
++          value: '5'
++        - name: INSPECTOR_REPORT_MAX_ITEMS
++          value: '3'
++        - name: PYTHONDONTWRITEBYTECODE
++          value: '1'
++        - name: HOME
++          value: /tmp
++        volumeMounts:
++        - name: out
++          mountPath: /data/shadow
++          readOnly: true
++      volumes:
++      - name: bridge-auth
++        secret:
++          secretName: inspector-shadow-bridge-auth
++          defaultMode: 288
+diff --git a/deploy/overlays/shadow/control-role.yaml b/deploy/overlays/shadow/control-role.yaml
+new file mode 100644
+index 0000000..a50bed7
+--- /dev/null
++++ b/deploy/overlays/shadow/control-role.yaml
+@@ -0,0 +1,7 @@
++apiVersion: builtin
++kind: PatchTransformer
++metadata:
++  name: keep-control-plane-role
++target:
++  kind: Role
++patch: "- op: replace\n  path: /metadata/namespace\n  value: kube-system"
+diff --git a/deploy/overlays/shadow/control-rolebinding.yaml b/deploy/overlays/shadow/control-rolebinding.yaml
+new file mode 100644
+index 0000000..794af14
+--- /dev/null
++++ b/deploy/overlays/shadow/control-rolebinding.yaml
+@@ -0,0 +1,7 @@
++apiVersion: builtin
++kind: PatchTransformer
++metadata:
++  name: keep-control-plane-rolebinding
++target:
++  kind: RoleBinding
++patch: "- op: replace\n  path: /metadata/namespace\n  value: kube-system"
+diff --git a/deploy/overlays/shadow/inventory.yaml b/deploy/overlays/shadow/inventory.yaml
+new file mode 100644
+index 0000000..3a47184
+--- /dev/null
++++ b/deploy/overlays/shadow/inventory.yaml
+@@ -0,0 +1,94 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-expected-targets
++  namespace: kube-system
++data:
++  expected-targets.yaml: "targets:\n- cluster_id: example-cluster\n  profile: 10m\n\
++    \  max_run_age_seconds: 1800\n  rule_ids:\n  - control.api\n  - control.components\n\
++    - cluster_id: example-cluster\n  profile: 5m\n  max_run_age_seconds: 900\n  rule_ids:\n\
++    \  - nodes.ready\n  - pods.current\n  - pvc.binding\n- cluster_id: example-cluster\n\
++    \  profile: daily\n  max_run_age_seconds: 129600\n  rule_ids:\n  - nodes.ready\n\
++    \  - pods.current\n  - pvc.binding\n  - control.api\n  - control.components\n\
++    \  - nodes.utilization\n  - nodes.pressure\n  - pods.history\n  - events.warning\n\
++    \  - addons.ready\n- cluster_id: example-cluster\n  profile: hourly\n  max_run_age_seconds:\
++    \ 7200\n  rule_ids:\n  - nodes.ready\n  - pods.current\n  - pvc.binding\n  - control.api\n\
++    \  - control.components\n  - nodes.utilization\n  - nodes.pressure\n"
++---
++apiVersion: apps/v1
++kind: Deployment
++metadata:
++  name: k8s-inspector-inventory
++  namespace: kube-system
++spec:
++  replicas: 1
++  selector:
++    matchLabels: &id001
++      app: k8s-inspector-inventory
++  template:
++    metadata:
++      labels: *id001
++      annotations:
++        inspector/config-sha256: 45ad879d5ccc0f5d841a3e994ccdb130ce45d105bc3c550549b4b851f7a62210
++    spec:
++      automountServiceAccountToken: false
++      securityContext:
++        runAsNonRoot: true
++        runAsUser: 10001
++        runAsGroup: 10001
++      containers:
++      - name: inventory
++        image: your-registry/k8s-inspector:0.1.0
++        command:
++        - python
++        - -m
++        - k8s_inspector.expected_targets
++        args:
++        - --config
++        - /etc/inventory/expected-targets.yaml
++        env:
++        - name: PYTHONDONTWRITEBYTECODE
++          value: '1'
++        ports:
++        - containerPort: 9400
++        securityContext:
++          readOnlyRootFilesystem: true
++          allowPrivilegeEscalation: false
++          capabilities:
++            drop:
++            - ALL
++        resources:
++          requests:
++            cpu: 10m
++            memory: 32Mi
++          limits:
++            cpu: 100m
++            memory: 128Mi
++        readinessProbe:
++          httpGet:
++            path: /readyz
++            port: 9400
++        livenessProbe:
++          httpGet:
++            path: /healthz
++            port: 9400
++        volumeMounts:
++        - name: inventory
++          mountPath: /etc/inventory
++          readOnly: true
++      volumes:
++      - name: inventory
++        configMap:
++          name: k8s-inspector-expected-targets
++---
++apiVersion: v1
++kind: Service
++metadata:
++  name: k8s-inspector-inventory
++  namespace: kube-system
++spec:
++  selector:
++    app: k8s-inspector-inventory
++  ports:
++  - port: 9400
++    targetPort: 9400
+diff --git a/deploy/overlays/shadow/kustomization.yaml b/deploy/overlays/shadow/kustomization.yaml
+new file mode 100644
+index 0000000..e480373
+--- /dev/null
++++ b/deploy/overlays/shadow/kustomization.yaml
+@@ -0,0 +1,59 @@
++apiVersion: kustomize.config.k8s.io/v1beta1
++kind: Kustomization
++resources:
++- ../example
++- namespace.yaml
++- inventory.yaml
++transformers:
++- namespace-transformer.yaml
++- rbac-transformer.yaml
++- control-role.yaml
++- control-rolebinding.yaml
++patches:
++- target:
++    kind: CronJob
++    name: k8s-inspector-dataplane-5m
++  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
++    "value": ["run", "--in-cluster", "--profile", "5m", "--formats", "json", "--output-dir",
++    "/data/shadow", "--persist-level", "issue"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
++    "value": "/data/shadow"}]'
++- target:
++    kind: CronJob
++    name: k8s-inspector-controlplane-10m
++  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
++    "value": ["run", "--in-cluster", "--profile", "10m", "--formats", "json", "--output-dir",
++    "/data/shadow", "--persist-level", "issue"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
++    "value": "/data/shadow"}]'
++- target:
++    kind: CronJob
++    name: k8s-inspector-infra-hourly
++  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
++    "value": ["run", "--in-cluster", "--profile", "hourly", "--formats", "json", "--output-dir",
++    "/data/shadow", "--archive", "hourly"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
++    "value": "/data/shadow"}]'
++- target:
++    kind: CronJob
++    name: k8s-inspector-daily
++  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
++    "value": ["run", "--in-cluster", "--profile", "daily", "--formats", "json,html",
++    "--output-dir", "/data/shadow", "--archive", "daily"]}, {"op": "replace", "path":
++    "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
++    "value": "/data/shadow"}]'
++- target:
++    kind: CronJob
++    name: k8s-inspector-cleanup
++  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
++    "value": ["cleanup", "--root", "/data/shadow/archive", "--hourly-days", "7", "--daily-days",
++    "30", "--dry-run"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
++    "value": "/data/shadow"}]'
++- path: bridge-shadow.yaml
++- path: am-auth-shadow.yaml
++- path: am-shadow.yaml
++- path: prom-shadow.yaml
++- path: rules-shadow.yaml
++configMapGenerator:
++- name: k8s-inspector-runtime
++  namespace: kube-system
++  behavior: merge
++  literals:
++  - PUSHGATEWAY_JOB=k8s-inspector-shadow
+diff --git a/deploy/overlays/shadow/namespace-transformer.yaml b/deploy/overlays/shadow/namespace-transformer.yaml
+new file mode 100644
+index 0000000..1d1c2c9
+--- /dev/null
++++ b/deploy/overlays/shadow/namespace-transformer.yaml
+@@ -0,0 +1,28 @@
++apiVersion: builtin
++kind: NamespaceTransformer
++metadata:
++  name: shadow-namespace
++  namespace: k8s-inspector-shadow
++setRoleBindingSubjects: allServiceAccounts
++fieldSpecs:
++- kind: ServiceAccount
++  path: metadata/namespace
++  create: true
++- kind: ConfigMap
++  path: metadata/namespace
++  create: true
++- kind: PersistentVolumeClaim
++  path: metadata/namespace
++  create: true
++- kind: CronJob
++  path: metadata/namespace
++  create: true
++- kind: Deployment
++  path: metadata/namespace
++  create: true
++- kind: Service
++  path: metadata/namespace
++  create: true
++- kind: NetworkPolicy
++  path: metadata/namespace
++  create: true
+diff --git a/deploy/overlays/shadow/namespace.yaml b/deploy/overlays/shadow/namespace.yaml
+new file mode 100644
+index 0000000..ea008c4
+--- /dev/null
++++ b/deploy/overlays/shadow/namespace.yaml
+@@ -0,0 +1,4 @@
++apiVersion: v1
++kind: Namespace
++metadata:
++  name: k8s-inspector-shadow
+diff --git a/deploy/overlays/shadow/prom-shadow.yaml b/deploy/overlays/shadow/prom-shadow.yaml
+new file mode 100644
+index 0000000..6d84b74
+--- /dev/null
++++ b/deploy/overlays/shadow/prom-shadow.yaml
+@@ -0,0 +1,12 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-prometheus-config
++  namespace: kube-system
++data:
++  prometheus.yml: "global:\n  scrape_interval: 15s\n  evaluation_interval: 15s\nrule_files:\n\
++    - /etc/prometheus/rules/*.yaml\nalerting:\n  alertmanagers:\n  - static_configs:\n\
++    \    - targets:\n      - alertmanager:9093\nscrape_configs:\n- job_name: prometheus\n\
++    \  static_configs:\n  - targets:\n    - 127.0.0.1:9090\n- job_name: pushgateway\n\
++    \  honor_labels: true\n  static_configs:\n  - targets:\n    - pushgateway:9091\n\
++    - job_name: inspector-inventory\n  static_configs:\n  - targets:\n    - k8s-inspector-inventory:9400\n"
+diff --git a/deploy/overlays/shadow/rbac-transformer.yaml b/deploy/overlays/shadow/rbac-transformer.yaml
+new file mode 100644
+index 0000000..73cf1e4
+--- /dev/null
++++ b/deploy/overlays/shadow/rbac-transformer.yaml
+@@ -0,0 +1,14 @@
++apiVersion: builtin
++kind: PrefixSuffixTransformer
++metadata:
++  name: shadow-rbac
++prefix: shadow-
++fieldSpecs:
++- kind: ClusterRole
++  path: metadata/name
++- kind: ClusterRoleBinding
++  path: metadata/name
++- kind: Role
++  path: metadata/name
++- kind: RoleBinding
++  path: metadata/name
+diff --git a/deploy/overlays/shadow/rules-shadow.yaml b/deploy/overlays/shadow/rules-shadow.yaml
+new file mode 100644
+index 0000000..ab043bc
+--- /dev/null
++++ b/deploy/overlays/shadow/rules-shadow.yaml
+@@ -0,0 +1,141 @@
++apiVersion: v1
++kind: ConfigMap
++metadata:
++  name: k8s-inspector-prometheus-rules
++  namespace: kube-system
++data:
++  inspection-v2-shadow.yaml: "groups:\n- name: k8s-inspector-v2\n  rules:\n  - alert:\
++    \ K8sInspectorBusinessFailure\n    expr: max by (cluster, profile, rule_id, scope)\
++    \ ((last_over_time(inspector_last_valid_failures{profile=\"5m\",rule_id=\"nodes.ready\"\
++    ,scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    5m\",rule_id=\"nodes.ready\",scope=\"cluster\"}[30d])\n      > 0))\n    for: 1m\n\
++    \    labels:\n      shadow: 'true'\n      category: business\n      severity:\
++    \ critical\n      rule_id: nodes.ready\n      profile: 5m\n      scope: cluster\n\
++    \    annotations:\n      summary: 'Inspection finding: nodes.ready'\n      description:\
++    \ Last valid unhealthy observation; verify recovery using fresh evidence.\n  -\
++    \ alert: K8sInspectorBusinessFailure\n    expr: max by (cluster, profile, rule_id,\
++    \ scope) ((last_over_time(inspector_last_valid_failures{profile=\"5m\",rule_id=\"\
++    pods.current\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    5m\",rule_id=\"pods.current\",scope=\"cluster\"}[30d])\n      > 0))\n    for:\
++    \ 1m\n    labels:\n      shadow: 'true'\n      category: business\n      severity:\
++    \ critical\n      rule_id: pods.current\n      profile: 5m\n      scope: cluster\n\
++    \    annotations:\n      summary: 'Inspection finding: pods.current'\n      description:\
++    \ Last valid unhealthy observation; verify recovery using fresh evidence.\n  -\
++    \ alert: K8sInspectorBusinessFailure\n    expr: max by (cluster, profile, rule_id,\
++    \ scope) ((last_over_time(inspector_last_valid_failures{profile=\"5m\",rule_id=\"\
++    pvc.binding\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    5m\",rule_id=\"pvc.binding\",scope=\"cluster\"}[30d])\n      > 0))\n    for: 1m\n\
++    \    labels:\n      shadow: 'true'\n      category: business\n      severity:\
++    \ critical\n      rule_id: pvc.binding\n      profile: 5m\n      scope: cluster\n\
++    \    annotations:\n      summary: 'Inspection finding: pvc.binding'\n      description:\
++    \ Last valid unhealthy observation; verify recovery using fresh evidence.\n  -\
++    \ alert: K8sInspectorBusinessFailure\n    expr: max by (cluster, profile, rule_id,\
++    \ scope) ((last_over_time(inspector_last_valid_failures{profile=\"10m\",rule_id=\"\
++    control.api\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    10m\",rule_id=\"control.api\",scope=\"cluster\"}[30d])\n      > 0))\n    for:\
++    \ 1m\n    labels:\n      shadow: 'true'\n      category: business\n      severity:\
++    \ critical\n      rule_id: control.api\n      profile: 10m\n      scope: cluster\n\
++    \    annotations:\n      summary: 'Inspection finding: control.api'\n      description:\
++    \ Last valid unhealthy observation; verify recovery using fresh evidence.\n  -\
++    \ alert: K8sInspectorBusinessFailure\n    expr: max by (cluster, profile, rule_id,\
++    \ scope) ((last_over_time(inspector_last_valid_failures{profile=\"10m\",rule_id=\"\
++    control.components\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    10m\",rule_id=\"control.components\",scope=\"cluster\"}[30d])\n      > 0))\n \
++    \   for: 1m\n    labels:\n      shadow: 'true'\n      category: business\n   \
++    \   severity: critical\n      rule_id: control.components\n      profile: 10m\n\
++    \      scope: cluster\n    annotations:\n      summary: 'Inspection finding: control.components'\n\
++    \      description: Last valid unhealthy observation; verify recovery using fresh\
++    \ evidence.\n  - alert: K8sInspectorBusinessFailure\n    expr: max by (cluster,\
++    \ profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile=\"\
++    hourly\",rule_id=\"nodes.utilization\",scope=\"cluster\"}[30d])\n      > 0) or\
++    \ (last_over_time(inspector_confirmed_failures{profile=\"hourly\",rule_id=\"nodes.utilization\"\
++    ,scope=\"cluster\"}[30d])\n      > 0))\n    for: 1m\n    labels:\n      shadow:\
++    \ 'true'\n      category: business\n      severity: warning\n      rule_id: nodes.utilization\n\
++    \      profile: hourly\n      scope: cluster\n    annotations:\n      summary:\
++    \ 'Inspection finding: nodes.utilization'\n      description: Last valid unhealthy\
++    \ observation; verify recovery using fresh evidence.\n  - alert: K8sInspectorBusinessFailure\n\
++    \    expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile=\"\
++    hourly\",rule_id=\"nodes.pressure\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    hourly\",rule_id=\"nodes.pressure\",scope=\"cluster\"}[30d])\n      > 0))\n  \
++    \  for: 1m\n    labels:\n      shadow: 'true'\n      category: business\n    \
++    \  severity: warning\n      rule_id: nodes.pressure\n      profile: hourly\n \
++    \     scope: cluster\n    annotations:\n      summary: 'Inspection finding: nodes.pressure'\n\
++    \      description: Last valid unhealthy observation; verify recovery using fresh\
++    \ evidence.\n  - alert: K8sInspectorBusinessFailure\n    expr: max by (cluster,\
++    \ profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile=\"\
++    daily\",rule_id=\"pods.history\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    daily\",rule_id=\"pods.history\",scope=\"cluster\"}[30d])\n      > 0))\n    for:\
++    \ 1m\n    labels:\n      shadow: 'true'\n      category: business\n      severity:\
++    \ warning\n      rule_id: pods.history\n      profile: daily\n      scope: cluster\n\
++    \    annotations:\n      summary: 'Inspection finding: pods.history'\n      description:\
++    \ Last valid unhealthy observation; verify recovery using fresh evidence.\n  -\
++    \ alert: K8sInspectorBusinessFailure\n    expr: max by (cluster, profile, rule_id,\
++    \ scope) ((last_over_time(inspector_last_valid_failures{profile=\"daily\",rule_id=\"\
++    events.warning\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    daily\",rule_id=\"events.warning\",scope=\"cluster\"}[30d])\n      > 0))\n   \
++    \ for: 1m\n    labels:\n      shadow: 'true'\n      category: business\n     \
++    \ severity: warning\n      rule_id: events.warning\n      profile: daily\n   \
++    \   scope: cluster\n    annotations:\n      summary: 'Inspection finding: events.warning'\n\
++    \      description: Last valid unhealthy observation; verify recovery using fresh\
++    \ evidence.\n  - alert: K8sInspectorBusinessFailure\n    expr: max by (cluster,\
++    \ profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile=\"\
++    daily\",rule_id=\"addons.ready\",scope=\"cluster\"}[30d])\n      > 0) or (last_over_time(inspector_confirmed_failures{profile=\"\
++    daily\",rule_id=\"addons.ready\",scope=\"cluster\"}[30d])\n      > 0))\n    for:\
++    \ 1m\n    labels:\n      shadow: 'true'\n      category: business\n      severity:\
++    \ warning\n      rule_id: addons.ready\n      profile: daily\n      scope: cluster\n\
++    \    annotations:\n      summary: 'Inspection finding: addons.ready'\n      description:\
++    \ Last valid unhealthy observation; verify recovery using fresh evidence.\n  -\
++    \ alert: K8sInspectorTargetNeverRan\n    expr: inspector_expected_target unless\
++    \ on (cluster, profile) count_over_time(inspector_last_run_timestamp_seconds[30d])\n\
++    \    for: 5m\n    labels:\n      shadow: 'true'\n      severity: critical\n  \
++    \    category: quality\n    annotations:\n      summary: Expected inspection target\
++    \ has never run\n      description: Expected inventory has no run history for\
++    \ this target.\n  - alert: K8sInspectorTelemetryMissing\n    expr: (inspector_expected_target\
++    \ unless on (cluster, profile) inspector_last_run_timestamp_seconds)\n      and\
++    \ on (cluster, profile) count_over_time(inspector_last_run_timestamp_seconds[30d])\n\
++    \    for: 5m\n    labels:\n      shadow: 'true'\n      severity: critical\n  \
++    \    category: quality\n    annotations:\n      summary: Inspection telemetry\
++    \ missing\n      description: Target ran before but its current telemetry is absent.\n\
++    \  - alert: K8sInspectorRunStale\n    expr: (time() - max by (cluster, profile)\
++    \ (inspector_last_run_timestamp_seconds))\n      > on (cluster, profile) inspector_expected_max_run_age_seconds\n\
++    \    for: 2m\n    labels:\n      shadow: 'true'\n      severity: critical\n  \
++    \    category: quality\n    annotations:\n      summary: Inspection run is stale\n\
++    \      description: Run completion time exceeded the expected target budget.\n\
++    \  - alert: K8sInspectorExpectedObservationMissing\n    expr: inspector_expected_rule\
++    \ unless on (cluster, profile, rule_id, scope) inspector_rule_observation_valid\n\
++    \    for: 2m\n    labels:\n      shadow: 'true'\n      severity: critical\n  \
++    \    category: quality\n    annotations:\n      summary: Expected rule observation\
++    \ missing\n      description: Expected rule has no current quality sample.\n \
++    \ - alert: K8sInspectorObservationInvalid\n    expr: max by (cluster, profile,\
++    \ rule_id, scope) (inspector_rule_observation_valid\n      == 0) and on (cluster,\
++    \ profile, rule_id, scope) inspector_expected_rule\n    for: 2m\n    labels:\n\
++    \      shadow: 'true'\n      severity: critical\n      category: quality\n   \
++    \ annotations:\n      summary: Current observation is unknown\n      description:\
++    \ Incomplete or invalid collection cannot prove recovery.\n  - alert: K8sInspectorObservationStale\n\
++    \    expr: ((time() - max by (cluster, profile, rule_id, scope) (inspector_last_valid_observation_timestamp_seconds))\n\
++    \      > on (cluster, profile) group_left inspector_expected_max_run_age_seconds)\
++    \ and\n      on (cluster, profile, rule_id, scope) inspector_expected_rule\n \
++    \   for: 2m\n    labels:\n      shadow: 'true'\n      severity: critical\n   \
++    \   category: quality\n    annotations:\n      summary: Last valid observation\
++    \ is stale\n      description: Stale evidence does not verify business recovery.\n\
++    \  - alert: K8sInspectorRunFailed\n    expr: max by (cluster, profile) (inspector_run_success\
++    \ == 0) and on (cluster,\n      profile) inspector_expected_target\n    for: 2m\n\
++    \    labels:\n      shadow: 'true'\n      severity: critical\n      category:\
++    \ quality\n    annotations:\n      summary: Inspection execution or required output\
++    \ failed\n      description: Check collection quality and sink results in the\
++    \ run manifest.\n  - alert: K8sInspectorSinkFailed\n    expr: max by (cluster,\
++    \ profile, sink) (inspector_sink_success == 0) and on (cluster,\n      profile)\
++    \ inspector_expected_target\n    for: 2m\n    labels:\n      shadow: 'true'\n\
++    \      severity: critical\n      category: quality\n    annotations:\n      summary:\
++    \ Inspection output failed\n      description: A completed sink attempt failed;\
++    \ inspect local manifests and logs.\n  - alert: K8sInspectorInventoryUnavailable\n\
++    \    expr: max by (job) (up{job=\"inspector-inventory\"} == 0) or absent(up{job=\"\
++    inspector-inventory\"})\n    for: 2m\n    labels:\n      shadow: 'true'\n    \
++    \  severity: critical\n      category: quality\n    annotations:\n      summary:\
++    \ Expected target inventory unavailable\n      description: Restore independent\
++    \ inventory; missing-target detection requires\n        it.\n  - alert: K8sInspectorPushgatewayUnavailable\n\
++    \    expr: max by (job) (up{job=\"pushgateway\"} == 0) or absent(up{job=\"pushgateway\"\
++    })\n    for: 2m\n    labels:\n      shadow: 'true'\n      severity: critical\n\
++    \      category: quality\n    annotations:\n      summary: Inspection Pushgateway\
++    \ unavailable\n      description: Restore the telemetry path; absent metrics do\
++    \ not prove recovery.\n"
+diff --git a/deploy/storage/pv-nfs.yaml b/deploy/storage/pv-nfs.yaml
+index 656b197..a6f21e6 100644
+--- a/deploy/storage/pv-nfs.yaml
++++ b/deploy/storage/pv-nfs.yaml
+@@ -1,14 +1,15 @@
+-apiVersion: v1
+-kind: PersistentVolume
+-metadata:
+-  name: k8s-inspector-nfs-pv
+-spec:
+-  capacity:
+-    storage: 10Gi
+-  accessModes:
+-    - ReadWriteMany
+-  persistentVolumeReclaimPolicy: Retain
+-  volumeMode: Filesystem
+-  nfs:
+-    server: 192.168.32.10
+-    path: /exports/k8s-inspector
++# Historical standalone REPORT example only; not referenced by canonical base.
++apiVersion: v1
++kind: PersistentVolume
++metadata:
++  name: k8s-inspector-nfs-pv
++spec:
++  capacity:
++    storage: 10Gi
++  accessModes:
++    - ReadWriteMany
++  persistentVolumeReclaimPolicy: Retain
++  volumeMode: Filesystem
++  nfs:
++    server: nfs.example.invalid
++    path: /exports/k8s-inspector
+diff --git a/docs/runbooks/operations.md b/docs/runbooks/operations.md
+new file mode 100644
+index 0000000..33c57db
+--- /dev/null
++++ b/docs/runbooks/operations.md
+@@ -0,0 +1,44 @@
++# Operations and ownership
++
++Status: offline preparation. Site owners, actual credentials, deployed volume semantics, container/runtime matrix and shadow acceptance remain unverified. A passing source suite is not permission to deploy.
++
++## Assign before enabling
++
++Record the accountable owner and escalation backup for each cluster/profile, Alertmanager route/team, Bridge state volume/backup, report volume/retention, Prometheus storage and independent quality receiver. Set an explicit stable cluster_id. Keep actual app credentials, bearer source tokens and chat destination configuration in site-managed Secrets; never commit resolved Secret files or actual kubeconfig.
++
++The default Kustomization contains suspended inspector jobs and storage declarations. `overlays/example` adds opt-in Bridge/async/example monitoring. `overlays/shadow` uses a dedicated namespace, report path, Pushgateway job and Secret reference. Placeholders, suspended jobs and syntactically valid claims do not prove a runnable site installation. Keep cluster-scoped RBAC names distinct across installations; the control-component observer still reads the configured control-plane namespace.
++
++## Routine checks
++
++- Check independent expected inventory, never-ran/stale/invalid observations, required sink failures and Pushgateway scrape health. Unknown or absent evidence is not recovery.
++- Inspect latest report.json, run-manifest and run-status together. INFO is evidence, not a business fault; filter WARN/FAIL. Historical OOM/restarts and current Pod failures are separate.
++- For Bridge backlog/dead/unknown, use local bridge_admin inspect. Health proves process liveness; readyz also depends on writable state and active delivery worker. Do not send the only failure notification through the failing Bridge.
++- Backup before schema changes using the SQLite backup API and a pre-created durable directory. Retain delivery IDs/audit and pending/DEAD/unacknowledged unknown evidence. Verify restored schema with matching code.
++- Rotate tokens by updating both the Alertmanager authorization mount and Bridge sources Secret through the site's controlled procedure. Bind HA replicas to one logical source. Verify the new path before removing the old credential; never print it in command logs.
++
++Read-only/help command inventory:
++
++```sh
++python -m k8s_inspector.cli --help
++python -m k8s_inspector.cli run --help
++python -m k8s_inspector.cli cleanup --help
++python -m k8s_inspector.alertmanager_bridge --help
++python -m k8s_inspector.bridge_admin --help
++python -m k8s_inspector.expected_targets --help
++```
++
++Local administrative actions require container/OS authorization. resolve-dead and acknowledge-unknown require reasons and preserve history; they do not change an unconfirmed send into SENT. Use documented requeue only after correcting the cause and accepting duplicate-send risk. Report cleanup does not manage Bridge jobs or incident state.
++
++## What is implemented and what is not
++
++Implemented locally: bounded existing inspection rules, v1/v2 evidence and output isolation, persistent aggregate evidence, expected inventory/shadow rules, fixed existing-chat routing, authenticated optional async inbox/outbox, retries/leases/audit/backup/schema3 maintenance, package/deployment validation helpers.
++
++Optional explicit components: app/webhook provider, async Bridge, sample monitoring and shadow namespace. These are not installed by default. Image smoke and runtime support require actual CI/target evidence; skip/pending is not success.
++
++Not implemented by this release preparation: D manual incident authorization/disposition/collaboration, F expanded coverage and repaired standalone MCP packaging, automatic remediation, automatic group creation, HA SQLite or guaranteed node-loss recovery. Existing MCP source is not a verified release extra and has no default deployment component. Ordinary alerts continue to existing fixed groups.
++
++## Record real operation before setting SLOs
++
++Capture version/image digest/config revision, cluster/profile coverage and last-valid age, current/historical findings, verified UID recovery, API requests/duration, sink outcomes, delivery success/retry/unknown/backlog/dead, independent quality alert delivery and backup/restore results. Choose SLOs only from these observations. No uptime, losslessness or latency SLO is asserted by offline tests.
++
++For retention see report-retention.md; for queue recovery see bridge-delivery.md; for monitoring activation see inspection-monitoring.md; for controlled rollout and rollback see rollout.md. Keep the previous code/config and compatible state backup. Stop expansion on missed faults, false recovery, non-restorable state or sustained queue growth.
+diff --git a/docs/runbooks/report-retention.md b/docs/runbooks/report-retention.md
+new file mode 100644
+index 0000000..683837d
+--- /dev/null
++++ b/docs/runbooks/report-retention.md
+@@ -0,0 +1,19 @@
++# Report retention and scheduling
++
++Generated jobs consume `k8s_inspector.profiles.PROFILES`; regenerate using `python -m tools.render_cronjobs`. Run Kustomize contract tests after generation. The scheduled profiles are5m/10m/hourly/daily; full is manual. Runner deadlines240/480/900/1800s receive30s Job margin:270/510/930/1830. Each job uses Forbid, backoffLimit0 and explicit Asia/Shanghai. Jobs start suspended; no sample is a release authorization.
++
++CronJob timeZone requires a target Kubernetes version supporting the field (stable in1.27). Server dry-run and controller behavior must be verified before unsuspending; do not silently remove the timezone and assume Shanghai schedules on an older cluster. See [Kubernetes CronJob time zones](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#time-zones).
++
++An inspector business FAIL normally exits2. Examples use always0 for ephemeral Job execution; quality/fault metrics and run-status remain authoritative. Job backoff0 prevents retry storms for business failures or program errors. Forbid limits one CronJob, not different profiles or manual jobs. Each scheduled profile has its own block-state PVC; state is separate from the RWX report claim. Verify actual CSI permissions, same-profile locking, reattachment and restart before relying on this arrangement.
++
++Every run atomically refreshes latest/<profile>/report.json even when extra persistence is issue/none. Hourly/daily archives have UTC buckets and unique run directories. Retain hourly7 days/daily30 days; latest, observation state, Bridge SQLite/outbox and unknown/dead evidence are not report-cleanup targets.
++
++The cleanup job defaults to --dry-run and remains suspended. Review its candidate list, then remove --dry-run only for the site-approved retention job. Permission/deletion errors must remain visible in logs and a nonzero exit; do not use always0 to conceal them. Test cleanup in a disposable archive with valid YYYYMMDD/ YYYYMMDDHH buckets. Monitor PVC free space/permissions through the site's independent storage monitoring; this repository does not yet prove deployed volume capacity coverage.
++
++To inspect candidates locally:
++
++```sh
++python -m k8s_inspector.cli cleanup --root ./out/archive --hourly-days 7 --daily-days 30 --dry-run
++```
++
++Report cleanup does not prune the delivery database. Use the documented local Bridge maintenance procedure with preserved backups/audit and required reasons. Restoring a report does not resolve an incident or manufacture valid healthy observations.
+diff --git a/docs/runbooks/rollout.md b/docs/runbooks/rollout.md
+new file mode 100644
+index 0000000..9574959
+--- /dev/null
++++ b/docs/runbooks/rollout.md
+@@ -0,0 +1,38 @@
++# Controlled shadow rollout and rollback
++
++Current authorization: offline preparation only. No kubectl apply, real Feishu sends, failure injection or production switching has been performed. A site owner must review a concrete candidate and authorize the actual test environment before any of those steps.
++
++## Prepare the candidate locally
++
++1. Run source tests, build/install the wheel outside source, render base/example/shadow and run promtool/amtool. `python -m tools.verify_release --offline --output-dir ./out/release-check` writes individual outcomes and artifacts; exit1 is expected while clean dependency installation, selected pins, Docker/runtime matrix or external acceptance is pending. Reuse requires a new output directory. Do not relabel an offline failure/pending report as release-ready.
++2. CI is an unexecuted GitHub example until a repository/runner exists. It uses Python3.9/3.11/3.14, selected direct/tool constraints, real Kustomize/rule binaries and a separate Docker smoke job. The local Windows3.12 run does not establish that matrix. Save actual resolved versions; the constraints are not a full transitive lock.
++3. Build the nonroot image from the verified pinned official Python3.11 base manifest. Record local image metadata; a local image ID is not a published registry digest. After a separately authorized push, pin the actual deployment image digest in a site overlay. Example image tags and StorageClass names remain placeholders.
++4. Render with `kustomize build deploy/overlays/shadow`. Review exact resources, ConfigMaps, Secret references, storage bindings and diffs. The shadow namespace is k8s-inspector-shadow; report root /data/shadow, Pushgateway job k8s-inspector-shadow, per-profile state PVCs and Bridge state PVC are namespace-isolated. Control-plane Role/RoleBinding stay in kube-system with shadow-prefixed names and shadow ServiceAccount subjects. Changing control_plane_namespace requires matching site RBAC patches.
++
++The shadow overlay starts suspended. Its example monitoring scrapes its own Pushgateway and inventory, and keeps the legacy rules alongside new rules labelled shadow=true. The shadow-null route discards every new shadow notification while preserving authenticated legacy delivery into a dedicated test destination. This prevents new/old business rules from both notifying. Operators must independently verify the resolved chat IDs differ: distinct Secret names prove configuration isolation, not actual provider destination identity.
++
++## Site inputs and authorization
++
++Supply target Kubernetes version (timeZone support), actual image digest, cluster_id, workload/control namespaces, managed-control-plane capabilities, node/Pod scale, report RWX and per-profile/Bridge verified local/block StorageClasses, CNI/API/DNS/proxy/Feishu egress requirements, Alertmanager source Secret and a dedicated test Feishu Secret. Never post credentials to logs. The base ingress policy assumes monitoring Pods in the same namespace; cross-namespace existing monitoring needs a reviewed policy. Egress is intentionally site-specific and remains a release gate.
++
++Do not treat ReadWriteOnce as proof of suitable SQLite storage. Verify actual CSI/PV filesystem, permissions/nonroot, lock exclusivity, Pod replacement, node/volume interruption, backup and restoration using disposable state. Prometheus/Alertmanager example data use separate persistent claims; the45-day Prometheus sample retention still needs actual capacity, persistence and restart validation. Their availability and the independent receiver remain separate acceptance items.
++
++## Test scope and evidence
++
++After explicit site authorization, server-dry-run the fully merged overlay first. Then use only the approved namespace, claims and test destination. Inspect capabilities/RBAC before interpreting missing resources. Unsuspend a small chosen profile; capture actual deadline/exit/requests, reports and metrics. Observe multiple daily runs and recoveries.7–14 days is an observation suggestion, not an automated wait or permission granted by elapsed time.
++
++Exercise current Pod unready/init failure, expected WFFC and Lost fixtures, metrics403/timeout, FAIL→ERROR→fresh complete PASS, never-ran and cleared Pushgateway, inventory/Bridge outage, DB unavailable, provider429/timeouts and restart/retry. Do not mutate production resources to create fixtures. D creation-unknown drills apply only after D exists. Record expected vs observed results and reasons for false/missed alerts, coverage, valid observation ages, API load, queue oldest age/dead/unknown and actual independent quality delivery.
++
++## Activation and stop conditions
++
++Only the actual owner can approve activation after G2/G3 evidence. Review small-scope formal destinations and all Secret mounts. Confirm the independent quality receiver works while the ordinary Bridge is unavailable. Stop equivalent legacy business notifications before activating v2, retain quality coverage, then remove only obsolete Pushgateway grouping keys. Preserve previous code/config and a consistent state backup. Inhibition, silence, missing samples or Alertmanager resolved are not verified incident recovery.
++
++Stop expansion on missed faults, false recovery, state/backup failures or sustained backlog growth. Keep the shadow recording path available for diagnosis. No publish/deploy action is part of the local verifier.
++
++## Rollback
++
++Freeze new input/cutover under the site's reviewed procedure, inspect/export pending/DEAD/unknown jobs and make a consistent backup through bridge_admin into a pre-created durable directory. Keep compatible async code running/draining retained outbox; do not switch to sync and abandon queued jobs. Keep observation state, confirmed evidence, latest/reports and maintenance audit. Verify both report and Bridge schema compatibility before selecting code or restoring a matching backup. Never overwrite an unverified new database with an old one.
++
++The read-only helper `python -m tools.rollout --current-schema 3 --target-schema 3 --delivery-mode async --unfinished-jobs 4` rejects incompatible schema or sync with unfinished work. It neither reads the actual DB nor grants permission: the counts/schema must come from a fresh local inspect; a stale/incorrect input does not prove safe rollback. Its output always requires backup, preservation and operator review.
++
++Reapply the reviewed former rule/route configuration only after authorization; preserve jobs/state rather than deleting PVCs, databases or initialization markers. Exercise backup restore and queue replay in disposable volumes first, verify original delivery IDs and historical audit, then require fresh complete healthy UID evidence before closing incidents. Manual dispositions require reasons; do not forge SENT or healthy zero.
+diff --git a/docs/superpowers/plans/2026-10-02-production-release.md b/docs/superpowers/plans/2026-10-02-production-release.md
+index 1a205d3..0ba546c 100644
+--- a/docs/superpowers/plans/2026-10-02-production-release.md
++++ b/docs/superpowers/plans/2026-10-02-production-release.md
+@@ -3,23 +3,27 @@
+ > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox ('- [ ]') syntax for tracking.
+ 
+ **Goal:** 把离线通过的代码变成可安装、可运行、可观测、可恢复的发布产物。
+ 
+ **Architecture:** 先建立版本和依赖基线；拆可选部署与环境 overlay；用实际构建、规则测试和影子运行逐级验收。E1 提前执行，完整发布依赖 A/B/C。
+ 
+ **Tech Stack:** Python packaging、pytest、Docker、Kustomize、Prometheus promtool、测试 Kubernetes 集群。
+ 
+ **Spec:** [设计基准](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/specs/2026-10-02-remediation-design.md)；[总计划](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/plans/2026-10-02-remediation-roadmap.md)。
+ 
++## 本轮范围（2026-10-17）
++
++用户确认“先完成离线发布准备”。E1–E6在本地可交付部分执行；实际Python3.9/3.11/3.14、Docker、集群server dry-run、状态卷/CSI/CNI、通知和影子运行验收仍明确待验。下面复合步骤包含环境要求的保持未勾选，不以部分验证冒充全部完成。
++
+ ## Global Constraints
+ 
+-- 当前 .git 不存在，旧整改前 ZIP 只覆盖部分文件；不能把它作为完整版本回退保证。
++- 原始版本管理前提已解除：本地Git已建立，E基线为ac2a8b9，并保存129文件完整受版本控制源码快照及SHA256 manifest；无远端，不自动推送。
+ - 本计划所有部署/真实发送/故障演练在 E5 明确的测试范围内执行；离线计划完成不代表已经授权生产发布。
+ - YAML 解析不等于 Kustomize 渲染、server dry-run、真实卷挂载或 promtool 规则通过。
+ - SQLite 状态卷与报告卷分离；单实例不是 HA，无节点故障无损承诺。
+ - 保留 Python>=3.9 当前声明直到实际兼容评估；3.11 为主发布、3.14 额外回归，声明支持的版本需要运行验证。
+ - 可选 MCP/事件创建不进入最低可靠版本的默认暴露面。
+ 
+ ## Review Focus
+ 
+ 1. 仅源码目录运行正常，wheel 漏新增模块：E1/E4 的隔离安装测试。
+ 2. 两个 Bridge Pod 同时写状态或 SQLite 落在 NFS：E2 的部署和卷语义验收。
+@@ -44,25 +48,25 @@ def test_wheel_installs_and_imports_outside_source_tree(installed_env):
+     result = installed_env.run(
+         ["-c", "import k8s_inspector; import k8s_inspector.alert_routing"],
+         cwd=installed_env.empty_directory,
+     )
+     assert result.returncode == 0
+     assert str(installed_env.source_directory) not in result.module_path
+ ~~~
+ 
+ installed_env fixture 构建 wheel 并安装进隔离 venv，module_path 来自包 __file__，不是 shell 环境猜测。增加 test_cli_help_from_installed_wheel、test_declared_runtime_imports、test_optional_mcp_not_required_for_cli。
+ 
+-- [ ] 保存完整版本基线，记录解释器与已安装依赖；重新运行 python -m pytest tests/ -q，不沿用历史163测试作为本轮结果。
+-- [ ] 写隔离安装测试，运行 python -m pytest tests/test_installed_package.py -q。
++- [x] 保存完整版本基线，记录解释器与已安装依赖；重新运行 python -m pytest tests/ -q，不沿用历史163测试作为本轮结果。
++- [x] 写隔离安装测试，运行 python -m pytest tests/test_installed_package.py -q。
+ - [ ] 修打包发现/依赖单源；落实3.9/3.11/3.14实际运行结果，不兼容时提出明确版本声明变更。
+-- [ ] 用 python -m build 构建，隔离安装验证；将构建工具纳入开发约束。
+-- [ ] 记录安装产物/hash/测试结果与未完成的工具验证，提交。
++- [x] 用 python -m build 构建，隔离安装验证；将构建工具纳入开发约束。
++- [x] 记录安装产物/hash/测试结果与未完成的工具验证，提交。
+ 
+ ## E2：部署分层、状态持久化与最小权限
+ 
+ **文件：** 调整 deploy/kustomization.yaml，新增 deploy/base/、deploy/overlays/example/、deploy/components/bridge/ 和可选 monitoring/MCP 组件；新增 tests/test_deployment_contract.py。
+ 
+ **约定：**
+ 
+ - 默认基础只含 inspector 所需资源；不默认安装与用户已有 Prometheus/Alertmanager 重复的实例。现有一体示例保留为明确 example overlay。
+ - cluster_id、镜像引用、输出 StorageClass、状态 StorageClass、群配置和已有监控地址在 overlay 注入；取消硬编码 NFS服务器/IP。
+ - Bridge async 组件挂独立状态 PVC，replicas=1、Recreate、非 root、资源限制、startup/readiness/liveness 探针；报告挂载可只读。
+@@ -77,25 +81,25 @@ def test_async_bridge_has_persistent_single_writer(rendered):
+     assert bridge.spec.strategy.type == "Recreate"
+     assert rendered.mounted_pvc(bridge, "/var/lib/inspector") is not None
+ 
+ def test_inspector_role_has_no_mutating_verbs(rendered):
+     verbs = rendered.cluster_role_verbs("k8s-inspector")
+     assert not (verbs & {"create", "update", "patch", "delete", "deletecollection"})
+ ~~~
+ 
+ rendered fixture 解析真实 kustomize build 输出，不将原 YAML 当渲染结果。另测 test_base_does_not_install_optional_monitoring、test_secrets_not_embedded_in_configmap、test_bridge_disables_service_account_automount。
+ 
+-- [ ] 写部署契约测试，运行 python -m pytest tests/test_deployment_contract.py -q。
+-- [ ] 拆 base/component/overlay，并迁移现有样例引用，保持示例可渲染。
++- [x] 写部署契约测试，运行 python -m pytest tests/test_deployment_contract.py -q。
++- [x] 拆 base/component/overlay，并迁移现有样例引用，保持示例可渲染。
+ - [ ] 执行 kustomize build deploy/overlays/example；测试集群执行 kubectl apply --dry-run=server -k deploy/overlays/example。
+ - [ ] 在专用测试卷验证 Pod 替换/备份恢复/单 writer，记录 StorageClass 与实际 volume 语义。
+-- [ ] 工具或集群不可用项标待验，G2/G3 不通过；审查权限和卷后提交。
++- [x] 工具或集群不可用项标待验，G2/G3 不通过；审查权限和卷后提交。
+ 
+ ## E3：CronJob 期限、报告保留、时区和配置单源
+ 
+ **文件：** 修改 cronjobs-by-frequency.yaml、cleanup-cronjob.yaml、tools/render_monitoring.py；新增 tests/test_scheduling_contract.py、docs/runbooks/report-retention.md。
+ 
+ **接口与约定：**
+ 
+ - render_cronjobs(profiles: Mapping[str, ProfileSpec], output: Path) -> Path；消费 C3 profile catalog，不另外维护频次和 deadline 表。
+ - activeDeadlineSeconds 至少容纳运行 deadline +30s 停机余量：5m=270、10m=510、hourly=930、daily/full=1830；与 schedule 间隔校验。concurrencyPolicy=Forbid、backoffLimit=0/明确小值，避免业务退出2形成无限 Job 重试。
+ - 对支持 CronJob timeZone 的目标版本设置 Asia/Shanghai；不支持时显式使用控制器时区并调整 schedule，不能无验证宣称本地0点执行。
+@@ -108,25 +112,25 @@ def test_job_deadline_matches_runner_catalog(rendered, profiles):
+         job = rendered.cronjob_for(profile)
+         assert job.active_deadline_seconds == profiles[profile].deadline_seconds + 30
+         assert job.concurrency_policy == "Forbid"
+ 
+ def test_cleanup_does_not_target_latest_or_bridge_state(rendered):
+     args = rendered.cleanup_args()
+     assert "/data/out/archive" in args
+     assert "/var/lib/inspector" not in args
+ ~~~
+ 
+-- [ ] 写期限/时区/清理契约测试并运行 python -m pytest tests/test_scheduling_contract.py -q。
+-- [ ] 实现 catalog 生成与示例参数，明确创建失败/业务 FAIL/程序错误的 Job 策略。
++- [x] 写期限/时区/清理契约测试并运行 python -m pytest tests/test_scheduling_contract.py -q。
++- [x] 实现 catalog 生成与示例参数，明确创建失败/业务 FAIL/程序错误的 Job 策略。
+ - [ ] 真实测试运行一个 profile，记录耗时/API请求量/最终退出；跨时区 schedule 验证。
+-- [ ] cleanup dry-run 校验名单后在测试归档执行，验证删除失败不计成功。
+-- [ ] 审查配置漂移检测、存储互斥与报告保留说明，提交。
++- [x] cleanup dry-run 校验名单后在测试归档执行，验证删除失败不计成功。
++- [x] 审查配置漂移检测、存储互斥与报告保留说明，提交。
+ 
+ ## E4：CI、真实产物与规则检查
+ 
+ **文件：** 完善 tools/verify_release.py；新增 .github/workflows/ci.yml 作为 GitHub 示例，或按实际托管平台适配；修改 Dockerfile；新增 tests/test_release_artifacts.py。
+ 
+ **发布检查：**
+ 
+ - 源码测试→wheel隔离安装→Docker镜像入口→Kustomize build→promtool check config/rules→promtool test rules；每项独立记录，失败阻止候选版本。
+ - 镜像使用选定Python3.11基础版本/digest、依赖约束、非root；部署按镜像digest固定。CLI与Bridge不同command覆盖必须真实运行 smoke。
+ - 新增模块、extras和配置样例进入相应产物；镜像不带真实kubeconfig、Secret和审计运行数据。
+@@ -138,22 +142,22 @@ def test_image_cli_and_bridge_entrypoints(image_runner):
+     assert image_runner.run(["python", "-m", "k8s_inspector.cli", "--help"]).returncode == 0
+     assert image_runner.run(["python", "-m", "k8s_inspector.alertmanager_bridge", "--help"]).returncode == 0
+ 
+ def test_release_checks_fail_when_promtool_fails(verification_runner):
+     result = verification_runner.with_failed_check("promtool").run()
+     assert result.success is False
+     assert result.checks["promtool"].success is False
+ ~~~
+ 
+ - image_runner.run在fixture中用Docker --entrypoint覆盖默认CLI ENTRYPOINT，执行传入命令；否则Bridge smoke会误走CLI参数解析。
+-- [ ] 写产物和检查失败测试，运行 python -m pytest tests/test_release_artifacts.py -q。
+-- [ ] 实现可本地执行的验证入口，再接托管平台CI；不自动发布镜像/包。
++- [x] 写产物和检查失败测试，运行 python -m pytest tests/test_release_artifacts.py -q。
++- [x] 实现可本地执行的验证入口，再接托管平台CI；不自动发布镜像/包。
+ - [ ] 运行 python -m build、docker build、kustomize build、promtool check/test；保留版本与输出证据。
+ - [ ] 完成镜像smoke/隔离导入/备份恢复，不以源码pytest替代。
+ - [ ] 审查候选版本manifest、digest、schema和回退路径，提交。
+ 
+ ## E5：影子运行、故障演练、灰度与回退
+ 
+ **文件：** 新增 docs/runbooks/rollout.md、tests/test_rollout_scenarios.py、审计发布验收记录。
+ 
+ **契约与步骤：**
+ 
+@@ -163,21 +167,21 @@ def test_release_checks_fail_when_promtool_fails(verification_runner):
+ - 先小范围正式通知，再替换主规则与旧 grouping，防止双通知；保留旧版本/配置/一致备份。
+ - 发现新漏报、错误恢复、状态无法恢复、队列持续增长就停止扩大范围；回退前导出未完成任务，旧同步模式不能直接遗弃 outbox。
+ 
+ ~~~python
+ def test_shadow_uses_separate_outputs_and_destinations(shadow_config, production_config):
+     assert shadow_config.output_dir != production_config.output_dir
+     assert shadow_config.pushgateway_group != production_config.pushgateway_group
+     assert shadow_config.destination_id != production_config.destination_id
+ ~~~
+ 
+-- [ ] 写shadow隔离与回退保留任务测试，运行 python -m pytest tests/test_rollout_scenarios.py -q。
++- [x] 写shadow隔离与回退保留任务测试，运行 python -m pytest tests/test_rollout_scenarios.py -q。
+ - [ ] 准备候选版本、差异、演练范围、测试群和回退步骤供上线负责人审阅。
+ - [ ] 在授权测试范围执行演练，记录实际现象与原因，不仅“请求成功”。
+ - [ ] 满足G3后再审批正式切换；发布确认来自真实负责人，不用观察期经过代替授权。
+ - [ ] 完成灰度记录与回退演练，确认历史163测试不是生产可靠性证明。
+ 
+ ## E6：运营手册、责任与长期验收
+ 
+ **文件：** 更新 README/AGENTS，新增 docs/runbooks/operations.md，汇总各子计划的验收日志。
+ 
+ **交付：**
+@@ -186,15 +190,29 @@ def test_shadow_uses_separate_outputs_and_destinations(shadow_config, production
+ - 手册包括unknown、dead、backlog、never-ran、旧指标清理、报告保留、schema迁移、备份恢复。
+ - 运行记录至少包含有效巡检覆盖、当前与历史故障、有效恢复、投递成功/未知/重试、监控失明；SLO目标根据观察数据设定，不预填为已实现。
+ - 索引连接真实命令/配置及版本；产品能力表区分已实现、可选和未实现。
+ 
+ ~~~python
+ def test_documented_cli_commands_match_parser(documented_commands, installed_env):
+     for command in documented_commands.help_commands:
+         assert installed_env.run(command).returncode == 0
+ ~~~
+ 
+-- [ ] 用已安装包验证手册中的help/只读命令；不为纯文案写镜像实现的测试。
+-- [ ] 完成配置、运维、责任、恢复和能力表。
+-- [ ] 核对全部G1–G4证据，缺环境验证明确列出，不能标“全部完成”。
++- [x] 用已安装包验证手册中的help/只读命令；不为纯文案写镜像实现的测试。
++- [x] 完成配置、运维、责任、恢复和能力表。
++- [x] 核对全部G1–G4证据，缺环境验证明确列出，不能标“全部完成”。
+ - [ ] 交接给实际维护负责人，记录未启用D/F与后续范围。
+ - [ ] 评审并提交；后续迭代按实际故障数据排序。
++
++
++## 离线交付与待验对照
++
++| 任务 | 本地交付 | 未完成的真实验收 |
++|---|---|---|
++| E1 | 源码快照、依赖单源/选择性约束、wheel子包发现、源码外安装 | 3.9/3.11/3.14与干净依赖安装；离线bootstrap共享已装依赖 |
++| E2 | 暂停的最小base、可选组件/example、分profile状态卷、非root/权限/ingress契约 | server dry-run、实际CSI/PV权限/锁/故障恢复、按CNI落实egress |
++| E3 | catalog生成期限/时区/重试策略、清理dry-run与保留手册 | 实际控制器timeZone、耗时/API规模/容量观测 |
++| E4 | 失败闭合校验器、源码/制品hash、官方固定base digest、CI示例 | Docker build/smoke、CI实际执行、发布后的镜像digest |
++| E5 | 独立namespace/输出/job/Secret影子配置、保留状态的只读回退检查 | 实际独立chat ID、测试范围授权、影子多次daily/故障恢复及正式切换审批 |
++| E6 | 安装包help/本地inspect/备份恢复验证、操作/责任/能力/交接模板 | 实际维护人签收与真实环境长期运行记录 |
++
++MCP部署组件/extra的实际可用性属于F；当前源码独立性问题未在E绕过。版本约束不是完整传递依赖锁。G2/G3继续开放，G4仍由D验收。原始未完成项不得因为离线交付完成就全部勾选。
+diff --git a/docs/superpowers/plans/2026-10-02-remediation-roadmap.md b/docs/superpowers/plans/2026-10-02-remediation-roadmap.md
+index 2cdc06d..f1e523f 100644
+--- a/docs/superpowers/plans/2026-10-02-remediation-roadmap.md
++++ b/docs/superpowers/plans/2026-10-02-remediation-roadmap.md
+@@ -137,10 +137,15 @@ flowchart TD
+ 
+ 每个子任务遵循：写失败用例 → 单项确认 FAIL → 最小实现 → 单项 PASS/必要回归 → review → 独立提交或明确快照。一次只改变一种主要契约；跨模块接口以设计中的名称为准。
+ 
+ 建议选择Native方式，由当前会话按任务串行实施，关键接口变更在阶段边界审查，最终做一次独立审查；若用户选择子代理方式，再按 Superpowers 的 subagent-driven-development 每项启动实施与审查代理。本次规划不自动代替用户选择执行方式，也不创建任务或自动化。
+ 
+ 自审已核对：36 组历史问题有归属；已完成项没有重新算入工期；接口/状态/默认值在子计划中一致；外部幂等和状态持久化没有虚假的无损/恰好一次承诺；可选能力不阻塞最低可靠版本。
+ 
+ ## 7. 当前实施状态（2026-10-15）
+ 
+ A1–A6、B1–B7已完成离线实施与审查修复；当前343项测试通过。B生产切换前仍需真实持久卷、供应商窗口、promtool/amtool/kustomize及独立值班渠道验收。G2/G3保持开放。下一批C从兼容观察模型与有期限采集入手，保留A审查的混合类型未知配置键Minor至C3。执行记录见审计/13、14、15号文档。
++
++
++### 2026-10-17 离线发布准备
++
++C1–C7已完成离线实现与一次独立审查后的修复。用户选择继续完成E的离线准备：版本/安装验证、基础与可选组件分层、调度目录、真实工具规则检查、影子隔离、CI示例与运维手册。实际环境/镜像/通知/状态卷和发布批准保持待验；G2/G3不因离线结果关闭，D/F未启用。具体状态见production-release计划和本轮审计。
+diff --git a/pyproject.toml b/pyproject.toml
+index a231fa1..711e17b 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,22 +1,26 @@
+ [build-system]
+-requires = ["setuptools>=68", "wheel"]
++requires = ["setuptools>=68,<85", "wheel>=0.45,<0.49"]
+ build-backend = "setuptools.build_meta"
+ 
+ [project]
+ name = "k8s-inspector"
+ version = "0.1.0"
+ description = "Kubernetes cluster inspection tool for SRE"
+ readme = "README.md"
+ requires-python = ">=3.9"
+ dependencies = [
+-  "kubernetes>=29.0.0",
+-  "PyYAML>=6.0.1",
+-  "prometheus-client>=0.20.0",
++  "kubernetes>=29.0.0,<38",
++  "PyYAML>=6.0.1,<7",
++  "prometheus-client>=0.20.0,<1",
+   "lark-oapi==1.7.5",
+ ]
+ 
+ [project.scripts]
+ k8s-inspector = "k8s_inspector.cli:main"
+ 
+-[tool.setuptools]
+-packages = ["k8s_inspector"]
++[project.optional-dependencies]
++dev = ["build>=1.2,<2", "pytest>=8.4,<10", "tomli>=2; python_version<'3.11'"]
++
++[tool.setuptools.packages.find]
++include = ["k8s_inspector", "k8s_inspector.*"]
++namespaces = false
+diff --git a/requirements.txt b/requirements.txt
+index ce317b8..dd55738 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,4 +1,4 @@
+-kubernetes>=29.0.0
+-PyYAML>=6.0.1
+-prometheus-client>=0.20.0
+-lark-oapi==1.7.5
++# Development installation entry point. Runtime declarations live in pyproject.toml.
++-c constraints/runtime.txt
++-c constraints/build.txt
++-e .[dev]
+diff --git a/tests/deployment_helpers.py b/tests/deployment_helpers.py
+new file mode 100644
+index 0000000..da1d0f8
+--- /dev/null
++++ b/tests/deployment_helpers.py
+@@ -0,0 +1,21 @@
++from pathlib import Path
++import os
++import shutil
++import subprocess
++import yaml
++
++ROOT=Path(__file__).resolve().parents[1]
++
++
++def render(path):
++    command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
++    if not command:
++        command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
++    result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
++                          encoding='utf-8',timeout=45)
++    assert result.returncode==0,result.stderr
++    return [d for d in yaml.safe_load_all(result.stdout) if d]
++
++
++def find(docs,kind,name):
++    return next(d for d in docs if d['kind']==kind and d['metadata']['name']==name)
+diff --git a/tests/test_deployment_contract.py b/tests/test_deployment_contract.py
+new file mode 100644
+index 0000000..1c53f2d
+--- /dev/null
++++ b/tests/test_deployment_contract.py
+@@ -0,0 +1,68 @@
++"""Contracts consume actual Kustomize output, including optional compositions."""
++import pytest
++from tests.deployment_helpers import render,find
++
++
++@pytest.fixture(scope='module')
++def base(): return render('deploy')
++
++
++@pytest.fixture(scope='module')
++def example(): return render('deploy/overlays/example')
++
++
++def test_base_does_not_install_optional_monitoring(base):
++    assert not [d for d in base if d['kind'] in ('Deployment','Service','PersistentVolume')]
++    assert not any(d.get('spec',{}).get('nfs') for d in base)
++    assert len([d for d in base if d['kind']=='CronJob'])==5
++
++
++def test_inspector_role_has_no_unneeded_or_mutating_verbs(base):
++    for d in base:
++        if d['kind'] in ('Role','ClusterRole'):
++            assert all(set(r['verbs'])<={'get','list'} for r in d['rules'])
++            assert all('pods/exec' not in r.get('resources',[]) for r in d['rules'])
++
++
++def test_inspector_profiles_have_separate_block_state_claims(base):
++    claims=set()
++    for job in [d for d in base if d['kind']=='CronJob' and 'cleanup' not in d['metadata']['name']]:
++        pod=job['spec']['jobTemplate']['spec']['template']['spec']
++        volume=next(v for v in pod['volumes'] if v['name']=='state')
++        claims.add(volume['persistentVolumeClaim']['claimName'])
++    assert len(claims)==4
++    for name in claims:
++        assert find(base,'PersistentVolumeClaim',name)['spec']['accessModes']==['ReadWriteOnce']
++
++
++def test_async_bridge_has_persistent_single_writer(example):
++    bridge=find(example,'Deployment','k8s-inspector-alert-bridge')
++    assert bridge['spec']['replicas']==1 and bridge['spec']['strategy']['type']=='Recreate'
++    pod=bridge['spec']['template']['spec']
++    container=pod['containers'][0]
++    mount=next(m for m in container['volumeMounts'] if m['mountPath']=='/var/lib/inspector')
++    volume=next(v for v in pod['volumes'] if v['name']==mount['name'])
++    assert find(example,'PersistentVolumeClaim',volume['persistentVolumeClaim']['claimName'])['spec']['accessModes']==['ReadWriteOnce']
++    assert all(k in container for k in ('startupProbe','readinessProbe','livenessProbe','resources'))
++    assert pod['securityContext']['runAsNonRoot'] is True
++
++
++def test_bridge_disables_service_account_automount(example):
++    pod=find(example,'Deployment','k8s-inspector-alert-bridge')['spec']['template']['spec']
++    assert pod['automountServiceAccountToken'] is False
++    assert pod['containers'][0]['securityContext']['allowPrivilegeEscalation'] is False
++
++
++def test_secrets_not_embedded_in_configmap(example):
++    assert not [d for d in example if d['kind']=='Secret']
++    bridge=find(example,'Deployment','k8s-inspector-alert-bridge')['spec']['template']['spec']['containers'][0]
++    for env in bridge['env']:
++        if env['name'] in ('FEISHU_APP_SECRET','FEISHU_APP_ID','FEISHU_CHAT_ID'):
++            assert 'secretKeyRef' in env['valueFrom']
++
++
++def test_example_is_suspended_and_has_ingress_restriction(example):
++    assert all(d['spec']['suspend'] is True for d in example if d['kind']=='CronJob')
++    policy=find(example,'NetworkPolicy','k8s-inspector-alert-bridge')
++    assert policy['spec']['policyTypes']==['Ingress']
++    assert policy['spec']['ingress']
+diff --git a/tests/test_installed_package.py b/tests/test_installed_package.py
+new file mode 100644
+index 0000000..ed70c7f
+--- /dev/null
++++ b/tests/test_installed_package.py
+@@ -0,0 +1,74 @@
++"""Wheel tests run outside the source tree; offline dependency bootstrap is explicit."""
++import json
++from pathlib import Path
++import shutil
++import subprocess
++import sys
++import pytest
++
++
++@pytest.fixture(scope='module')
++def installed_env(tmp_path_factory):
++    from tools.verify_release import install_package
++    root=Path(__file__).resolve().parents[1]
++    task=tmp_path_factory.mktemp('installed-package')
++    source=task/'project';source.mkdir()
++    shutil.copytree(root/'k8s_inspector',source/'k8s_inspector',ignore=shutil.ignore_patterns('__pycache__'))
++    for name in ('pyproject.toml','README.md'):
++        shutil.copyfile(root/name,source/name)
++    # A real nested package catches fixed-list setuptools discovery regressions.
++    nested=source/'k8s_inspector/_release_canary';nested.mkdir()
++    (nested/'__init__.py').write_text('VALUE=17',encoding='utf-8')
++    result=install_package(source,python_executable=Path(sys.executable),output_dir=task/'artifacts',offline=True)
++    assert result.success,{k:v.detail for k,v in result.checks.items()}
++    python=next(p for p in result.artifacts if p.name in ('python','python.exe'))
++    empty=task/'empty';empty.mkdir()
++    return source,python,empty,result
++
++
++def run(installed_env,code):
++    source,python,empty,_=installed_env
++    return subprocess.run([str(python),'-I','-c',code],cwd=empty,capture_output=True,text=True,timeout=120)
++
++
++def test_wheel_installs_and_imports_outside_source_tree(installed_env):
++    result=run(installed_env,'import k8s_inspector,k8s_inspector.alert_routing;print(k8s_inspector.__file__)')
++    assert result.returncode==0,result.stderr
++    assert str(installed_env[0]) not in result.stdout
++    assert 'site-packages' in result.stdout
++
++
++def test_nested_packages_are_included_in_wheel(installed_env):
++    result=run(installed_env,'from k8s_inspector._release_canary import VALUE;print(VALUE)')
++    assert result.returncode==0 and result.stdout.strip()=='17',result.stderr
++
++
++def test_cli_help_from_installed_wheel(installed_env):
++    result=run(installed_env,"from k8s_inspector.cli import main;raise SystemExit(main(['--help']))")
++    assert result.returncode==0 and 'cleanup' in result.stdout
++
++
++def test_declared_runtime_imports(installed_env):
++    result=run(installed_env,'import kubernetes,yaml,prometheus_client;import importlib.metadata as m;print(m.version("lark-oapi"))')
++    assert result.returncode==0 and '1.7.5' in result.stdout,result.stderr
++
++
++def test_optional_mcp_not_required_for_cli(installed_env):
++    result=run(installed_env,"import sys;from k8s_inspector.cli import main;assert 'fastmcp' not in sys.modules;raise SystemExit(main(['run','--help']))")
++    assert result.returncode==0 and '--profile' in result.stdout
++
++
++def test_relative_interpreter_is_resolved_before_changing_working_directory(tmp_path):
++    import os
++    from tools.verify_release import install_package
++    root=Path(__file__).resolve().parents[1]
++    relative=Path(os.path.relpath(sys.executable,Path.cwd()))
++    result=install_package(root,python_executable=relative,output_dir=tmp_path/'relative',offline=True)
++    assert result.success,{k:v.detail for k,v in result.checks.items()}
++
++
++def test_nested_output_directory_does_not_misclassify_installed_import(installed_env):
++    from tools.verify_release import install_package
++    source=installed_env[0]
++    result=install_package(source,python_executable=Path(sys.executable),output_dir=source/'release-artifacts',offline=True)
++    assert result.success,{k:v.detail for k,v in result.checks.items()}
+diff --git a/tests/test_release_artifacts.py b/tests/test_release_artifacts.py
+new file mode 100644
+index 0000000..c240926
+--- /dev/null
++++ b/tests/test_release_artifacts.py
+@@ -0,0 +1,44 @@
++"""Fail-closed release checks; real container smoke requires an explicit local image."""
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import sys
++import pytest
++from tests.test_installed_package import installed_env
++
++
++def test_release_checks_fail_when_promtool_fails(tmp_path,monkeypatch,installed_env):
++    from tools import verify_release as release
++    monkeypatch.setattr(release,'install_package',lambda *a,**kw:installed_env[3])
++    bad=tmp_path/'bad-promtool.py';bad.write_text('print("rejected-rule");raise SystemExit(7)',encoding='utf-8')
++    result=release.verify_release(Path(__file__).resolve().parents[1],python_executable=Path(sys.executable),
++        output_dir=tmp_path/'release',offline=True,run_source_tests=False,
++        tool_commands={'promtool':[sys.executable,str(bad)]})
++    assert result.success is False
++    assert result.checks['promtool'].success is False
++    assert '7' in result.checks['promtool'].detail
++
++
++def test_missing_mandatory_tools_and_environment_never_mean_release_success(tmp_path,monkeypatch,installed_env):
++    from tools import verify_release as release
++    monkeypatch.setattr(release,'install_package',lambda *a,**kw:installed_env[3])
++    result=release.verify_release(Path(__file__).resolve().parents[1],python_executable=Path(sys.executable),
++        output_dir=tmp_path/'offline',offline=True,run_source_tests=False)
++    assert not result.success
++    assert result.checks['docker'].success is False
++    assert result.checks['environment_acceptance'].success is False
++    assert result.checks['clean_dependency_install'].success is False
++    assert 'PENDING' in result.checks['docker'].detail
++
++
++@pytest.mark.parametrize('module',['k8s_inspector.cli','k8s_inspector.alertmanager_bridge'])
++def test_image_cli_and_bridge_entrypoints(module):
++    image=os.getenv('INSPECTOR_TEST_IMAGE')
++    if not image or not shutil.which('docker'):
++        pytest.skip('PENDING: requires built local INSPECTOR_TEST_IMAGE and Docker')
++    result=subprocess.run(['docker','run','--rm','--network','none','--read-only','--cap-drop','ALL',
++        '--security-opt','no-new-privileges','--entrypoint','python',image,'-m',module,'--help'],
++        capture_output=True,text=True,timeout=150)
++    assert result.returncode==0,result.stderr
++    assert 'usage:' in result.stdout
+diff --git a/tests/test_rollout_scenarios.py b/tests/test_rollout_scenarios.py
+new file mode 100644
+index 0000000..f71ad97
+--- /dev/null
++++ b/tests/test_rollout_scenarios.py
+@@ -0,0 +1,58 @@
++"""Shadow isolation and rollback gate tests do not deploy or contact providers."""
++from pathlib import Path
++import pytest
++from tests.deployment_helpers import render,find
++
++
++def test_shadow_uses_separate_outputs_jobs_and_destination_secret():
++    production=render('deploy/overlays/example')
++    shadow=render('deploy/overlays/shadow')
++    assert {d['metadata'].get('namespace') for d in shadow if d['kind']=='CronJob'}=={'k8s-inspector-shadow'}
++    def configuration(docs):
++        return next(d['data'] for d in docs if d['kind']=='ConfigMap' and 'PUSHGATEWAY_JOB' in d.get('data',{}))
++    assert configuration(production)['PUSHGATEWAY_JOB'] != configuration(shadow)['PUSHGATEWAY_JOB']
++    for job in [d for d in shadow if d['kind']=='CronJob']:
++        container=job['spec']['jobTemplate']['spec']['template']['spec']['containers'][0]
++        if 'cleanup' in job['metadata']['name']:
++            assert container['args'][container['args'].index('--root')+1]=='/data/shadow/archive'
++        else:
++            assert container['args'][container['args'].index('--output-dir')+1]=='/data/shadow'
++        assert container['volumeMounts'][0]['mountPath']=='/data/shadow'
++        assert job['spec']['suspend'] is True
++    bridge=find(shadow,'Deployment','k8s-inspector-alert-bridge')['spec']['template']['spec']['containers'][0]
++    chats=[e['valueFrom']['secretKeyRef']['name'] for e in bridge['env'] if e['name']=='FEISHU_CHAT_ID']
++    assert chats==['k8s-inspector-shadow-feishu']
++    assert not any(d['kind']=='Secret' for d in shadow)
++
++
++def test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account():
++    docs=render('deploy/overlays/shadow')
++    role=next(d for d in docs if d['kind']=='Role')
++    binding=next(d for d in docs if d['kind']=='RoleBinding')
++    assert role['metadata']['namespace']=='kube-system'
++    assert binding['metadata']['namespace']=='kube-system'
++    assert role['metadata']['name'].startswith('shadow-')
++    assert binding['roleRef']['name']==role['metadata']['name']
++    assert binding['subjects'][0]['namespace']=='k8s-inspector-shadow'
++
++
++def test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery():
++    import yaml
++    docs=render('deploy/overlays/shadow')
++    config=find(docs,'ConfigMap','k8s-inspector-alertmanager-config')
++    am=yaml.safe_load(config['data']['alertmanager.yml'])
++    assert am['route']['routes'][0]['receiver']=='shadow-null'
++    assert am['route']['routes'][0]['matchers']==['shadow="true"']
++    receiver=next(r for r in am['receivers'] if r['name']=='feishu-bridge')
++    assert receiver['webhook_configs'][0]['http_config']['authorization']['credentials_file']=='/etc/bridge-auth/token'
++    rules=find(docs,'ConfigMap','k8s-inspector-prometheus-rules')['data']
++    assert 'inspection-v2-shadow.yaml' in rules
++
++
++def test_rollback_guard_refuses_sync_or_older_schema_with_unfinished_outbox():
++    from tools.rollout import validate_rollback
++    with pytest.raises(ValueError,match='unfinished'):
++        validate_rollback(current_schema=3,target_schema=3,delivery_mode='sync',unfinished_jobs=1)
++    with pytest.raises(ValueError,match='schema'):
++        validate_rollback(current_schema=3,target_schema=2,delivery_mode='async',unfinished_jobs=0)
++    assert validate_rollback(current_schema=3,target_schema=3,delivery_mode='async',unfinished_jobs=4)['preserve_outbox'] is True
+diff --git a/tests/test_scheduling_contract.py b/tests/test_scheduling_contract.py
+new file mode 100644
+index 0000000..65415e1
+--- /dev/null
++++ b/tests/test_scheduling_contract.py
+@@ -0,0 +1,53 @@
++from dataclasses import replace
++from pathlib import Path
++import pytest
++import yaml
++from k8s_inspector.profiles import PROFILES
++from tests.deployment_helpers import render
++
++
++@pytest.fixture(scope='module')
++def jobs(): return [d for d in render('deploy') if d['kind']=='CronJob']
++
++
++def test_job_deadline_matches_runner_catalog(jobs):
++    observed={}
++    for job in jobs:
++        if 'cleanup' in job['metadata']['name']: continue
++        c=job['spec']['jobTemplate']['spec']['template']['spec']['containers'][0]
++        profile=c['args'][c['args'].index('--profile')+1]
++        observed[profile]=job['spec']['jobTemplate']['spec'].get('activeDeadlineSeconds')
++    assert observed=={'5m':270,'10m':510,'hourly':930,'daily':1830}
++
++
++def test_schedules_have_explicit_timezone_and_no_job_retries(jobs):
++    for job in jobs:
++        assert job['spec'].get('timeZone')=='Asia/Shanghai'
++        assert job['spec']['concurrencyPolicy']=='Forbid'
++        assert job['spec']['jobTemplate']['spec'].get('backoffLimit')==0
++
++
++def test_cleanup_does_not_target_latest_or_bridge_state(jobs):
++    cleanup=next(j for j in jobs if 'cleanup' in j['metadata']['name'])
++    pod=cleanup['spec']['jobTemplate']['spec']['template']['spec']
++    args=pod['containers'][0]['args']
++    assert args[args.index('--root')+1]=='/data/out/archive'
++    assert args[args.index('--hourly-days')+1]=='7' and args[args.index('--daily-days')+1]=='30'
++    assert all(m['mountPath']=='/data/out' for m in pod['containers'][0]['volumeMounts'])
++    assert pod['automountServiceAccountToken'] is False
++
++
++def test_generator_uses_supplied_catalog_and_rejects_overlap(tmp_path):
++    from tools.render_cronjobs import render_cronjobs
++    path=render_cronjobs({'5m':replace(PROFILES['5m'],deadline_seconds=250)},tmp_path/'custom.yaml')
++    docs=list(yaml.safe_load_all(path.read_text(encoding='utf-8')))
++    assert len(docs)==1 and docs[0]['spec']['jobTemplate']['spec']['activeDeadlineSeconds']==280
++    with pytest.raises(ValueError,match='interval'):
++        render_cronjobs({'5m':replace(PROFILES['5m'],deadline_seconds=300)},tmp_path/'overlap.yaml')
++
++
++def test_committed_jobs_match_catalog_generation(tmp_path):
++    from tools.render_cronjobs import render_cronjobs
++    output=render_cronjobs(PROFILES,tmp_path/'jobs.yaml')
++    assert output.read_bytes()==Path('deploy/base/cronjobs-by-frequency.yaml').read_bytes()
++    assert output.read_bytes()==Path('deploy/cronjobs-by-frequency.yaml').read_bytes()
+diff --git a/tools/render_cronjobs.py b/tools/render_cronjobs.py
+new file mode 100644
+index 0000000..aee5811
+--- /dev/null
++++ b/tools/render_cronjobs.py
+@@ -0,0 +1,57 @@
++"""Generate scheduled Jobs from the finite runner catalog; defaults stay suspended."""
++from pathlib import Path
++from copy import deepcopy
++import argparse
++import yaml
++from k8s_inspector.profiles import PROFILES
++
++NAMES={'5m':'dataplane-5m','10m':'controlplane-10m','hourly':'infra-hourly','daily':'daily'}
++
++
++def _interval(schedule):
++    parts=schedule.split()
++    if len(parts)!=5: raise ValueError('unsupported schedule interval')
++    if parts[0].startswith('*/') and parts[1:]==['*']*4:
++        value=int(parts[0][2:])
++        if 1<=value<=59: return value*60
++    if parts==['0','*','*','*','*']: return 3600
++    if parts[:2]==['0','2'] and parts[2:]==['*']*3: return 86400
++    raise ValueError('unsupported schedule interval')
++
++
++def render_cronjobs(profiles, output: Path) -> Path:
++    template=yaml.safe_load((Path(__file__).parent/'templates/inspector-cronjob.yaml').read_text(encoding='utf-8'))
++    jobs=[]
++    for name,profile in profiles.items():
++        if profile.schedule is None: continue
++        if name!=profile.name or name not in NAMES: raise ValueError('unknown scheduled profile')
++        if type(profile.deadline_seconds) is not int or profile.deadline_seconds<=0:
++            raise ValueError('invalid deadline')
++        if profile.deadline_seconds+30>=_interval(profile.schedule):
++            raise ValueError('deadline plus shutdown margin must fit schedule interval')
++        job=deepcopy(template);job['metadata']['name']='k8s-inspector-'+NAMES[name]
++        spec=job['spec'];spec.update(schedule=profile.schedule,timeZone='Asia/Shanghai',concurrencyPolicy='Forbid',suspend=True,
++            startingDeadlineSeconds=60,successfulJobsHistoryLimit=2,failedJobsHistoryLimit=2)
++        body=spec['jobTemplate']['spec'];body.update(activeDeadlineSeconds=profile.deadline_seconds+30,backoffLimit=0,ttlSecondsAfterFinished=86400)
++        pod=body['template']['spec'];pod['terminationGracePeriodSeconds']=30
++        container=pod['containers'][0]
++        container['args']=['run','--in-cluster','--profile',name,'--formats','json,html' if name=='daily' else 'json',
++            '--output-dir','/data/out/archive/'+name if name in ('hourly','daily') else '/data/out/latest/'+name]
++        container['args']+=['--archive',name] if name in ('hourly','daily') else ['--persist-level','issue']
++        for volume in pod['volumes']:
++            if volume['name']=='state': volume['persistentVolumeClaim']['claimName']='k8s-inspector-state-'+name
++        jobs.append(job)
++    output=Path(output);output.parent.mkdir(parents=True,exist_ok=True)
++    with output.open('w',encoding='utf-8',newline='') as handle: yaml.safe_dump_all(jobs,handle,sort_keys=False)
++    return output
++
++
++def main(argv=None):
++    parser=argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--output',type=Path,default=Path('deploy/base/cronjobs-by-frequency.yaml'))
++    args=parser.parse_args(argv)
++    render_cronjobs(PROFILES,args.output)
++    return 0
++
++
++if __name__=='__main__': raise SystemExit(main())
+diff --git a/tools/rollout.py b/tools/rollout.py
+new file mode 100644
+index 0000000..8aefc39
+--- /dev/null
++++ b/tools/rollout.py
+@@ -0,0 +1,34 @@
++"""Read-only rollback planning checks. Passing is not authorization to roll back."""
++import argparse
++import json
++
++
++def validate_rollback(*,current_schema,target_schema,delivery_mode,unfinished_jobs):
++    if any(type(v) is not int or v<0 for v in (current_schema,target_schema,unfinished_jobs)):
++        raise ValueError('schema and unfinished counts must be nonnegative integers')
++    if target_schema!=current_schema:
++        raise ValueError('schema compatibility requires matching code or a verified backup restore')
++    if delivery_mode not in ('sync','async'): raise ValueError('invalid delivery mode')
++    if unfinished_jobs and delivery_mode!='async':
++        raise ValueError('unfinished outbox must be preserved and drained with compatible async code')
++    return {'preserve_outbox':True,'preserve_observation_state':True,'requires_backup':True,
++            'requires_operator_approval':True,'external_validation_pending':True}
++
++
++def main(argv=None):
++    p=argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--current-schema',type=int,required=True)
++    p.add_argument('--target-schema',type=int,required=True)
++    p.add_argument('--delivery-mode',choices=['sync','async'],required=True)
++    p.add_argument('--unfinished-jobs',type=int,required=True)
++    args=p.parse_args(argv)
++    try:
++        result=validate_rollback(current_schema=args.current_schema,target_schema=args.target_schema,
++                                delivery_mode=args.delivery_mode,unfinished_jobs=args.unfinished_jobs)
++    except ValueError as exc:
++        p.error(str(exc))
++    print(json.dumps(result))
++    return 0
++
++
++if __name__=='__main__':raise SystemExit(main())
+diff --git a/tools/templates/inspector-cronjob.yaml b/tools/templates/inspector-cronjob.yaml
+new file mode 100644
+index 0000000..a12ae20
+--- /dev/null
++++ b/tools/templates/inspector-cronjob.yaml
+@@ -0,0 +1,70 @@
++apiVersion: batch/v1
++kind: CronJob
++metadata:
++  name: k8s-inspector-dataplane-5m
++  namespace: kube-system
++spec:
++  schedule: '*/5 * * * *'
++  concurrencyPolicy: Forbid
++  jobTemplate:
++    spec:
++      template:
++        spec:
++          serviceAccountName: k8s-inspector
++          restartPolicy: Never
++          containers:
++          - name: inspector
++            image: your-registry/k8s-inspector:0.1.0
++            imagePullPolicy: IfNotPresent
++            args:
++            - run
++            - --in-cluster
++            - --profile
++            - 5m
++            - --formats
++            - json
++            - --output-dir
++            - /data/out/latest/5m
++            - --persist-level
++            - issue
++            env:
++            - name: INSPECTOR_STATE_DIR
++              value: /var/lib/inspector
++            - name: PYTHONDONTWRITEBYTECODE
++              value: '1'
++            volumeMounts:
++            - name: out
++              mountPath: /data/out
++            - name: state
++              mountPath: /var/lib/inspector
++            securityContext:
++              readOnlyRootFilesystem: true
++              allowPrivilegeEscalation: false
++              capabilities:
++                drop:
++                - ALL
++            resources:
++              requests:
++                cpu: 50m
++                memory: 128Mi
++              limits:
++                cpu: 1000m
++                memory: 512Mi
++            envFrom:
++            - configMapRef:
++                name: k8s-inspector-runtime
++          volumes:
++          - name: out
++            persistentVolumeClaim:
++              claimName: k8s-inspector-out
++          - name: state
++            persistentVolumeClaim:
++              claimName: k8s-inspector-state-5m
++          securityContext:
++            runAsNonRoot: true
++            runAsUser: 10001
++            runAsGroup: 10001
++            fsGroup: 10001
++            seccompProfile:
++              type: RuntimeDefault
++  suspend: true
+diff --git a/tools/verify_release.py b/tools/verify_release.py
+new file mode 100644
+index 0000000..b8fcf22
+--- /dev/null
++++ b/tools/verify_release.py
+@@ -0,0 +1,223 @@
++"""Local release evidence; missing mandatory checks never count as success."""
++from __future__ import annotations
++from dataclasses import dataclass
++from pathlib import Path
++import argparse
++import json
++import os
++import subprocess
++import sys
++import shutil
++import hashlib
++import uuid
++
++
++@dataclass(frozen=True)
++class CheckOutcome:
++    success: bool
++    detail: str
++
++
++@dataclass(frozen=True)
++class VerificationResult:
++    success: bool
++    checks: dict[str, CheckOutcome]
++    artifacts: tuple[Path, ...]
++
++
++def _command(command, *, cwd, log, timeout=180):
++    try:
++        result=subprocess.run([str(x) for x in command],cwd=cwd,capture_output=True,text=True,
++                              encoding='utf-8',errors='replace',timeout=timeout)
++        log.write_text(result.stdout+'\n'+result.stderr,encoding='utf-8')
++        return CheckOutcome(result.returncode==0,f'exit={result.returncode}; evidence={log.name}')
++    except (OSError,subprocess.TimeoutExpired) as exc:
++        log.write_text(type(exc).__name__,encoding='utf-8')
++        return CheckOutcome(False,f'{type(exc).__name__}; evidence={log.name}')
++
++
++def install_package(project_dir: Path, *, python_executable: Path, output_dir: Path,
++                    offline: bool=False) -> VerificationResult:
++    python_executable=Path(python_executable).resolve()
++    project_dir,output_dir=Path(project_dir).resolve(),Path(output_dir).resolve()
++    checks,artifacts={},[]
++    output_dir.mkdir(parents=True,exist_ok=False)
++    wheel_dir=output_dir/'wheel'
++    checks['wheel']=_command([python_executable,'-m','build','--wheel','--no-isolation','--outdir',wheel_dir],
++        cwd=project_dir,log=output_dir/'wheel-build.log')
++    wheels=list(wheel_dir.glob('*.whl'))
++    if not checks['wheel'].success or len(wheels)!=1:
++        return VerificationResult(False,checks,tuple(output_dir.glob('*.log')))
++    artifacts.append(wheels[0])
++    env=output_dir/'venv'
++    checks['venv']=_command([python_executable,'-m','venv',env],cwd=output_dir,log=output_dir/'venv.log')
++    python=env/('Scripts/python.exe' if os.name=='nt' else 'bin/python')
++    if not checks['venv'].success:
++        return VerificationResult(False,checks,tuple(artifacts))
++    command=[python,'-m','pip','install','--disable-pip-version-check','--no-cache-dir']
++    if offline:
++        command+=['--no-index','--no-deps']
++    else:
++        constraints=project_dir/'constraints/runtime.txt'
++        if constraints.exists(): command+=['-c',constraints]
++    checks['install']=_command(command+[wheels[0]],cwd=output_dir,log=output_dir/'install.log')
++    if offline:
++        # Source import isolation is real; dependency resolution is NOT tested
++        # offline. Add preinstalled dependency directories without executing any
++        # editable-source .pth files from them.
++        probe=subprocess.run([str(python_executable),'-I','-c','import json,site;print(json.dumps(site.getsitepackages()))'],
++            capture_output=True,text=True,check=True,timeout=30)
++        parent_paths=json.loads(probe.stdout)
++        child=subprocess.run([str(python),'-I','-c','import sysconfig;print(sysconfig.get_path("purelib"))'],capture_output=True,text=True,check=True,timeout=30)
++        site_dir=Path(child.stdout.strip())
++        site_dir.mkdir(parents=True,exist_ok=True)
++        (site_dir/'offline-dependencies.pth').write_text('\n'.join(parent_paths)+'\n',encoding='utf-8')
++    code='import k8s_inspector,k8s_inspector.observation_state,k8s_inspector.compatibility;print(k8s_inspector.__file__)'
++    checks['imports']=_command([python,'-I','-c',code],cwd=output_dir,log=output_dir/'imports.log')
++    if checks['imports'].success:
++        module_path=(output_dir/'imports.log').read_text(encoding='utf-8').strip()
++        checks['imports']=CheckOutcome(Path(module_path).resolve().is_relative_to(env.resolve()),
++                                       'Installed module path='+module_path)
++    artifacts.extend([python,*output_dir.glob('*.log')])
++    return VerificationResult(all(c.success for c in checks.values()),checks,tuple(artifacts))
++
++
++def _tool(project, name, overrides):
++    if name in overrides: return list(overrides[name])
++    found=shutil.which(name)
++    if found: return [found]
++    folders={'kustomize':'kustomize-5.4.3','promtool':'prometheus-2.53.0','amtool':'alertmanager-0.27.0'}
++    candidate=project/'.superpowers/tools'/folders.get(name,'unavailable')/(name+'.exe')
++    return [str(candidate)] if candidate.is_file() else None
++
++
++def verify_release(project_dir: Path, *, python_executable: Path, output_dir: Path,
++                   offline: bool=False, run_source_tests: bool=True, tool_commands=None) -> VerificationResult:
++    import yaml
++    python_executable=Path(python_executable).resolve()
++    project,output=Path(project_dir).resolve(),Path(output_dir).resolve()
++    output.mkdir(parents=True,exist_ok=False)
++    result=install_package(project,python_executable=python_executable,output_dir=output/'package',offline=offline)
++    checks=dict(result.checks);artifacts=list(result.artifacts);overrides=tool_commands or {}
++    if run_source_tests:
++        checks['source_tests']=_command([python_executable,'-m','pytest','tests/','-q'],cwd=project,
++            log=output/'source-tests.log',timeout=1200)
++    else:
++        checks['source_tests']=CheckOutcome(False,'PENDING: source suite intentionally not run')
++    kustomize=_tool(project,'kustomize',overrides)
++    rendered={}
++    for name,path in [('base','deploy'),('example','deploy/overlays/example'),('shadow','deploy/overlays/shadow')]:
++        if not kustomize or not (project/path).exists():
++            checks['kustomize_'+name]=CheckOutcome(False,'PENDING: kustomize or overlay unavailable')
++            continue
++        target=output/(name+'.yaml')
++        checks['kustomize_'+name]=_command(kustomize+['build',str(project/path),'--output',str(target)],
++            cwd=project,log=output/('kustomize-'+name+'.log'))
++        if checks['kustomize_'+name].success:
++            rendered[name]=list(yaml.safe_load_all(target.read_text(encoding='utf-8')))
++            artifacts.append(target)
++    checks['kustomize']=CheckOutcome(all(checks['kustomize_'+n].success for n in ('base','example','shadow')),
++                                    'See per-overlay render checks')
++    configs=output/'configs';configs.mkdir()
++    promtool=_tool(project,'promtool',overrides);amtool=_tool(project,'amtool',overrides)
++    prom_checks=[];am_checks=[]
++    for name,docs in rendered.items():
++        for document in docs:
++            if not document or document['kind']!='ConfigMap': continue
++            for key,value in document.get('data',{}).items():
++                if key=='prometheus.yml':
++                    config=yaml.safe_load(value)
++                    # Host-only validation tree, not a deployed configuration rewrite.
++                    rules=[]
++                    for cm in docs:
++                        if cm and cm['kind']=='ConfigMap' and cm['metadata']['name']=='k8s-inspector-prometheus-rules':
++                            for filename,content in cm.get('data',{}).items():
++                                rulepath=configs/(name+'-'+filename);rulepath.write_text(content,encoding='utf-8');rules.append(str(rulepath))
++                    config['rule_files']=rules
++                    file=configs/(name+'-prometheus.yml');file.write_text(yaml.safe_dump(config),encoding='utf-8')
++                    if promtool:
++                        prom_checks.append(_command(promtool+['check','config',str(file)],cwd=project,log=output/(name+'-promconfig.log')))
++                if key=='alertmanager.yml':
++                    config=yaml.safe_load(value)
++                    for receiver in config.get('receivers',[]):
++                        for webhook in receiver.get('webhook_configs',[]):
++                            auth=webhook.get('http_config',{}).get('authorization',{})
++                            if 'credentials_file' in auth:
++                                token=configs/'validation-token';token.write_text('validation-only-not-a-real-token',encoding='utf-8')
++                                auth['credentials_file']=str(token)
++                    file=configs/(name+'-alertmanager.yml');file.write_text(yaml.safe_dump(config),encoding='utf-8')
++                    if amtool:
++                        am_checks.append(_command(amtool+['check-config',str(file)],cwd=project,log=output/(name+'-amconfig.log')))
++    if promtool:
++        prom_checks.append(_command(promtool+['check','rules',str(project/'deploy/monitoring/generated/inspection-rules.yaml')],cwd=project,log=output/'rules-check.log'))
++        prom_checks.append(_command(promtool+['test','rules',str(project/'tests/prometheus/inspection-rules.test.yaml')],cwd=project,log=output/'rules-test.log'))
++    checks['promtool']=CheckOutcome(bool(prom_checks) and all(c.success for c in prom_checks),
++        '; '.join(c.detail for c in prom_checks) if prom_checks else 'PENDING: promtool unavailable')
++    checks['amtool']=CheckOutcome(bool(am_checks) and all(c.success for c in am_checks),
++        '; '.join(c.detail for c in am_checks) if am_checks else 'PENDING: amtool/config unavailable')
++    if not offline and shutil.which('docker'):
++        image='k8s-inspector-verify:'+uuid.uuid4().hex
++        build=_command(['docker','build','-t',image,str(project)],cwd=project,log=output/'docker-build.log',timeout=1200)
++        smoke=[build]
++        if build.success:
++            for module in ('cli','alertmanager_bridge'):
++                smoke.append(_command(['docker','run','--rm','--network','none','--read-only','--entrypoint','python',image,
++                    '-m','k8s_inspector.'+module,'--help'],cwd=project,log=output/('docker-'+module+'.log'),timeout=150))
++        checks['docker']=CheckOutcome(all(c.success for c in smoke),'local image '+image+'; '+'; '.join(c.detail for c in smoke))
++    else:
++        checks['docker']=CheckOutcome(False,'PENDING: Docker unavailable or offline mode forbids image pulls/builds')
++    checks['environment_acceptance']=CheckOutcome(False,'PENDING: reviewed runtime matrix, actual storage/receiver/shadow acceptance')
++    checks['clean_dependency_install']=CheckOutcome(not offline and checks.get('install',CheckOutcome(False,'')).success,
++        'PENDING: offline bootstrap shares installed dependency paths' if offline else 'Clean venv install result')
++    # Preserve selected interpreter metadata, without exposing pip index URLs.
++    probe=_command([python_executable,'-I','-c',
++        'import json,platform,importlib.metadata as m;print(json.dumps({"python":platform.python_version(),"dependencies":{n:m.version(n) for n in ["kubernetes","lark-oapi","PyYAML","prometheus-client","setuptools","wheel","build","pytest"]}}))'],
++        cwd=project,log=output/'runtime-metadata.log')
++    checks['runtime_metadata']=probe
++    if probe.success:
++        from packaging.requirements import Requirement
++        from packaging.markers import default_environment
++        actual=json.loads((output/'runtime-metadata.log').read_text(encoding='utf-8'))
++        marker_environment=default_environment();marker_environment['python_version']='.'.join(actual['python'].split('.')[:2])
++        mismatches=[]
++        for file in (project/'constraints/runtime.txt',project/'constraints/build.txt'):
++            for line in file.read_text(encoding='utf-8').splitlines():
++                if not line.strip() or line.startswith('#'): continue
++                requirement=Requirement(line)
++                if requirement.marker and not requirement.marker.evaluate(marker_environment): continue
++                installed=actual['dependencies'].get(requirement.name)
++                if installed is not None and installed not in requirement.specifier:
++                    mismatches.append(requirement.name+'='+installed)
++        checks['selected_constraints']=CheckOutcome(not mismatches,'Installed pins verified' if not mismatches else 'PENDING pinned clean build: '+', '.join(mismatches))
++    hashes={str(p.relative_to(output)):hashlib.sha256(p.read_bytes()).hexdigest() for p in artifacts if p.is_file() and p.suffix=='.whl' and p.is_relative_to(output)}
++    manifest=output/'candidate-manifest.json'
++    source_hashes={}
++    for folder in ('k8s_inspector','tools','deploy','constraints'):
++        for path in sorted((project/folder).rglob('*')):
++            if path.is_file() and '__pycache__' not in path.parts and path.suffix in ('.py','.yaml','.yml','.txt'):
++                source_hashes[path.relative_to(project).as_posix()]=hashlib.sha256(path.read_bytes()).hexdigest()
++    for name in ('pyproject.toml','Dockerfile'):
++        source_hashes[name]=hashlib.sha256((project/name).read_bytes()).hexdigest()
++    manifest.write_text(json.dumps({'wheel_sha256':hashes,'source_sha256':source_hashes,'schema':{'bridge':3,'report':2},'offline':offline,'release_ready':False,
++        'checks':{k:vars(v) for k,v in checks.items()}},indent=2),encoding='utf-8')
++    artifacts.extend([manifest,*output.glob('*.log')])
++    return VerificationResult(all(c.success for c in checks.values()),checks,tuple(artifacts))
++
++
++def main(argv=None):
++    parser=argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--project-dir',type=Path,default=Path.cwd())
++    parser.add_argument('--python',type=Path,default=Path(sys.executable))
++    parser.add_argument('--output-dir',type=Path,required=True)
++    parser.add_argument('--offline',action='store_true')
++    args=parser.parse_args(argv)
++    result=verify_release(args.project_dir,python_executable=args.python,output_dir=args.output_dir,offline=args.offline)
++    data={'success':result.success,'checks':{k:vars(v) for k,v in result.checks.items()},
++          'artifacts':[str(p) for p in result.artifacts]}
++    (args.output_dir/'verification.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
++    print(json.dumps(data,indent=2))
++    return 0 if result.success else 1
++
++
++if __name__=='__main__':
++    raise SystemExit(main())

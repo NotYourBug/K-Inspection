@@ -1,0 +1,22 @@
+{
+  "python": {
+    "exit_code": 0,
+    "output": "Python 3.12.14\n",
+    "executable_sha256": "82264b3fe4248d1ff3564a0296cbb4a266ef968799bd85902ab5eaaf3e17eb62"
+  },
+  "promtool": {
+    "exit_code": 0,
+    "output": "promtool, version 2.53.0 (branch: HEAD, revision: 4c35b9250afefede41c5f5acd76191f90f625898)\n  build user:       root@8f76cdac98fc\n  build date:       20240619-07:41:33\n  go version:       go1.22.4\n  platform:         windows/amd64\n  tags:             builtinassets,stringlabels\n",
+    "executable_sha256": "57bdc03779689ed7c601f1dd227fc42c79f6b95016d4051c2741e064ef946eba"
+  },
+  "amtool": {
+    "exit_code": 0,
+    "output": "amtool, version 0.27.0 (branch: HEAD, revision: 0aa3c2aad14cff039931923ab16b26b7481783b5)\n  build user:       root@0c7721460008\n  build date:       20240228-11:50:23\n  go version:       go1.21.7\n  platform:         windows/amd64\n  tags:             unknown\n",
+    "executable_sha256": "0806db0fbdd90d28809e22f5dec2e8270d744183ffbf388c3f57d0cff4c59017"
+  },
+  "kustomize": {
+    "exit_code": 0,
+    "output": "v5.4.3\n",
+    "executable_sha256": "3bfc298da6621f699461e95ad9e839f5f123536ab713e72c378ef17f3a709167"
+  }
+}

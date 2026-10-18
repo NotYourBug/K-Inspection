@@ -1,0 +1,16 @@
+usage: k8s-inspector cleanup [-h] [--root ROOT] [--hourly-days HOURLY_DAYS]
+                             [--daily-days DAILY_DAYS] [--dry-run]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --root ROOT           Archive root directory (default ./out/archive)
+  --hourly-days HOURLY_DAYS
+                        Hourly archive retention days (default 7)
+  --daily-days DAILY_DAYS
+                        Daily archive retention days (default 30)
+  --dry-run             List expired archives without deleting
+
+C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3925\package\venv\lib\site-packages\google\auth\__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3925\package\venv\lib\site-packages\google\oauth2\__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)

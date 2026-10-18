@@ -1,0 +1,59 @@
+EEEEE                                                                    [100%]
+=================================== ERRORS ====================================
+____ ERROR at setup of test_wheel_installs_and_imports_outside_source_tree ____
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x000001439298CE30>, _basetemp=None, _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope='module')
+    def installed_env(tmp_path_factory):
+>       from tools.verify_release import install_package
+E       ModuleNotFoundError: No module named 'tools.verify_release'
+
+tests\test_installed_package.py:12: ModuleNotFoundError
+________ ERROR at setup of test_nested_packages_are_included_in_wheel _________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x000001439298CE30>, _basetemp=None, _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope='module')
+    def installed_env(tmp_path_factory):
+>       from tools.verify_release import install_package
+E       ModuleNotFoundError: No module named 'tools.verify_release'
+
+tests\test_installed_package.py:12: ModuleNotFoundError
+____________ ERROR at setup of test_cli_help_from_installed_wheel _____________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x000001439298CE30>, _basetemp=None, _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope='module')
+    def installed_env(tmp_path_factory):
+>       from tools.verify_release import install_package
+E       ModuleNotFoundError: No module named 'tools.verify_release'
+
+tests\test_installed_package.py:12: ModuleNotFoundError
+_______________ ERROR at setup of test_declared_runtime_imports _______________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x000001439298CE30>, _basetemp=None, _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope='module')
+    def installed_env(tmp_path_factory):
+>       from tools.verify_release import install_package
+E       ModuleNotFoundError: No module named 'tools.verify_release'
+
+tests\test_installed_package.py:12: ModuleNotFoundError
+__________ ERROR at setup of test_optional_mcp_not_required_for_cli ___________
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x000001439298CE30>, _basetemp=None, _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope='module')
+    def installed_env(tmp_path_factory):
+>       from tools.verify_release import install_package
+E       ModuleNotFoundError: No module named 'tools.verify_release'
+
+tests\test_installed_package.py:12: ModuleNotFoundError
+=========================== short test summary info ===========================
+ERROR tests/test_installed_package.py::test_wheel_installs_and_imports_outside_source_tree
+ERROR tests/test_installed_package.py::test_nested_packages_are_included_in_wheel
+ERROR tests/test_installed_package.py::test_cli_help_from_installed_wheel - M...
+ERROR tests/test_installed_package.py::test_declared_runtime_imports - Module...
+ERROR tests/test_installed_package.py::test_optional_mcp_not_required_for_cli
+5 errors in 0.40s

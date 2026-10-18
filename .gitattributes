@@ -1,0 +1,30 @@
+# These audit artifacts are hashed as captured. Keep their original bytes on
+# every checkout; platform newline conversion would invalidate the manifest.
+/审计/2026-10-15-可靠投递验证/** -text
+/审计/1[345]-* -text
+/deploy/monitoring/generated/** text eol=lf
+
+/审计/2026-10-16-巡检基础验证/** -text
+/审计/1[678]-* -text
+
+/deploy/base/cronjobs-by-frequency.yaml text eol=lf
+/deploy/cronjobs-by-frequency.yaml text eol=lf
+
+/Dockerfile text eol=lf
+
+/deploy/storage/pv-nfs.yaml text eol=lf
+
+/审计/2026-10-18-离线发布验证/** -text
+
+/审计/19-* -text
+
+/审计/2[01]-* -text
+
+/pyproject.toml text eol=lf
+
+/审计/2026-10-18-运行时验证/** -text
+
+/审计/2[23]-* -text
+
+/审计/24-* -text
+/审计/2026-10-18-GitHub整合验证/** -text

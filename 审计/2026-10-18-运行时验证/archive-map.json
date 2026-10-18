@@ -1,0 +1,30 @@
+{
+  "source_baseline": "44b375f70af922258a10353eb98ef6354df1c120",
+  "archived_file_groups": {
+    "orchestration": 84,
+    "3.9.25": 31,
+    "3.11.16": 31,
+    "3.14.7": 31,
+    "diagnostic-first-wheel": 5
+  },
+  "proof_mapping": {
+    "3.9.25": {
+      "original": "out/ra/w3925",
+      "archive": "python-3.9.25/verification"
+    },
+    "3.11.16": {
+      "original": "out/ra/w31116",
+      "archive": "python-3.11.16/verification"
+    },
+    "3.14.7": {
+      "original": "out/ra/w3147",
+      "archive": "python-3.14.7/verification"
+    }
+  },
+  "omitted": [
+    "source-env and venv trees",
+    "__pycache__",
+    "shared managed Python/tools/caches"
+  ],
+  "record_note": "Historical absolute paths are preserved verbatim in logs; use this mapping after owned scratch cleanup."
+}

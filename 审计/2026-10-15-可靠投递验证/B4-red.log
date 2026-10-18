@@ -1,0 +1,289 @@
+FFFFFFFFFF                                                               [100%]
+================================== FAILURES ===================================
+______________ test_old_or_expired_lease_cannot_finish_new_claim ______________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA098E00>
+
+    def test_old_or_expired_lease_cannot_finish_new_claim(store):
+>       old = store.claim_due(NOW)
+              ^^^^^^^^^^^^^^^
+E       AttributeError: 'DeliveryStore' object has no attribute 'claim_due'
+
+tests\test_delivery_worker.py:43: AttributeError
+_______ test_external_success_before_local_commit_is_recoverable[True] ________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA077410>
+deduplicating = True
+
+    @pytest.mark.parametrize("deduplicating", [True, False])
+    def test_external_success_before_local_commit_is_recoverable(store, deduplicating):
+        clock, provider = Clock(), Provider()
+>       w = worker(store, provider, clock)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_______ test_external_success_before_local_commit_is_recoverable[False] _______
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA099910>
+deduplicating = False
+
+    @pytest.mark.parametrize("deduplicating", [True, False])
+    def test_external_success_before_local_commit_is_recoverable(store, deduplicating):
+        clock, provider = Clock(), Provider()
+>       w = worker(store, provider, clock)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+__________ test_partial_destination_failure_does_not_block_other_job __________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA09A690>
+
+    def test_partial_destination_failure_does_not_block_other_job(store):
+        store.accept("am", batch(), (target("team-b"),), NOW)
+        class Partial:
+            def send(self, job):
+                return DeliveryResult(job.destination_id == "team-b", retryable=True)
+>       w = worker(store, Partial(), Clock())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:79: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________ test_sixth_failure_exhausts_budget_and_keeps_unknown_evidence ________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA09A2D0>
+
+    def test_sixth_failure_exhausts_budget_and_keeps_unknown_evidence(store):
+        clock, provider = Clock(), Provider(DeliveryResult(False, True, True, error_kind="timeout"))
+>       w = worker(store, provider, clock)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________________ test_permanent_error_goes_dead_without_retry _________________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA098B30>
+
+    def test_permanent_error_goes_dead_without_retry(store):
+>       w = worker(store, Provider(DeliveryResult(False, error_code="230002", error_kind="provider_permanent")), Clock())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________________ test_retry_after_cannot_exceed_total_deadline ________________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA09BC20>
+
+    def test_retry_after_cannot_exceed_total_deadline(store):
+        clock = Clock()
+>       w = worker(store, Provider(DeliveryResult(False, True, retry_after_seconds=10000)), clock)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+___________________ test_provider_runs_outside_transaction ____________________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA0A0140>
+
+    def test_provider_runs_outside_transaction(store):
+        class ProviderWithDBWrite:
+            def send(self, job):
+                store.accept("am", batch(), (target("team-b"),), NOW)
+                return DeliveryResult(True)
+>       worker(store, ProviderWithDBWrite(), Clock()).run_once()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:117: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+____________ test_shutdown_preserves_inflight_and_stops_new_claims ____________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA0A0320>
+
+    def test_shutdown_preserves_inflight_and_stops_new_claims(store):
+        entered, release = threading.Event(), threading.Event()
+        class Blocking:
+            def send(self, job):
+                entered.set()
+                assert release.wait(3)
+                return DeliveryResult(True)
+>       w = worker(store, Blocking(), Clock())
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_delivery_worker.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_delivery_worker.py:31: in worker
+    cls = importlib.import_module("k8s_inspector.delivery_worker").DeliveryWorker
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.delivery_worker'
+import_ = <function _gcd_import at 0x00000269B69480E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.delivery_worker'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____________ test_lease_expiration_cannot_send_a_seventh_attempt _____________
+
+store = <k8s_inspector.bridge_store.DeliveryStore object at 0x00000269BA0A1940>
+
+    def test_lease_expiration_cannot_send_a_seventh_attempt(store):
+        for attempt in range(6):
+>           assert store.claim_due(NOW + timedelta(seconds=61 * attempt))
+                   ^^^^^^^^^^^^^^^
+E           AttributeError: 'DeliveryStore' object has no attribute 'claim_due'
+
+tests\test_delivery_worker.py:142: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_worker.py::test_old_or_expired_lease_cannot_finish_new_claim
+FAILED tests/test_delivery_worker.py::test_external_success_before_local_commit_is_recoverable[True]
+FAILED tests/test_delivery_worker.py::test_external_success_before_local_commit_is_recoverable[False]
+FAILED tests/test_delivery_worker.py::test_partial_destination_failure_does_not_block_other_job
+FAILED tests/test_delivery_worker.py::test_sixth_failure_exhausts_budget_and_keeps_unknown_evidence
+FAILED tests/test_delivery_worker.py::test_permanent_error_goes_dead_without_retry
+FAILED tests/test_delivery_worker.py::test_retry_after_cannot_exceed_total_deadline
+FAILED tests/test_delivery_worker.py::test_provider_runs_outside_transaction
+FAILED tests/test_delivery_worker.py::test_shutdown_preserves_inflight_and_stops_new_claims
+FAILED tests/test_delivery_worker.py::test_lease_expiration_cannot_send_a_seventh_attempt
+10 failed in 1.37s

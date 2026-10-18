@@ -1,0 +1,2 @@
+SDK physical HTTP attempts under collector max2 retries: 12
+Expected physical attempt budget: at most3; result: ERROR

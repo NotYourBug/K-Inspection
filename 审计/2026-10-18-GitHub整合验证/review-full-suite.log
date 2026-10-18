@@ -1,0 +1,337 @@
+........................................................................ [ 14%]
+........................................................................ [ 29%]
+........................................................................ [ 44%]
+...................EEEEEEE.............................................. [ 58%]
+.......s................................................................ [ 73%]
+.......................................ss.F............................. [ 88%]
+......FFF.....................EEE.........................               [100%]
+=================================== ERRORS ====================================
+______ ERROR at setup of test_base_does_not_install_optional_monitoring _______
+
+    @pytest.fixture(scope='module')
+>   def base(): return render('deploy')
+                       ^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:7: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:47 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+___ ERROR at setup of test_inspector_role_has_no_unneeded_or_mutating_verbs ___
+
+    @pytest.fixture(scope='module')
+>   def base(): return render('deploy')
+                       ^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:7: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:47 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+_ ERROR at setup of test_inspector_profiles_have_separate_block_state_claims __
+
+    @pytest.fixture(scope='module')
+>   def base(): return render('deploy')
+                       ^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:7: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:47 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+______ ERROR at setup of test_async_bridge_has_persistent_single_writer _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:56 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+______ ERROR at setup of test_bridge_disables_service_account_automount _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:56 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+__________ ERROR at setup of test_secrets_not_embedded_in_configmap ___________
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:56 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+___ ERROR at setup of test_example_is_suspended_and_has_ingress_restriction ___
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:14:56 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+_________ ERROR at setup of test_job_deadline_matches_runner_catalog __________
+
+    @pytest.fixture(scope='module')
+>   def jobs(): return [d for d in render('deploy') if d['kind']=='CronJob']
+                                   ^^^^^^^^^^^^^^^^
+
+tests\test_scheduling_contract.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:17:43 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+_ ERROR at setup of test_schedules_have_explicit_timezone_and_no_job_retries __
+
+    @pytest.fixture(scope='module')
+>   def jobs(): return [d for d in render('deploy') if d['kind']=='CronJob']
+                                   ^^^^^^^^^^^^^^^^
+
+tests\test_scheduling_contract.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:17:43 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+____ ERROR at setup of test_cleanup_does_not_target_latest_or_bridge_state ____
+
+    @pytest.fixture(scope='module')
+>   def jobs(): return [d for d in render('deploy') if d['kind']=='CronJob']
+                                   ^^^^^^^^^^^^^^^^
+
+tests\test_scheduling_contract.py:10: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:17:43 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+================================== FAILURES ===================================
+__________ test_local_ci_gate_rejects_invalid_composed_alertmanager ___________
+
+release_project = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1538/test_local_ci_gate_rejects_inv0/project'),...ol': ['C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\alertmanager-0.27.0\\amtool.exe']})
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1538/test_local_ci_gate_rejects_inv0')
+
+    def test_local_ci_gate_rejects_invalid_composed_alertmanager(release_project, tmp_path):
+        from tools import verify_release as release
+        good = validation_result(release_project, tmp_path / 'good')
+>       assert release.local_checks_success(good), {k: v.detail for k, v in good.checks.items() if not v.success}
+E       AssertionError: {'kustomize_base': 'exit=1; evidence=kustomize-base.log', 'kustomize_example': 'exit=1; evidence=kustomize-example.log', 'kustomize_shadow': 'exit=1; evidence=kustomize-shadow.log', 'kustomize': 'See per-overlay render checks', ...}
+E       assert False
+E        +  where False = <function local_checks_success at 0x0000022074CC1D00>(VerificationResult(success=False, checks={'wheel': CheckOutcome(success=True, detail='exit=0; evidence=wheel-build.log...sers/23033/AppData/Local/Temp/pytest-of-23033/pytest-1538/test_local_ci_gate_rejects_inv0/good/runtime-metadata.log'))))
+E        +    where <function local_checks_success at 0x0000022074CC1D00> = <module 'tools.verify_release' from 'C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\tools\\verify_release.py'>.local_checks_success
+
+tests\test_release_gates.py:61: AssertionError
+________ test_shadow_uses_separate_outputs_jobs_and_destination_secret ________
+
+    def test_shadow_uses_separate_outputs_jobs_and_destination_secret():
+>       production=render('deploy/overlays/example')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rollout_scenarios.py:8: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:17:42 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+_ test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account _
+
+    def test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account():
+>       docs=render('deploy/overlays/shadow')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rollout_scenarios.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/shadow'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:17:42 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+____ test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery ____
+
+    def test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery():
+        import yaml
+>       docs=render('deploy/overlays/shadow')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rollout_scenarios.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/shadow'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: 2026/10/18 17:17:42 unable to make loader at '.'; not a valid directory: evalsymlink failure on '.' : Access is denied.
+
+tests\deployment_helpers.py:16: AssertionError
+============================== warnings summary ===============================
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py:35: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_release_gates.py::test_local_ci_gate_rejects_invalid_composed_alertmanager
+FAILED tests/test_rollout_scenarios.py::test_shadow_uses_separate_outputs_jobs_and_destination_secret
+FAILED tests/test_rollout_scenarios.py::test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account
+FAILED tests/test_rollout_scenarios.py::test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery
+ERROR tests/test_deployment_contract.py::test_base_does_not_install_optional_monitoring
+ERROR tests/test_deployment_contract.py::test_inspector_role_has_no_unneeded_or_mutating_verbs
+ERROR tests/test_deployment_contract.py::test_inspector_profiles_have_separate_block_state_claims
+ERROR tests/test_deployment_contract.py::test_async_bridge_has_persistent_single_writer
+ERROR tests/test_deployment_contract.py::test_bridge_disables_service_account_automount
+ERROR tests/test_deployment_contract.py::test_secrets_not_embedded_in_configmap
+ERROR tests/test_deployment_contract.py::test_example_is_suspended_and_has_ingress_restriction
+ERROR tests/test_scheduling_contract.py::test_job_deadline_matches_runner_catalog
+ERROR tests/test_scheduling_contract.py::test_schedules_have_explicit_timezone_and_no_job_retries
+ERROR tests/test_scheduling_contract.py::test_cleanup_does_not_target_latest_or_bridge_state
+4 failed, 473 passed, 3 skipped, 2 warnings, 10 errors in 247.97s (0:04:07)

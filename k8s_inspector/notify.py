@@ -1,9 +1,7 @@
 """
-通知模块（目前实现：飞书群机器人 Webhook）。
+Notification module — Feishu bot webhook sender.
 
-设计目标：
-- 与巡检逻辑解耦：巡检只关心“要不要通知、通知什么内容”
-- 依赖尽量少：这里使用 Python 标准库 urllib，不额外引入 requests
+Uses stdlib urllib to keep dependencies minimal.
 """
 
 from __future__ import annotations
@@ -12,17 +10,15 @@ import json
 import urllib.request
 from typing import Any
 
-# webhook通过环境变量导入，非首选模式
+from .provider_error import ProviderError, retry_after_seconds
+
+
 def send_feishu_text(webhook_url: str, text: str, timeout_s: float = 5.0) -> dict[str, Any]:
     """
-    发送飞书机器人文本消息。
+    Send a text message via Feishu bot webhook.
 
-    - webhook_url：飞书机器人地址
-    - text：文本内容（建议是摘要，而不是完整 JSON）
-    - timeout_s：网络超时
-
-    返回：
-    - {"status": http_status, "body": response_body_prefix}
+    Returns {"status": http_status, "body": response_body_prefix}.
+    Raises RuntimeError for an unconfirmed delivery or non-zero Feishu code.
     """
     payload = {"msg_type": "text", "content": {"text": text}}
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -33,5 +29,17 @@ def send_feishu_text(webhook_url: str, text: str, timeout_s: float = 5.0) -> dic
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-        body = resp.read().decode("utf-8", errors="replace")
+        body = resp.read(65537).decode("utf-8", errors="replace")
+        if len(body.encode("utf-8")) > 65536:
+            raise ProviderError(unknown=True)
+        try:
+            result = json.loads(body)
+        except ValueError as exc:
+            raise ProviderError(unknown=True) from exc
+        if not isinstance(result, dict):
+            raise ProviderError(unknown=True)
+        code = result.get("code") if "code" in result else result.get("StatusCode")
+        if type(code) is not int or code != 0 or not 200 <= resp.status < 300:
+            raise ProviderError(code, status=resp.status, unknown=type(code) is not int,
+                                retry_after=retry_after_seconds(getattr(resp, "headers", {})))
         return {"status": resp.status, "body": body[:2000]}

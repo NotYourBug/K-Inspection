@@ -1,0 +1,9 @@
+Checking 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\.superpowers\sdd\2026-10-02-production-release\final-offline\configs\shadow-alertmanager.yml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 1 inhibit rules
+ - 2 receivers
+ - 0 templates
+
+

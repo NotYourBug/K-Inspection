@@ -1,3 +1,5 @@
+# Legacy active rules; v2 shadow rules are generated under monitoring/generated.
+# Cutover: docs/runbooks/inspection-monitoring.md; never enable both active business sets.
 groups:
   - name: k8s-inspector
     rules:

@@ -1,0 +1,2 @@
+Final installed wheel: schema3, real SQLite reopen/migrate/accept/claim/finish/backup passed
+{"code_head": "1fac3c2dd6bef0aad762d455b9db5fbf029f6289", "schema": 3, "wheel_sha256": "3a6c91b98e558f2611860df48e1ec952191ae509ac59b55b104ec03465750f3a", "wheel_bytes": 74428, "full_tests": 343, "warnings": 2, "independent_review_tests": 121, "reviewed_head": "b5245e8b766f8e65cf1859bd50517b138c5402ce", "important_fixed": 5, "minor_deferred_in_b": 0, "real_provider": false, "real_pvc": false, "promtool_executed": false, "kustomize_executed": false, "post_fix_re_review": false}

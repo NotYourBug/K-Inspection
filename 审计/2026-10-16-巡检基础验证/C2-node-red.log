@@ -1,0 +1,20 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+_________ test_partial_collection_can_fail_but_cannot_prove_recovery __________
+
+    def test_partial_collection_can_fail_but_cannot_prove_recovery():
+>       from k8s_inspector.rules_nodes import evaluate_nodes
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_nodes'
+
+tests\test_rule_observations.py:22: ModuleNotFoundError
+_________________ test_new_uid_does_not_resolve_old_resource __________________
+
+    def test_new_uid_does_not_resolve_old_resource():
+>       from k8s_inspector.rules_nodes import evaluate_nodes
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_nodes'
+
+tests\test_rule_observations.py:31: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_rule_observations.py::test_partial_collection_can_fail_but_cannot_prove_recovery
+FAILED tests/test_rule_observations.py::test_new_uid_does_not_resolve_old_resource
+2 failed in 0.51s

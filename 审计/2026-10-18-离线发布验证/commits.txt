@@ -1,0 +1,55 @@
+commit f95d478702df97d66a526204033b9fc2d4bc37ce
+Author:     NotYourBug <2303355723@qq.com>
+AuthorDate: Sun Oct 18 11:45:03 2026 +0800
+Commit:     NotYourBug <2303355723@qq.com>
+CommitDate: Sun Oct 18 11:45:03 2026 +0800
+
+    fix: enforce reproducible local release validation gates
+
+commit 1eb94083a330f98f6ee17c1464ff2a56e2df5af1
+Author:     NotYourBug <2303355723@qq.com>
+AuthorDate: Sun Oct 18 11:21:19 2026 +0800
+Commit:     NotYourBug <2303355723@qq.com>
+CommitDate: Sun Oct 18 11:21:19 2026 +0800
+
+    docs: document offline release operations and pending acceptance
+
+commit f4cb1667afe5e99e78caf23ac9b4a09a5ac6100e
+Author:     NotYourBug <2303355723@qq.com>
+AuthorDate: Sun Oct 18 11:21:18 2026 +0800
+Commit:     NotYourBug <2303355723@qq.com>
+CommitDate: Sun Oct 18 11:21:18 2026 +0800
+
+    feat: prepare isolated shadow rollout and rollback guards
+
+commit 129c98488b62d99e1b61c5ea723f7412ae164fa9
+Author:     NotYourBug <2303355723@qq.com>
+AuthorDate: Sun Oct 18 11:21:15 2026 +0800
+Commit:     NotYourBug <2303355723@qq.com>
+CommitDate: Sun Oct 18 11:21:15 2026 +0800
+
+    build: verify installed artifacts and prepare container CI
+
+commit 93ba9c173e801665af8647216ebf8aa3d4785ab9
+Author:     Codex <codex@local.invalid>
+AuthorDate: Sat Oct 17 07:56:03 2026 +0800
+Commit:     Codex <codex@local.invalid>
+CommitDate: Sat Oct 17 07:56:03 2026 +0800
+
+    feat: generate bounded schedules from inspection profiles
+
+commit 89f4c37a3cee8db0a24c69a568ef5e38367de6d9
+Author:     Codex <codex@local.invalid>
+AuthorDate: Sat Oct 17 07:51:32 2026 +0800
+Commit:     Codex <codex@local.invalid>
+CommitDate: Sat Oct 17 07:51:32 2026 +0800
+
+    feat: separate inspector base and optional deployment components
+
+commit d40e652acd9a3452aefa9b9e40e8305e42905f2b
+Author:     Codex <codex@local.invalid>
+AuthorDate: Sat Oct 17 07:37:58 2026 +0800
+Commit:     Codex <codex@local.invalid>
+CommitDate: Sat Oct 17 07:37:58 2026 +0800
+
+    build: establish constrained wheel installation verification

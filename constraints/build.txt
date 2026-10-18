@@ -1,0 +1,10 @@
+# Primary >=3.10 tools match the locally tested baseline.
+# Python3.9 retains older compatible tools; actual matrix runs remain required.
+setuptools==80.9.0; python_version < "3.10"
+setuptools==84.0.0; python_version >= "3.10"
+wheel==0.48.0
+build==1.2.2.post1; python_version < "3.10"
+build==1.6.1; python_version >= "3.10"
+pytest==8.4.2; python_version < "3.10"
+pytest==9.1.1; python_version >= "3.10"
+tomli==2.3.0; python_version < "3.11"

@@ -7,17 +7,11 @@ data:
   alertmanager.yml: |
     route:
       receiver: feishu-bridge
-      group_by: ["alertname", "cluster", "profile", "check"]
+      # 通知聚合与事件身份分开；Bridge 按每条告警标签路由到已有群。
+      group_by: ["cluster"]
       group_wait: 30s
       group_interval: 5m
       repeat_interval: 2h
-      routes:
-        - matchers:
-            - severity="critical"
-          receiver: feishu-bridge
-        - matchers:
-            - severity="warning"
-          receiver: feishu-bridge
 
     inhibit_rules:
       - source_matchers:
@@ -31,6 +25,12 @@ data:
         webhook_configs:
           - url: http://k8s-inspector-alert-bridge.kube-system.svc:8000/alert
             send_resolved: true
+            # Async cutover: enable only after mounting the matching Secret in
+            # both processes. See docs/runbooks/bridge-delivery.md.
+            # http_config:
+            #   authorization:
+            #     type: Bearer
+            #     credentials_file: /etc/bridge-auth/token
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -1,0 +1,6 @@
+{'kubernetes': '29.0.0', 'lark-oapi': '1.7.5', 'PyYAML': '6.0.3', 'prometheus-client': '0.26.0'}
+
+C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3925\package\venv\lib\site-packages\google\auth\__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)
+C:\Users\23033\Desktop\Cluster-Stability-Inspector\out\ra\w3925\package\venv\lib\site-packages\google\oauth2\__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+  warnings.warn(eol_message.format("3.9"), FutureWarning)

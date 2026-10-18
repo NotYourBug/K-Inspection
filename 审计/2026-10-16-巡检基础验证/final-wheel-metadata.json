@@ -1,0 +1,25 @@
+{
+  "wheel": "k8s_inspector-0.1.0-py3-none-any.whl",
+  "sha256": "6a9bc47211c4b59bf79f862677b009bbdbe46a7cb25ba29da542fd1b5a2dfc46",
+  "size_bytes": 105962,
+  "python": "3.12.14",
+  "contains_modules": [
+    "observation_models",
+    "snapshot",
+    "collector",
+    "profiles",
+    "rule_catalog",
+    "runner",
+    "rule_evaluation",
+    "rules_nodes",
+    "rules_pods",
+    "rules_storage",
+    "rules_control",
+    "rules_events",
+    "observation_state",
+    "expected_targets",
+    "compatibility"
+  ],
+  "source": "post-review-fix-pass; commit recorded in audit ledger",
+  "source_commit": "ea2f6e3046aa7ae12ba9494dd6d7f12c0abb9bae"
+}

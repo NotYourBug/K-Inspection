@@ -1,0 +1,83 @@
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+________ test_shadow_uses_separate_outputs_jobs_and_destination_secret ________
+
+    def test_shadow_uses_separate_outputs_jobs_and_destination_secret():
+        production=render('deploy/overlays/example')
+>       shadow=render('deploy/overlays/shadow')
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rollout_scenarios.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/shadow'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\shadow' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\shadow: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+_ test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account _
+
+    def test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account():
+>       docs=render('deploy/overlays/shadow')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rollout_scenarios.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/shadow'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\shadow' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\shadow: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+____ test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery ____
+
+    def test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery():
+        import yaml
+>       docs=render('deploy/overlays/shadow')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_rollout_scenarios.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/shadow'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\shadow' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\shadow: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+___ test_rollback_guard_refuses_sync_or_older_schema_with_unfinished_outbox ___
+
+    def test_rollback_guard_refuses_sync_or_older_schema_with_unfinished_outbox():
+>       from tools.rollout import validate_rollback
+E       ModuleNotFoundError: No module named 'tools.rollout'
+
+tests\test_rollout_scenarios.py:49: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_rollout_scenarios.py::test_shadow_uses_separate_outputs_jobs_and_destination_secret
+FAILED tests/test_rollout_scenarios.py::test_shadow_keeps_control_plane_namespace_rbac_but_binds_shadow_service_account
+FAILED tests/test_rollout_scenarios.py::test_shadow_routes_discard_new_rules_and_keep_auth_on_legacy_delivery
+FAILED tests/test_rollout_scenarios.py::test_rollback_guard_refuses_sync_or_older_schema_with_unfinished_outbox
+4 failed in 1.22s

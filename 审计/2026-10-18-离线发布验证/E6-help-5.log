@@ -1,0 +1,12 @@
+usage: expected_targets.py [-h] --config CONFIG [--listen-host LISTEN_HOST]
+                           [--listen-port LISTEN_PORT]
+
+Independent expected inventory exporter; never reads CronJob/Pushgateway
+state.
+
+options:
+  -h, --help            show this help message and exit
+  --config CONFIG
+  --listen-host LISTEN_HOST
+  --listen-port LISTEN_PORT
+

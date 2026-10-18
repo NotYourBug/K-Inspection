@@ -1,66 +1,136 @@
 """
-报告输出模块。
+Report output writers.
 
-职责：
-- 将 Report 模型写出为多种格式（JSON/CSV/HTML），供人查看、归档或二次分析
-- 生成“失败摘要文本”，用于飞书等通知渠道
-
-注意：
-- 本模块不做 K8s API 调用，也不做巡检规则判断
-- 输入是 models.Report，输出是文件或字符串
+Converts a Report model into JSON / CSV / HTML files and generates
+summary text for notification channels (Feishu, etc.).
 """
 
 from __future__ import annotations
 
 import csv
 import json
+import io
+import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
 from .models import Report, Status
 
+_WINDOWS = os.name == 'nt'
+
+
+def _sync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0))
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
 
 def _ensure_dir(p: Path) -> None:
-    """确保输出目录存在。"""
-    p.mkdir(parents=True, exist_ok=True) # 确保这个文件夹（目录）一定存在，如果不存在就自动创建；如果已经存在，就什么也不做，也不报错。
+    missing, current = [], p
+    while not current.exists():
+        missing.append(current)
+        if current.parent == current:
+            break
+        current = current.parent
+    p.mkdir(parents=True, exist_ok=True)
+    if not _WINDOWS:
+        # Persist newly created path entries as well as the eventual file name.
+        for directory in reversed(missing):
+            _sync_directory(directory.parent)
 
 
-# 这里传进来的都是已经初始化好的Report类，我们需要根据已经初始化好的Report实例，对其进行操作，写入特定类型的文件中。
+def _replace_file(source: Path, destination: Path) -> None:
+    if not _WINDOWS:
+        os.replace(source, destination)
+        return
+    import ctypes
+    from ctypes import wintypes
+    move = ctypes.WinDLL('kernel32', use_last_error=True).MoveFileExW
+    move.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR, wintypes.DWORD]
+    move.restype = wintypes.BOOL
+    # Same-directory replacement; request write-through without following a
+    # destination symlink through Path.resolve().
+    if not move(str(source.absolute()), str(destination.absolute()), 0x1 | 0x8):
+        raise ctypes.WinError(ctypes.get_last_error())
+
+
+def atomic_write_text(path: Path, text: str) -> None:
+    """Publish and sync a complete file; sync errors propagate after publication.
+
+    Failures before replacement preserve the previous file. A failed directory
+    sync can leave the new file visible without establishing crash durability.
+    """
+    path = Path(path)
+    _ensure_dir(path.parent)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="",
+                                         dir=path.parent, prefix=f".{path.name}.",
+                                         suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        _replace_file(temporary, path)
+        if not _WINDOWS:
+            _sync_directory(path.parent)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def write_json(report: Report, out_dir: str) -> Path:
-    """输出 report.json（结构化明细，最适合存档和后续程序处理）。"""
+    """Write report.json with full structured results."""
     p = Path(out_dir)
     _ensure_dir(p)
     fp = p / "report.json"
-    """
-    这是一种Path语法，比如说我们指定的目录是：./output，
-    那么fp就会指向：./output/report.json（p / "report.json" 在这里表示组装路径，将p和"report.json"拼接起来，得到./output/report.json）
-    如果./output目录不存在，那么就会自动创建。
-    """
-    fp.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
-    """
-    这里使用json.dumps函数将Report实例转换为JSON字符串，
-    并将字符串写入到fp指向的文件中。
-    ensure_ascii=False表示不使用ASCII编码，而是使用本地编码（允许文件里出现中文，不会变成\u4e2d\u6587）。
-    indent=2表示缩进2个空格，使JSON字符串更易读。
-    """
+    atomic_write_text(fp, json.dumps(report.to_dict(), ensure_ascii=False, indent=2))
     return fp
 
 
 def write_csv(report: Report, out_dir: str) -> Path:
-    """输出 report.csv（扁平摘要，适合快速筛选/导入表格工具）。"""
+    """Write report.csv with a flat row per check."""
     p = Path(out_dir)
     _ensure_dir(p)
     fp = p / "report.csv"
-    with fp.open("w", encoding="utf-8", newline="") as f:
-        w = csv.writer(f)
-        w.writerow(["generated_at", "cluster", "check", "status", "summary", "duration_ms"])
-        for r in report.results:
-            w.writerow([report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""])
+    buffer = io.StringIO(newline="")
+    w = csv.writer(buffer)
+    columns = ["generated_at", "cluster", "check", "status", "summary", "duration_ms"]
+    if report.schema_version == 2:
+        columns += ['schema_version', 'run_id', 'rule_id', 'execution_status', 'observed_at', 'coverage_complete',
+                    'resource_kind', 'namespace', 'resource_name', 'resource_uid', 'container', 'reason', 'evidence']
+    w.writerow(columns)
+    rows = report.results
+    if report.schema_version==2:
+        from .observation_models import CheckEvaluation, to_legacy_result
+        rows = [to_legacy_result(CheckEvaluation(e,tuple(f for f in report.findings if f.rule_id==e.rule_id),
+            tuple(o for o in report.observations if o.rule_id==e.rule_id))) for e in report.executions]
+    for r in rows:
+        base = [report.generated_at, report.cluster, r.name, r.status.value, r.summary, r.duration_ms or ""]
+        if report.schema_version != 2:
+            w.writerow(base)
+            continue
+        execution = next((e for e in report.executions if e.rule_id == r.name), None)
+        finding_rows = [f for f in report.findings if f.rule_id == r.name] or [None]
+        for f in finding_rows:
+            resource = f.resource if f else None
+            extra = [2, report.run_id, r.name, execution.execution_status.value if execution else '',
+                execution.observed_at.isoformat() if execution else '',
+                execution.coverage.complete if execution else '',
+                resource.kind if resource else '', resource.namespace if resource else '',
+                resource.name if resource else '', resource.uid if resource else '',
+                resource.container if resource else '', f.reason if f else '',
+                json.dumps(f.evidence, ensure_ascii=False) if f else '']
+            w.writerow(base + extra)
+    atomic_write_text(fp, buffer.getvalue())
     return fp
 
 
 def write_html(report: Report, out_dir: str) -> Path:
-    """输出 report.html（可视化报告，适合人工复核）。"""
+    """Write report.html for human review."""
     p = Path(out_dir)
     _ensure_dir(p)
     fp = p / "report.html"
@@ -82,7 +152,7 @@ def write_html(report: Report, out_dir: str) -> Path:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>K8s 巡检报告</title>
+  <title>K8s Inspection Report</title>
   <style>
     body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Noto Sans", sans-serif; margin: 24px; }}
     table {{ border-collapse: collapse; width: 100%; }}
@@ -97,7 +167,7 @@ def write_html(report: Report, out_dir: str) -> Path:
   </style>
 </head>
 <body>
-  <h1>K8s 巡检报告</h1>
+  <h1>K8s Inspection Report</h1>
   <p class="meta">
     <span class="pill">generated_at: {_esc(report.generated_at)}</span>
     <span class="pill">cluster: {_esc(report.cluster)}</span>
@@ -118,12 +188,14 @@ def write_html(report: Report, out_dir: str) -> Path:
 </body>
 </html>
 """
-    fp.write_text(html, encoding="utf-8")
+    if report.schema_version == 2:
+        html = html.replace('</body>', _v2_html(report) + '</body>')
+    atomic_write_text(fp, html)
     return fp
 
 
 def _esc(s: Any) -> str:
-    """对 HTML 文本做最小转义，避免破坏页面结构。"""
+    """Minimal HTML escaping to prevent injection."""
     text = "" if s is None else str(s)
     return (
         text.replace("&", "&amp;")
@@ -136,31 +208,70 @@ def _esc(s: Any) -> str:
 
 def format_failed_summary(report: Report) -> str:
     """
-    生成适合消息推送的摘要文本（默认最多展示每类前 10 条）。
-
-    用途：
-    - 飞书/钉钉/企业微信 机器人推送时，避免把 report.json 全量发到群里刷屏
+    Generate a compact summary text for notification channels.
+    Shows up to 10 FAIL and 10 WARN items to avoid flooding.
     """
     fails = [r for r in report.results if r.status == Status.FAIL]
     warns = [r for r in report.results if r.status == Status.WARN]
-    lines = [f"集群巡检：{report.cluster}", f"时间：{report.generated_at}"]
+    lines = [f"Cluster: {report.cluster}", f"Time: {report.generated_at}"]
     if fails:
-        lines.append(f"FAIL：{len(fails)}")
+        lines.append(f"FAIL: {len(fails)}")
         for r in fails[:10]:
             lines.append(f"- {r.name}: {r.summary}")
     if warns:
-        lines.append(f"WARN：{len(warns)}")
+        lines.append(f"WARN: {len(warns)}")
         for r in warns[:10]:
             lines.append(f"- {r.name}: {r.summary}")
     return "\n".join(lines)
-    """
-    这里使用\n将lines列表中的所有元素连接起来，得到一个字符串。
-    每个元素之间用换行符隔开。
-    """
-"""
-从results（CheckReport）中获取所有的fail结果
-从results（CheckReport）中获取所有的warn结果
-构造信息行内容
-将fail的内容传进line中
-将warn的内容传进line中
-"""
+
+
+def _v2_html(report):
+    from datetime import datetime, timedelta, timezone
+    from urllib.parse import quote
+    rows = []
+    for execution in report.executions:
+        c = execution.coverage
+        health = next((o.health.value for o in report.observations if o.rule_id == execution.rule_id
+                       and o.resource_uid is None), 'UNKNOWN')
+        coverage = f"observed={c.observed}; expected={c.expected if c.expected is not None else 'unknown'}; complete={c.complete}"
+        rows.append('<tr>' + ''.join(f'<td>{_esc(v)}</td>' for v in (
+            execution.rule_id, execution.execution_status.value, health,
+            execution.observed_at.isoformat(), coverage, execution.error_kind or '')) + '</tr>')
+    evidence = []
+    for f in report.findings:
+        ref = f.resource
+        anchor = 'object-' + quote(ref.uid or f.fingerprint, safe='')
+        label = f"{ref.kind} {ref.namespace or ''}/{ref.name} (UID={ref.uid or 'weak identity'})"
+        evidence.append(f'<li id="{_esc(anchor)}"><a href="#{_esc(anchor)}">{_esc(label)}</a> '
+            f'{_esc(f.rule_id)} [{_esc(f.severity.value)}] {_esc(f.summary)} '
+            f'<pre>{_esc(json.dumps(f.evidence, ensure_ascii=False, indent=2))}</pre></li>')
+    local = datetime.fromisoformat(report.generated_at.replace('Z', '+00:00')).astimezone(timezone(timedelta(hours=8)))
+    return (f'<h2>Execution quality / 采集质量</h2><p>schema=2; run_id={_esc(report.run_id)}; '
+            f'profile={_esc(report.profile)}; Asia/Shanghai: {_esc(local.isoformat())}</p>'
+            '<table><tr><th>Rule</th><th>Execution</th><th>Health</th><th>Observed UTC</th><th>Coverage</th><th>Error</th></tr>'
+            + ''.join(rows) + '</table><h2>Current / historical evidence</h2><p>pods.history 为历史证据；UNKNOWN 不代表恢复。</p><ul>'
+            + ''.join(evidence) + '</ul>')
+
+
+def snapshot_is_compatible(data, *, cluster, profile, scope, now, max_age_seconds):
+    """Only unscoped cluster background is attachable without team ownership proof."""
+    from datetime import datetime
+    from .observation_models import utc
+    if scope != 'cluster' or not cluster or data.get('cluster') != cluster:
+        return False
+    if data.get('schema_version', 1) not in (1, 2):
+        return False
+    if data.get('schema_version') == 2:
+        if data.get('profile') != profile or not data.get('run_id'):
+            return False
+        observations = data.get('observations')
+        if not isinstance(observations, list) or any(not isinstance(o, dict) or
+                o.get('cluster_id') != cluster or (o.get('resource_uid') is None and o.get('scope') != scope)
+                for o in observations):
+            return False
+    try:
+        timestamp = utc(datetime.fromisoformat(data['generated_at'].replace('Z', '+00:00')))
+        age = (utc(now) - timestamp).total_seconds()
+        return -60 <= age <= max_age_seconds
+    except (KeyError, ValueError, TypeError, AttributeError):
+        return False

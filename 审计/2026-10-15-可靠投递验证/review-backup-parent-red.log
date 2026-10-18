@@ -1,0 +1,18 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+________ test_backup_requires_prepared_existing_destination_directory _________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1443/test_backup_requires_prepared_0')
+
+    def test_backup_requires_prepared_existing_destination_directory(tmp_path):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        accept(store, content())
+        unprepared = tmp_path / "new" / "nested"
+>       with pytest.raises(ValueError, match="directory"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests\test_delivery_review_regressions.py:208: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_review_regressions.py::test_backup_requires_prepared_existing_destination_directory
+1 failed, 13 deselected in 1.04s

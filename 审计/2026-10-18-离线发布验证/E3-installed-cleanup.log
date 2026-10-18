@@ -1,0 +1,6 @@
+DRY RUN
+INFO Would remove archive: C:\Users\23033\Desktop\Cluster-Stability-Inspector\.superpowers\sdd\2026-10-02-production-release\retention-fixture\archive\hourly\2000010100
+INFO cleanup done: hourly_removed=0 daily_removed=0
+
+LOCAL FIXTURE DELETE
+INFO cleanup done: hourly_removed=1 daily_removed=0

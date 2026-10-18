@@ -1,0 +1,73 @@
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+________ test_r7_older_current_report_cannot_export_resurrected_fault _________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1481/test_r7_older_current_report_c0')
+
+    def test_r7_older_current_report_cannot_export_resurrected_fault(tmp_path):
+        store=ObservationStateStore(tmp_path/'state.json')
+        store.update(pass_report())
+        old=report()
+        store.update(old)
+        reg=CollectorRegistry()
+        populate_registry(old,'5m',reg,last_valid=store.read(),confirmed=store.read_confirmed())
+>       assert sample(reg,'inspector_confirmed_failures')==0
+E       AssertionError: assert 1.0 == 0
+E        +  where 1.0 = sample(<prometheus_client.registry.CollectorRegistry object at 0x0000012B09168B00>, 'inspector_confirmed_failures')
+
+tests\test_foundations_review_rules.py:174: AssertionError
+___ test_r7_multi_time_partial_fault_waits_for_health_after_latest_evidence ___
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1481/test_r7_multi_time_partial_fau0')
+
+    def test_r7_multi_time_partial_fault_waits_for_health_after_latest_evidence(tmp_path):
+        from k8s_inspector.observation_models import CheckEvaluation,Coverage
+        from tests.observation_factories import failed_evaluation
+        ev=failed_evaluation()
+        ev=replace(ev,execution=replace(ev.execution,execution_status=E.PARTIAL,coverage=Coverage(None,1,False)),
+            observations=tuple(replace(o,health=H.UNKNOWN,complete=False) for o in ev.observations),
+            findings=ev.findings+(replace(ev.findings[0],observed_at=NOW+timedelta(minutes=3)),))
+        store=ObservationStateStore(tmp_path/'state.json')
+        store.update(report(ev))
+        store.update(pass_report())
+>       assert store.read_confirmed()[0].observed_at==NOW+timedelta(minutes=3)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+E       IndexError: tuple index out of range
+
+tests\test_foundations_review_rules.py:187: IndexError
+_________ test_r3_unknown_rule_does_not_export_fake_legacy_issue_zero _________
+
+    def test_r3_unknown_rule_does_not_export_fake_legacy_issue_zero():
+        from tests.observation_factories import error_evaluation
+        r=report(error_evaluation())
+        reg=CollectorRegistry()
+        populate_registry(r,'5m',reg)
+        # Status remains visible under the legacy name, but unknown is no zero.
+>       assert reg.get_sample_value('k8s_inspector_check_status',{'cluster':'prod','profile':'5m','check':'pods'})==1
+E       AssertionError: assert None == 1
+E        +  where None = get_sample_value('k8s_inspector_check_status', {'cluster': 'prod', 'profile': '5m', 'check': 'pods'})
+E        +    where get_sample_value = <prometheus_client.registry.CollectorRegistry object at 0x0000012B0705CF80>.get_sample_value
+
+tests\test_foundations_review_rules.py:196: AssertionError
+_ test_r3_csv_keeps_rule_identity_and_uid_when_root_results_use_legacy_groups _
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1481/test_r3_csv_keeps_rule_identit0')
+
+    def test_r3_csv_keeps_rule_identity_and_uid_when_root_results_use_legacy_groups(tmp_path):
+        import csv
+        from k8s_inspector.report import write_csv
+        r=report()
+        from k8s_inspector.models import CheckResult,Status
+        r.results=[CheckResult('pods',Status.FAIL,'Pod failure')]
+        rows=list(csv.DictReader(write_csv(r,tmp_path).open(encoding='utf-8')))
+>       assert rows[0]['rule_id']=='pods.current'
+               ^^^^^^^^^^^^^^^^^^
+E       KeyError: 'rule_id'
+
+tests\test_foundations_review_rules.py:208: KeyError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_rules.py::test_r7_older_current_report_cannot_export_resurrected_fault
+FAILED tests/test_foundations_review_rules.py::test_r7_multi_time_partial_fault_waits_for_health_after_latest_evidence
+FAILED tests/test_foundations_review_rules.py::test_r3_unknown_rule_does_not_export_fake_legacy_issue_zero
+FAILED tests/test_foundations_review_rules.py::test_r3_csv_keeps_rule_identity_and_uid_when_root_results_use_legacy_groups
+4 failed, 13 deselected in 6.68s

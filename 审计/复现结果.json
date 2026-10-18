@@ -1,0 +1,132 @@
+{
+  "review_date": "2026-10-02",
+  "python": "3.14.5 (main, Jun  2 2026, 22:34:49) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "kubernetes": "36.0.3",
+    "prometheus-client": "0.26.0",
+    "PyYAML": "6.0.3",
+    "lark-oapi": "1.7.3",
+    "pytest": "9.1.1"
+  },
+  "scope": "offline mocks and isolated MCP helper AST; no live integrations",
+  "observations": [
+    {
+      "id": "R01_pending_pod",
+      "observed": "PASS",
+      "expected": "age-aware pending finding"
+    },
+    {
+      "id": "R02_running_unready",
+      "observed": "PASS",
+      "expected": "readiness finding after grace period"
+    },
+    {
+      "id": "R03_init_crash",
+      "observed": "PASS",
+      "expected": "FAIL with init container evidence"
+    },
+    {
+      "id": "R04_historical_oom",
+      "observed": "FAIL",
+      "expected": "historical evidence separated from current health"
+    },
+    {
+      "id": "R05_lost_restart_finding",
+      "observed": [
+        "bad"
+      ],
+      "expected": "bad and restart_heavy both preserved"
+    },
+    {
+      "id": "R06_empty_metrics",
+      "observed": "PASS",
+      "expected": "explicit missing metrics coverage"
+    },
+    {
+      "id": "R07_disk_pressure",
+      "observed": "PASS",
+      "expected": "explicit disk pressure finding"
+    },
+    {
+      "id": "R08_notready_then_invalid_metric",
+      "observed": "WARN",
+      "expected": "retain FAIL for NotReady despite metric parse error"
+    },
+    {
+      "id": "R09_health_fail_then_list_error",
+      "observed": "WARN",
+      "expected": "retain API health failure and separately record collection error"
+    },
+    {
+      "id": "R10_lost_pvc",
+      "observed": {
+        "status": "PASS",
+        "summary": "PVCs bound: 1"
+      },
+      "expected": "FAIL for Lost PVC"
+    },
+    {
+      "id": "R11_feishu_business_error",
+      "observed": {
+        "status": 200,
+        "body": "{\"code\":123,\"msg\":\"business rejection\"}"
+      },
+      "expected": "delivery error surfaced; all HTTP calls mocked"
+    },
+    {
+      "id": "R12_invalid_thresholds",
+      "observed": {
+        "cpu": 1.5,
+        "restarts": -3
+      },
+      "expected": "reject invalid ranges"
+    },
+    {
+      "id": "R13_stale_latest_after_recovery",
+      "observed": "FAIL",
+      "expected": "latest reflects PASS after recovery"
+    },
+    {
+      "id": "R14_resolved_retry_skipped",
+      "observed": {
+        "send_attempts": 1,
+        "marked_resolved": true
+      },
+      "expected": "retry failed recovery delivery; durable pending/sent state"
+    },
+    {
+      "id": "R15_profile_path_escape",
+      "observed": {
+        "cluster": "outside-report-root"
+      },
+      "expected": "reject paths and allow only known profile names"
+    },
+    {
+      "id": "R16_state_lost_update",
+      "observed": {
+        "retained_keys": 1
+      },
+      "expected": "both keys retained; read-modify-write must be one transaction"
+    },
+    {
+      "id": "R17_ignored_listen_host",
+      "observed": "0.0.0.0",
+      "expected": "127.0.0.1"
+    },
+    {
+      "id": "R18_init_resources_sum",
+      "observed": 1600,
+      "expected": "800m for two regular sequential init containers; observed unit is millicores"
+    },
+    {
+      "id": "R19_fastmcp_missing",
+      "observed": true,
+      "expected": "MCP extra declares fastmcp and compatible pydantic/Python versions"
+    },
+    {
+      "id": "R20_format_bytes_boundary",
+      "observed": "1024.0Ei",
+      "expected": "1.0Ei"
+    }
+  ]
+}

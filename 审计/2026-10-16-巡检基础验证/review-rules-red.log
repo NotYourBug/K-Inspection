@@ -1,0 +1,208 @@
+FFFFFFFFFFFFF                                                            [100%]
+================================== FAILURES ===================================
+_________ test_r4_malformed_sibling_metric_cannot_hide_node_not_ready _________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000028B0A262F90>
+
+    def test_r4_malformed_sibling_metric_cannot_hide_node_not_ready(monkeypatch):
+        from k8s_inspector import runner
+        from tests.test_runner import context
+        ctx = context()
+        ctx.custom.list_cluster_custom_object.return_value = page([{'metadata': {'name': []}, 'usage': {}}])
+        monkeypatch.setattr(runner, 'CATALOG', tuple(r for r in CATALOG if r.rule_id.startswith('nodes.')))
+        r = runner.run_inspection(ctx, InspectorConfig(), 'hourly', cluster_id='prod', now=NOW, monotonic=lambda:0)
+>       assert any(f.reason == 'NodeNotReady' for f in r.findings)
+E       assert False
+E        +  where False = any(<generator object test_r4_malformed_sibling_metric_cannot_hide_node_not_ready.<locals>.<genexpr> at 0x0000028B0B512C20>)
+
+tests\test_foundations_review_rules.py:55: AssertionError
+_________ test_r5_partial_pod_membership_cannot_prove_addon_shortage __________
+
+    def test_r5_partial_pod_membership_cannot_prove_addon_shortage():
+        snap = snapshot(pods=Collection((pod('unrelated', namespace='kube-system'),), E.PARTIAL, NOW, False, 'FORBIDDEN'),
+            deployments=[deployment()], daemonsets=[])
+        r = evaluate('addons.ready', snap)
+>       assert not any(f.severity in (Severity.WARN, Severity.FAIL) for f in r.findings)
+E       assert not True
+E        +  where True = any(<generator object test_r5_partial_pod_membership_cannot_prove_addon_shortage.<locals>.<genexpr> at 0x0000028B0BA20E10>)
+
+tests\test_foundations_review_rules.py:63: AssertionError
+_______ test_r6_unrelated_namespace_pod_does_not_prove_addon_capability _______
+
+    def test_r6_unrelated_namespace_pod_does_not_prove_addon_capability():
+        r = evaluate('addons.ready', snapshot(pods=[pod('unrelated', namespace='kube-system')], deployments=[], daemonsets=[]))
+>       assert r.execution.execution_status == E.UNSUPPORTED
+E       AssertionError: assert <ExecutionStatus.OK: 'OK'> == <ExecutionSta...'UNSUPPORTED'>
+E         
+E         - UNSUPPORTED
+E         + OK
+
+tests\test_foundations_review_rules.py:71: AssertionError
+_ test_r8_seen_healthy_resource_emits_uid_recovery_evidence[nodes.utilization-node-n1] _
+
+rule_id = 'nodes.utilization', uid = 'node-n1'
+
+    @pytest.mark.parametrize('rule_id,uid', [('nodes.utilization','node-n1'), ('nodes.pressure','node-n1'),
+        ('control.components','kube-apiserver-uid'), ('addons.ready','dns-controller')])
+    def test_r8_seen_healthy_resource_emits_uid_recovery_evidence(rule_id, uid):
+        r = evaluate(rule_id, healthy_snapshot())
+>       assert any(o.resource_uid==uid and o.health==H.HEALTHY and o.complete for o in r.observations)
+E       assert False
+E        +  where False = any(<generator object test_r8_seen_healthy_resource_emits_uid_recovery_evidence.<locals>.<genexpr> at 0x0000028B0BA22F60>)
+
+tests\test_foundations_review_rules.py:79: AssertionError
+_ test_r8_seen_healthy_resource_emits_uid_recovery_evidence[nodes.pressure-node-n1] _
+
+rule_id = 'nodes.pressure', uid = 'node-n1'
+
+    @pytest.mark.parametrize('rule_id,uid', [('nodes.utilization','node-n1'), ('nodes.pressure','node-n1'),
+        ('control.components','kube-apiserver-uid'), ('addons.ready','dns-controller')])
+    def test_r8_seen_healthy_resource_emits_uid_recovery_evidence(rule_id, uid):
+        r = evaluate(rule_id, healthy_snapshot())
+>       assert any(o.resource_uid==uid and o.health==H.HEALTHY and o.complete for o in r.observations)
+E       assert False
+E        +  where False = any(<generator object test_r8_seen_healthy_resource_emits_uid_recovery_evidence.<locals>.<genexpr> at 0x0000028B0BAA8D40>)
+
+tests\test_foundations_review_rules.py:79: AssertionError
+_ test_r8_seen_healthy_resource_emits_uid_recovery_evidence[control.components-kube-apiserver-uid] _
+
+rule_id = 'control.components', uid = 'kube-apiserver-uid'
+
+    @pytest.mark.parametrize('rule_id,uid', [('nodes.utilization','node-n1'), ('nodes.pressure','node-n1'),
+        ('control.components','kube-apiserver-uid'), ('addons.ready','dns-controller')])
+    def test_r8_seen_healthy_resource_emits_uid_recovery_evidence(rule_id, uid):
+        r = evaluate(rule_id, healthy_snapshot())
+>       assert any(o.resource_uid==uid and o.health==H.HEALTHY and o.complete for o in r.observations)
+E       assert False
+E        +  where False = any(<generator object test_r8_seen_healthy_resource_emits_uid_recovery_evidence.<locals>.<genexpr> at 0x0000028B0BAABE00>)
+
+tests\test_foundations_review_rules.py:79: AssertionError
+_ test_r8_seen_healthy_resource_emits_uid_recovery_evidence[addons.ready-dns-controller] _
+
+rule_id = 'addons.ready', uid = 'dns-controller'
+
+    @pytest.mark.parametrize('rule_id,uid', [('nodes.utilization','node-n1'), ('nodes.pressure','node-n1'),
+        ('control.components','kube-apiserver-uid'), ('addons.ready','dns-controller')])
+    def test_r8_seen_healthy_resource_emits_uid_recovery_evidence(rule_id, uid):
+        r = evaluate(rule_id, healthy_snapshot())
+>       assert any(o.resource_uid==uid and o.health==H.HEALTHY and o.complete for o in r.observations)
+E       assert False
+E        +  where False = any(<generator object test_r8_seen_healthy_resource_emits_uid_recovery_evidence.<locals>.<genexpr> at 0x0000028B0BA212F0>)
+
+tests\test_foundations_review_rules.py:79: AssertionError
+____ test_r7_older_failure_cannot_resurrect_newer_healthy_state_or_metric _____
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1473/test_r7_older_failure_cannot_r0')
+
+    def test_r7_older_failure_cannot_resurrect_newer_healthy_state_or_metric(tmp_path):
+        store = ObservationStateStore(tmp_path/'state.json')
+        store.update(report())
+        store.update(pass_report())
+        store.update(report())
+>       assert store.read_confirmed() == ()
+E       AssertionError: assert (ConfirmedRul...a2b3be1f61'),) == ()
+E         
+E         Left contains one more item: ConfirmedRuleState(rule_id='pods.current', cluster_id='prod', profile='5m', scope='cluster', failure_count=1, observed_at=datetime.datetime(2026, 10, 16, 0, 0, tzinfo=datetime.timezone.utc), run_id='fb7e6d3a-fadf-4010-a98a-50a2b3be1f61')
+E         Use -v to get more diff
+
+tests\test_foundations_review_rules.py:88: AssertionError
+_______ test_r9_one_series_with_21_new_occurrences_exceeds_threshold10 ________
+
+    def test_r9_one_series_with_21_new_occurrences_exceeds_threshold10():
+        cfg = InspectorConfig()
+        cfg.thresholds.warning_events_max = 10
+        previous = [{'uid':'event-uid','count':0,'observed_at':(NOW-timedelta(seconds=60)).isoformat(),
+                     'sampled_at':(NOW-timedelta(seconds=60)).isoformat()}]
+        r = evaluate('events.warning', snapshot(events=[event(series=True)],event_baseline=previous),cfg)
+>       assert warning_findings(r) and warning_findings(r)[0].evidence['occurrence_delta']==21
+E       AssertionError: assert ([])
+E        +  where [] = warning_findings(CheckEvaluation(execution=CheckExecution(rule_id='events.warning', execution_status=<ExecutionStatus.OK: 'OK'>, observ...Y'>, observed_at=datetime.datetime(2026, 10, 16, 0, 0, tzinfo=datetime.timezone.utc), complete=True, run_id='run-1'),)))
+
+tests\test_foundations_review_rules.py:105: AssertionError
+_____ test_r9_below_threshold_cursor_is_durable_and_next_delta_is_counted _____
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1473/test_r9_below_threshold_cursor0')
+
+    def test_r9_below_threshold_cursor_is_durable_and_next_delta_is_counted(tmp_path):
+        cfg = InspectorConfig()
+        cfg.thresholds.warning_events_max = 10
+        ev = event()
+        ev.count = 1
+        ev.first_timestamp = NOW-timedelta(seconds=30)
+        r = report(evaluate('events.warning',snapshot(events=[ev]),cfg))
+        r.profile = 'daily'
+        store = ObservationStateStore(tmp_path/'state.json')
+        store.update(r)
+        cursor = store.event_baseline(cluster_id='prod',profile='daily')
+>       assert len(cursor)==1 and cursor[0]['count']==1
+E       assert (0 == 1)
+E        +  where 0 = len(())
+
+tests\test_foundations_review_rules.py:120: AssertionError
+________ test_r9_unknown_initial_cumulative_count_cannot_prove_healthy ________
+
+    def test_r9_unknown_initial_cumulative_count_cannot_prove_healthy():
+        cfg = InspectorConfig()
+        cfg.thresholds.warning_events_max = 10
+        r = evaluate('events.warning',snapshot(events=[event()]),cfg)
+>       assert r.observations[0].health == H.UNKNOWN and not r.observations[0].complete
+E       AssertionError: assert (<ObservationH...HY: 'HEALTHY'> == <ObservationH...WN: 'UNKNOWN'>
+E         
+E         - UNKNOWN
+E         + HEALTHY)
+
+tests\test_foundations_review_rules.py:133: AssertionError
+_______ test_r10_event_created_during_collection_is_not_future_or_lost ________
+
+    def test_r10_event_created_during_collection_is_not_future_or_lost():
+        cfg = InspectorConfig()
+        cfg.thresholds.warning_events_max = 0
+        ev = event()
+        ev.count = 1
+        ev.first_timestamp = ev.last_timestamp = NOW+timedelta(seconds=1)
+        r = evaluate('events.warning',snapshot(events=Collection((ev,),E.OK,NOW+timedelta(seconds=2),True)),cfg)
+>       assert warning_findings(r) and r.observations[0].health == H.UNHEALTHY
+E       AssertionError: assert ([])
+E        +  where [] = warning_findings(CheckEvaluation(execution=CheckExecution(rule_id='events.warning', execution_status=<ExecutionStatus.PARTIAL: 'PARTIAL... observed_at=datetime.datetime(2026, 10, 16, 0, 0, 2, tzinfo=datetime.timezone.utc), complete=False, run_id='run-1'),)))
+
+tests\test_foundations_review_rules.py:143: AssertionError
+___ test_r3_default_v2_keeps_active_legacy_selectors_and_node_measurements ____
+
+    def test_r3_default_v2_keeps_active_legacy_selectors_and_node_measurements():
+        from k8s_inspector.runner import run_inspection
+        snap = healthy_snapshot()
+        core = NS(list_node=Mock(return_value=page(snap.collections.get('nodes').items)),
+            list_pod_for_all_namespaces=Mock(return_value=page(snap.collections.get('pods').items)),
+            list_persistent_volume_claim_for_all_namespaces=Mock(return_value=page([pvc('pending',phase='Pending',storage_class='fast')])))
+        ctx = NS(core=core,storage=NS(list_storage_class=Mock(return_value=page())),
+            custom=NS(list_cluster_custom_object=Mock(return_value=page(snap.collections.get('node_metrics').items))),
+            api_client=NS(call_api=lambda *a,**kw:('ok',200,{})))
+        r = run_inspection(ctx,InspectorConfig(),'hourly',cluster_id='prod',now=NOW,monotonic=lambda:0)
+>       assert {x.name for x in r.results} == {'nodes','pods','pvcs','control-plane'}
+E       AssertionError: assert {'control.api...current', ...} == {'control-pla...pods', 'pvcs'}
+E         
+E         Extra items in the left set:
+E         'nodes.utilization'
+E         'pvc.binding'
+E         'nodes.ready'
+E         'control.api'
+E         'control.components'...
+E         
+E         ...Full output truncated (8 lines hidden), use '-vv' to show
+
+tests\test_foundations_review_rules.py:156: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_rules.py::test_r4_malformed_sibling_metric_cannot_hide_node_not_ready
+FAILED tests/test_foundations_review_rules.py::test_r5_partial_pod_membership_cannot_prove_addon_shortage
+FAILED tests/test_foundations_review_rules.py::test_r6_unrelated_namespace_pod_does_not_prove_addon_capability
+FAILED tests/test_foundations_review_rules.py::test_r8_seen_healthy_resource_emits_uid_recovery_evidence[nodes.utilization-node-n1]
+FAILED tests/test_foundations_review_rules.py::test_r8_seen_healthy_resource_emits_uid_recovery_evidence[nodes.pressure-node-n1]
+FAILED tests/test_foundations_review_rules.py::test_r8_seen_healthy_resource_emits_uid_recovery_evidence[control.components-kube-apiserver-uid]
+FAILED tests/test_foundations_review_rules.py::test_r8_seen_healthy_resource_emits_uid_recovery_evidence[addons.ready-dns-controller]
+FAILED tests/test_foundations_review_rules.py::test_r7_older_failure_cannot_resurrect_newer_healthy_state_or_metric
+FAILED tests/test_foundations_review_rules.py::test_r9_one_series_with_21_new_occurrences_exceeds_threshold10
+FAILED tests/test_foundations_review_rules.py::test_r9_below_threshold_cursor_is_durable_and_next_delta_is_counted
+FAILED tests/test_foundations_review_rules.py::test_r9_unknown_initial_cumulative_count_cannot_prove_healthy
+FAILED tests/test_foundations_review_rules.py::test_r10_event_created_during_collection_is_not_future_or_lost
+FAILED tests/test_foundations_review_rules.py::test_r3_default_v2_keeps_active_legacy_selectors_and_node_measurements
+13 failed in 9.49s

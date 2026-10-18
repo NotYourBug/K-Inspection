@@ -1,0 +1,21 @@
+...F.................                                                    [100%]
+================================== FAILURES ===================================
+____________ test_r12_sdk_health_http500_is_confirmed_api_failure _____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1476/test_r12_sdk_health_http500_is0')
+
+    def test_r12_sdk_health_http500_is_confirmed_api_failure(tmp_path):
+        from k8s_inspector.rule_catalog import CATALOG
+        with endpoint(status=500) as (url, attempts):
+            ctx = load_kube(kubeconfig(tmp_path/'config', url))
+            try:
+                snapshot = KubeCollector(ctx, 30, lambda: 0).snapshot(frozenset({'api_health'}), 'run', 'prod')
+                result = next(r for r in CATALOG if r.rule_id == 'control.api').evaluate(snapshot, InspectorConfig())
+>               assert any(f.reason == 'APIUnhealthy' and f.severity == Severity.FAIL for f in result.findings)
+E               assert False
+E                +  where False = any(<generator object test_r12_sdk_health_http500_is_confirmed_api_failure.<locals>.<genexpr> at 0x0000029E06357ED0>)
+
+tests\test_foundations_review_transport.py:94: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_foundations_review_transport.py::test_r12_sdk_health_http500_is_confirmed_api_failure
+1 failed, 20 passed in 13.64s

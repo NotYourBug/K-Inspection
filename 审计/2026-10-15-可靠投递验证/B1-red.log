@@ -1,0 +1,155 @@
+FFFFF                                                                    [100%]
+================================== FAILURES ===================================
+______________________ test_pending_jobs_survive_reopen _______________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1407/test_pending_jobs_survive_reop0')
+
+    def test_pending_jobs_survive_reopen(tmp_path):
+        path = tmp_path / "bridge.db"
+>       receipt = api().DeliveryStore(path).accept("prod-am", batch(), (target(), target("team-b")), NOW)
+                  ^^^^^
+
+tests\test_bridge_store.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_store.py:12: in api
+    return importlib.import_module("k8s_inspector.bridge_store")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_store'
+import_ = <function _gcd_import at 0x00000234A5D380E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_store'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______________________ test_all_destinations_are_atomic _______________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1407/test_all_destinations_are_atom0')
+
+    def test_all_destinations_are_atomic(tmp_path):
+>       store = api().DeliveryStore(tmp_path / "bridge.db")
+                ^^^^^
+
+tests\test_bridge_store.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_store.py:12: in api
+    return importlib.import_module("k8s_inspector.bridge_store")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_store'
+import_ = <function _gcd_import at 0x00000234A5D380E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_store'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________________ test_concurrent_accepts_reuse_one_set_of_jobs ________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1407/test_concurrent_accepts_reuse_0')
+
+    def test_concurrent_accepts_reuse_one_set_of_jobs(tmp_path):
+>       store = api().DeliveryStore(tmp_path / "bridge.db")
+                ^^^^^
+
+tests\test_bridge_store.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_store.py:12: in api
+    return importlib.import_module("k8s_inspector.bridge_store")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_store'
+import_ = <function _gcd_import at 0x00000234A5D380E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_store'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_______ test_backlog_is_transactional_and_duplicates_do_not_inflate_it ________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1407/test_backlog_is_transactional_0')
+
+    def test_backlog_is_transactional_and_duplicates_do_not_inflate_it(tmp_path):
+>       store = api().DeliveryStore(tmp_path / "bridge.db", max_backlog=1)
+                ^^^^^
+
+tests\test_bridge_store.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_store.py:12: in api
+    return importlib.import_module("k8s_inspector.bridge_store")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_store'
+import_ = <function _gcd_import at 0x00000234A5D380E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_store'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+__________________ test_rejects_naive_time_and_newer_schema ___________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1407/test_rejects_naive_time_and_ne0')
+
+    def test_rejects_naive_time_and_newer_schema(tmp_path):
+>       store = api().DeliveryStore(tmp_path / "bridge.db")
+                ^^^^^
+
+tests\test_bridge_store.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\test_bridge_store.py:12: in api
+    return importlib.import_module("k8s_inspector.bridge_store")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_store'
+import_ = <function _gcd_import at 0x00000234A5D380E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_store'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_store.py::test_pending_jobs_survive_reopen - ModuleN...
+FAILED tests/test_bridge_store.py::test_all_destinations_are_atomic - ModuleN...
+FAILED tests/test_bridge_store.py::test_concurrent_accepts_reuse_one_set_of_jobs
+FAILED tests/test_bridge_store.py::test_backlog_is_transactional_and_duplicates_do_not_inflate_it
+FAILED tests/test_bridge_store.py::test_rejects_naive_time_and_newer_schema
+5 failed in 0.79s

@@ -1,0 +1,273 @@
+rule_files:
+- ../../deploy/monitoring/generated/inspection-rules.yaml
+evaluation_interval: 1m
+tests:
+- name: expected target never produced any run
+  interval: 1m
+  input_series:
+  - &id001
+    series: up{job="inspector-inventory"}
+    values: 1+0x12
+  - &id002
+    series: up{job="pushgateway"}
+    values: 1+0x12
+  - &id003
+    series: inspector_expected_target{cluster="prod",profile="5m"}
+    values: 1+0x12
+  - &id004
+    series: inspector_expected_max_run_age_seconds{cluster="prod",profile="5m"}
+    values: 900+0x12
+  - &id005
+    series: inspector_expected_rule{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: K8sInspectorTargetNeverRan
+    exp_alerts:
+    - exp_labels: &id006
+        severity: critical
+        category: quality
+        shadow: 'true'
+        cluster: prod
+        profile: 5m
+      exp_annotations:
+        summary: Expected inspection target has never run
+        description: Expected inventory has no run history for this target.
+- name: Pushgateway clear keeps prior failure and detects telemetry missing
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0 stale _ _ _ _ _ _ _ _ _ _
+  - series: inspector_last_valid_failures{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1 stale _ _ _ _ _ _ _ _ _ _
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: K8sInspectorTelemetryMissing
+    exp_alerts:
+    - exp_labels: *id006
+      exp_annotations:
+        summary: Inspection telemetry missing
+        description: Target ran before but its current telemetry is absent.
+  - eval_time: 6m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts: &id009
+    - &id007
+      exp_labels:
+        severity: critical
+        category: business
+        shadow: 'true'
+        cluster: prod
+        profile: 5m
+        rule_id: nodes.ready
+        scope: cluster
+      exp_annotations:
+        summary: 'Inspection finding: nodes.ready'
+        description: Last valid unhealthy observation; verify recovery using fresh
+          evidence.
+- name: FAIL followed by ERROR keeps business failure and invalid quality
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+60x12
+  - series: inspector_last_valid_failures{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  - series: inspector_rule_observation_valid{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1 0+0x11
+  - series: inspector_last_valid_observation_timestamp_seconds{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 0+0x12
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts:
+    - *id007
+  - eval_time: 4m
+    alertname: K8sInspectorObservationInvalid
+    exp_alerts:
+    - exp_labels: &id008
+        severity: critical
+        category: quality
+        shadow: 'true'
+        cluster: prod
+        profile: 5m
+        rule_id: nodes.ready
+        scope: cluster
+      exp_annotations:
+        summary: Current observation is unknown
+        description: Incomplete or invalid collection cannot prove recovery.
+- name: complete healthy observation actually clears failure
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+60x12
+  - series: inspector_last_valid_failures{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1 1 0+0x10
+  - series: inspector_rule_observation_valid{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  - series: inspector_last_valid_observation_timestamp_seconds{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 0+60x12
+  alert_rule_test:
+  - eval_time: 1m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts:
+    - *id007
+  - eval_time: 3m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts: []
+  - eval_time: 3m
+    alertname: K8sInspectorObservationInvalid
+    exp_alerts: []
+- name: expired valid failure remains pending verification
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - series: inspector_expected_max_run_age_seconds{cluster="prod",profile="5m"}
+    values: 60+0x12
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+60x12
+  - series: inspector_last_valid_failures{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  - series: inspector_rule_observation_valid{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  - series: inspector_last_valid_observation_timestamp_seconds{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 0+0x12
+  alert_rule_test:
+  - eval_time: 5m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts:
+    - *id007
+  - eval_time: 5m
+    alertname: K8sInspectorObservationStale
+    exp_alerts:
+    - exp_labels: *id008
+      exp_annotations:
+        summary: Last valid observation is stale
+        description: Stale evidence does not verify business recovery.
+- name: hourly and full never duplicate 5m business ownership
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_valid_failures{cluster="prod",profile="hourly",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  - series: inspector_last_valid_failures{cluster="prod",profile="full",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts: []
+- name: inventory scrape configuration removed still alarms
+  interval: 1m
+  input_series:
+  - *id002
+  alert_rule_test:
+  - eval_time: 3m
+    alertname: K8sInspectorInventoryUnavailable
+    exp_alerts:
+    - exp_labels:
+        severity: critical
+        category: quality
+        shadow: 'true'
+        job: inspector-inventory
+      exp_annotations:
+        summary: Expected target inventory unavailable
+        description: Restore independent inventory; missing-target detection requires
+          it.
+- name: run stopped after an observed start
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - series: inspector_expected_max_run_age_seconds{cluster="prod",profile="5m"}
+    values: 120+0x12
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+0x12
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: K8sInspectorRunStale
+    exp_alerts:
+    - exp_labels: *id006
+      exp_annotations:
+        summary: Inspection run is stale
+        description: Run completion time exceeded the expected target budget.
+- name: expected rule has never produced a quality sample
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+60x12
+  alert_rule_test:
+  - eval_time: 3m
+    alertname: K8sInspectorExpectedObservationMissing
+    exp_alerts:
+    - exp_labels: *id008
+      exp_annotations:
+        summary: Expected rule observation missing
+        description: Expected rule has no current quality sample.
+- name: unknown with no valid history cannot create business health
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+60x12
+  - series: inspector_rule_observation_valid{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 0+0x12
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts: []
+  - eval_time: 3m
+    alertname: K8sInspectorObservationInvalid
+    exp_alerts:
+    - exp_labels: *id008
+      exp_annotations:
+        summary: Current observation is unknown
+        description: Incomplete or invalid collection cannot prove recovery.
+- name: first partial positive survives subsequent unknown without valid aggregate
+  interval: 1m
+  input_series:
+  - *id001
+  - *id002
+  - *id003
+  - *id004
+  - *id005
+  - series: inspector_last_run_timestamp_seconds{cluster="prod",profile="5m"}
+    values: 0+60x12
+  - series: inspector_confirmed_failures{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 1+0x12
+  - series: inspector_rule_observation_valid{cluster="prod",profile="5m",rule_id="nodes.ready",scope="cluster"}
+    values: 0+0x12
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: K8sInspectorBusinessFailure
+    exp_alerts: *id009

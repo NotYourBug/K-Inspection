@@ -1,0 +1,43 @@
+........................................................................ [ 15%]
+........................................................................ [ 30%]
+........................................................................ [ 45%]
+........................................................................ [ 60%]
+........................................................................ [ 75%]
+...........................ss........................................... [ 90%]
+..............................................                           [100%]
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/google/auth/__init__.py:54
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/google/auth/__init__.py:54: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+    warnings.warn(eol_message.format("3.9"), FutureWarning)
+
+../../../../../opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/google/oauth2/__init__.py:40
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/google/oauth2/__init__.py:40: FutureWarning: You are using a Python version 3.9 past its end of life. Google will update google-auth with critical bug fixes on a best-effort basis, but not with any other fixes or features. Please upgrade your Python version, and then update google-auth.
+    warnings.warn(eol_message.format("3.9"), FutureWarning)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/lark_oapi/ws/pb/google/__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+    __import__('pkg_resources').declare_namespace(__name__)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/lark_oapi/ws/pb/google/__init__.py:2: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('lark_oapi.ws.pb.google')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    __import__('pkg_resources').declare_namespace(__name__)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/pkg_resources/__init__.py:2558: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('lark_oapi.ws.pb')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    declare_namespace(parent)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/pkg_resources/__init__.py:2558: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('lark_oapi.ws')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    declare_namespace(parent)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  /opt/hostedtoolcache/Python/3.9.25/x64/lib/python3.9/site-packages/pkg_resources/__init__.py:2558: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('lark_oapi')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    declare_namespace(parent)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+476 passed, 2 skipped, 7 warnings in 29.06s
+

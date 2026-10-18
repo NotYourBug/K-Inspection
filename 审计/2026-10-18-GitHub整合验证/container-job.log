@@ -1,0 +1,818 @@
+container	Set up job	﻿2026-10-18T08:56:00.8026110Z Current runner version: '2.337.0'
+container	Set up job	2026-10-18T08:56:00.8046654Z ##[group]Runner Image Provisioner
+container	Set up job	2026-10-18T08:56:00.8047347Z Hosted Compute Agent
+container	Set up job	2026-10-18T08:56:00.8047815Z Version: 20261012.601
+container	Set up job	2026-10-18T08:56:00.8048402Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+container	Set up job	2026-10-18T08:56:00.8049023Z Build Date: 2026-10-12T17:48:21Z
+container	Set up job	2026-10-18T08:56:00.8049605Z Worker ID: {3a24d852-de45-4b91-a05c-034f95f11897}
+container	Set up job	2026-10-18T08:56:00.8050184Z Region: westus3
+container	Set up job	2026-10-18T08:56:00.8050651Z Cloud: Azure
+container	Set up job	2026-10-18T08:56:00.8051137Z ##[endgroup]
+container	Set up job	2026-10-18T08:56:00.8052169Z ##[group]Operating System
+container	Set up job	2026-10-18T08:56:00.8052953Z Ubuntu
+container	Set up job	2026-10-18T08:56:00.8053397Z 24.04.5
+container	Set up job	2026-10-18T08:56:00.8053825Z LTS
+container	Set up job	2026-10-18T08:56:00.8054283Z ##[endgroup]
+container	Set up job	2026-10-18T08:56:00.8054761Z ##[group]Runner Image
+container	Set up job	2026-10-18T08:56:00.8055230Z Image: ubuntu-24.04
+container	Set up job	2026-10-18T08:56:00.8055739Z Version: 20261012.334.1
+container	Set up job	2026-10-18T08:56:00.8056625Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+container	Set up job	2026-10-18T08:56:00.8058037Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+container	Set up job	2026-10-18T08:56:00.8058790Z ##[endgroup]
+container	Set up job	2026-10-18T08:56:00.8059737Z ##[group]GITHUB_TOKEN Permissions
+container	Set up job	2026-10-18T08:56:00.8061292Z Contents: read
+container	Set up job	2026-10-18T08:56:00.8061817Z Metadata: read
+container	Set up job	2026-10-18T08:56:00.8062279Z ##[endgroup]
+container	Set up job	2026-10-18T08:56:00.8064130Z Secret source: Actions
+container	Set up job	2026-10-18T08:56:00.8064906Z Cache mode: write
+container	Set up job	2026-10-18T08:56:00.8065543Z Prepare workflow directory
+container	Set up job	2026-10-18T08:56:00.8388128Z Prepare all required actions
+container	Set up job	2026-10-18T08:56:00.8436254Z Getting action download info
+container	Set up job	2026-10-18T08:56:01.1275016Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+container	Set up job	2026-10-18T08:56:01.3429823Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+container	Set up job	2026-10-18T08:56:01.6408985Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+container	Set up job	2026-10-18T08:56:01.9171784Z Complete job name: container
+container	Run actions/checkout@v4	﻿2026-10-18T08:56:01.9844053Z ##[group]Run actions/checkout@v4
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9844779Z with:
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9845147Z   repository: NotYourBug/K-Inspection
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9848819Z   token: ***
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9849183Z   ssh-strict: true
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9849545Z   ssh-user: git
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9849910Z   persist-credentials: true
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9850319Z   clean: true
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9850683Z   sparse-checkout-cone-mode: true
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9851122Z   fetch-depth: 1
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9851477Z   fetch-tags: false
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9851837Z   show-progress: true
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9852195Z   lfs: false
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9852754Z   submodules: false
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9853138Z   set-safe-directory: true
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9853569Z   allow-unsafe-pr-checkout: false
+container	Run actions/checkout@v4	2026-10-18T08:56:01.9854214Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0697977Z Syncing repository: NotYourBug/K-Inspection
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0699873Z ##[group]Getting Git version info
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0700839Z Working directory is '/home/runner/work/K-Inspection/K-Inspection'
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0701882Z [command]/usr/bin/git version
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0760844Z git version 2.55.0
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0791493Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0798156Z Temporarily overriding HOME='/home/runner/work/_temp/fc9623af-20b4-44a9-b496-8c580c6b406b' before making global git config changes
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0799765Z Adding repository directory to the temporary git global config as a safe directory
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0801966Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/K-Inspection/K-Inspection
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0849346Z Deleting the contents of '/home/runner/work/K-Inspection/K-Inspection'
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0853181Z ##[group]Initializing the repository
+container	Run actions/checkout@v4	2026-10-18T08:56:02.0857139Z [command]/usr/bin/git init /home/runner/work/K-Inspection/K-Inspection
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1024203Z hint: Using 'master' as the name for the initial branch. This default branch name
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1026281Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1027733Z hint: to use in all of your new repositories, which will suppress this warning,
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1028870Z hint: call:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1029388Z hint:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1030071Z hint: 	git config --global init.defaultBranch <name>
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1030954Z hint:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1031733Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1033340Z hint: 'development'. The just-created branch can be renamed via this command:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1034437Z hint:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1034959Z hint: 	git branch -m <name>
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1035588Z hint:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1036489Z hint: Disable this message with "git config set advice.defaultBranchName false"
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1038134Z Initialized empty Git repository in /home/runner/work/K-Inspection/K-Inspection/.git/
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1040749Z [command]/usr/bin/git remote add origin https://github.com/NotYourBug/K-Inspection
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1089348Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1090367Z ##[group]Disabling automatic garbage collection
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1093186Z [command]/usr/bin/git config --local gc.auto 0
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1134655Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1135654Z ##[group]Setting up auth
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1141505Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1172363Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1501661Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1533951Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1723516Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1752264Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1938983Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1975090Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1975917Z ##[group]Fetching the repository
+container	Run actions/checkout@v4	2026-10-18T08:56:02.1983360Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +94ae59d9c09bfc36d28acb1446f31f375d8f84ac:refs/remotes/origin/codex/remediation-native
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0571053Z From https://github.com/NotYourBug/K-Inspection
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0572826Z  * [new ref]         94ae59d9c09bfc36d28acb1446f31f375d8f84ac -> origin/codex/remediation-native
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0576011Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0577119Z ##[group]Determining the checkout info
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0578285Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0584210Z [command]/usr/bin/git sparse-checkout disable
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0635066Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0666195Z ##[group]Checking out the ref
+container	Run actions/checkout@v4	2026-10-18T08:56:03.0669380Z [command]/usr/bin/git checkout --progress --force -B codex/remediation-native refs/remotes/origin/codex/remediation-native
+container	Run actions/checkout@v4	2026-10-18T08:56:03.1040684Z Switched to a new branch 'codex/remediation-native'
+container	Run actions/checkout@v4	2026-10-18T08:56:03.1045290Z branch 'codex/remediation-native' set up to track 'origin/codex/remediation-native'.
+container	Run actions/checkout@v4	2026-10-18T08:56:03.1053655Z ##[endgroup]
+container	Run actions/checkout@v4	2026-10-18T08:56:03.1098248Z [command]/usr/bin/git log -1 --format=%H
+container	Run actions/checkout@v4	2026-10-18T08:56:03.1121542Z 94ae59d9c09bfc36d28acb1446f31f375d8f84ac
+container	Run actions/setup-python@v5	﻿2026-10-18T08:56:03.1498241Z ##[group]Run actions/setup-python@v5
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1499244Z with:
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1500175Z   python-version: 3.11
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1500965Z   check-latest: false
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1507787Z   token: ***
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1508539Z   update-environment: true
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1509378Z   allow-prereleases: false
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1510217Z   freethreaded: false
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.1510984Z ##[endgroup]
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.2591807Z ##[group]Installed versions
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.2681010Z (node:2083) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.2684191Z (Use `node --trace-deprecation ...` to show where the warning was created)
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.2685842Z Successfully set up CPython (3.11.17)
+container	Run actions/setup-python@v5	2026-10-18T08:56:03.2687401Z ##[endgroup]
+container	Run python -m pip install -r requirements.txt	﻿2026-10-18T08:56:03.2899296Z ##[group]Run python -m pip install -r requirements.txt
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.2901246Z ^[[36;1mpython -m pip install -r requirements.txt^[[0m
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3150669Z shell: /usr/bin/bash -e {0}
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3151572Z env:
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3152639Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3154017Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3155388Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3156631Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3157882Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3159160Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:03.3160226Z ##[endgroup]
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:04.1045791Z Obtaining file:///home/runner/work/K-Inspection/K-Inspection
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:04.1057918Z   Installing build dependencies: started
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:04.9630316Z   Installing build dependencies: finished with status 'done'
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:04.9634918Z   Checking if build backend supports build_editable: started
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.2044986Z   Checking if build backend supports build_editable: finished with status 'done'
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.2052033Z   Getting requirements to build editable: started
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.4485596Z   Getting requirements to build editable: finished with status 'done'
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.4493144Z   Preparing editable metadata (pyproject.toml): started
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.5894683Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.6445601Z Collecting kubernetes<38,>=29.0.0 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.6800024Z   Downloading kubernetes-37.0.1-py2.py3-none-any.whl.metadata (1.9 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7178408Z Collecting PyYAML<7,>=6.0.1 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7209417Z   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7432844Z Collecting prometheus-client<1,>=0.20.0 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7463128Z   Downloading prometheus_client-0.26.0-py3-none-any.whl.metadata (2.1 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7616665Z Collecting lark-oapi==1.7.5 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7650027Z   Downloading lark_oapi-1.7.5-py3-none-any.whl.metadata (15 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7768962Z Collecting build<2,>=1.2 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.7798377Z   Downloading build-1.6.1-py3-none-any.whl.metadata (5.6 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8304423Z Collecting setuptools<85,>=68 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8318138Z   Using cached setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8420441Z Collecting wheel<0.49,>=0.45 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8431501Z   Using cached wheel-0.48.0-py3-none-any.whl.metadata (2.3 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8639766Z Collecting pytest<10,>=8.4 (from k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8669700Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8828975Z Collecting requests>=2.25 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8858898Z   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8949055Z Collecting requests_toolbelt>=0.9 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.8979791Z   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.9672078Z Collecting pycryptodome>=3.9 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:05.9703271Z   Downloading pycryptodome-4.0.1-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (5.8 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0586633Z Collecting websockets<16,>=11 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0620210Z   Downloading websockets-15.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0765582Z Collecting httpx<1.0,>=0.24 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0797202Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0880510Z Collecting packaging>=24.0 (from build<2,>=1.2->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0891624Z   Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0959940Z Collecting pyproject_hooks (from build<2,>=1.2->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.0988084Z   Downloading pyproject_hooks-1.3.3-py3-none-any.whl.metadata (1.3 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1294686Z Collecting anyio (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1323211Z   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1453637Z Collecting certifi (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1482978Z   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1593935Z Collecting httpcore==1.* (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1634395Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1749293Z Collecting idna (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1777126Z   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1941077Z Collecting h11>=0.16 (from httpcore==1.*->httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.1970067Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.2070791Z Collecting python-dateutil>=2.8.2 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.2102096Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.2948007Z Collecting pydantic>=2.13.5 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.2979013Z   Downloading pydantic-2.14.1-py3-none-any.whl.metadata (133 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3304550Z Collecting websocket-client!=0.40.0,!=0.41.*,!=0.42.*,>=0.32.0 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3332694Z   Downloading websocket_client-1.9.2-py3-none-any.whl.metadata (8.3 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3427344Z Collecting requests-oauthlib (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3454817Z   Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl.metadata (11 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3562759Z Collecting typing-extensions>=4.16.0 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3591038Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3723947Z Collecting urllib3<3.0.0,>=2.8.0 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.3752794Z   Downloading urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.4002935Z Collecting durationpy>=0.11 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.4029680Z   Downloading durationpy-0.11-py3-none-any.whl.metadata (474 bytes)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.7618939Z Collecting aiohttp<4.0.0,>=3.14.3 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.7660955Z   Downloading aiohttp-3.14.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.7768075Z Collecting aiohttp-retry>=2.9.1 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.7796273Z   Downloading aiohttp_retry-2.9.1-py3-none-any.whl.metadata (8.8 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.7902949Z Collecting aiohappyeyeballs>=2.5.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.7930657Z   Downloading aiohappyeyeballs-2.7.1-py3-none-any.whl.metadata (5.9 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.8016953Z Collecting aiosignal>=1.4.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.8044972Z   Downloading aiosignal-1.4.0-py3-none-any.whl.metadata (3.7 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.8297581Z Collecting attrs>=17.3.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.8327179Z   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.8752793Z Collecting frozenlist>=1.1.1 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:06.8784080Z   Downloading frozenlist-1.8.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (20 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.0910598Z Collecting multidict<8.0,>=4.5 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.0944582Z   Downloading multidict-7.1.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (6.2 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.1408177Z Collecting propcache>=0.2.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.1440635Z   Downloading propcache-0.5.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (25 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3219261Z Collecting yarl<2.0,>=1.25.1 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3250943Z   Downloading yarl-1.25.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (111 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3396050Z Collecting iniconfig>=1.0.1 (from pytest<10,>=8.4->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3423977Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3670459Z Collecting pluggy<2,>=1.5 (from pytest<10,>=8.4->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3701752Z   Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3826998Z Collecting pygments>=2.7.2 (from pytest<10,>=8.4->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.3855182Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.4057541Z Collecting annotated-types>=0.6.0 (from pydantic>=2.13.5->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.4086270Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.9229635Z Collecting pydantic-core==2.50.1 (from pydantic>=2.13.5->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.9261022Z   Downloading pydantic_core-2.50.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.5 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.9351834Z Collecting typing-inspection>=0.4.4 (from pydantic>=2.13.5->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.9380385Z   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.9489282Z Collecting six>=1.5 (from python-dateutil>=2.8.2->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:07.9518542Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.0515784Z Collecting charset_normalizer<4,>=2 (from requests>=2.25->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.0551274Z   Downloading charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (46 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.0757383Z Collecting oauthlib>=3.0.0 (from requests-oauthlib->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.0788397Z   Downloading oauthlib-4.0.0-py3-none-any.whl.metadata (8.6 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.0878962Z Downloading lark_oapi-1.7.5-py3-none-any.whl (7.7 MB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.1713532Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.7/7.7 MB 93.5 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.1745896Z Downloading build-1.6.1-py3-none-any.whl (31 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.1794941Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.1838827Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.1882087Z Downloading kubernetes-37.0.1-py2.py3-none-any.whl (7.5 MB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.2726120Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.5/7.5 MB 91.0 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.2759811Z Downloading aiohttp-3.14.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.9 MB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.2839383Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 291.7 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.2871084Z Downloading multidict-7.1.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (480 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.2953275Z Downloading prometheus_client-0.26.0-py3-none-any.whl (64 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3030871Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3081956Z Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3149648Z Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3193926Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 220.1 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3204746Z Using cached setuptools-84.0.0-py3-none-any.whl (818 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3234805Z Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3426073Z Downloading websockets-15.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (182 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3453078Z Using cached wheel-0.48.0-py3-none-any.whl (33 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3481013Z Downloading yarl-1.25.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (117 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.3526368Z Downloading aiohappyeyeballs-2.7.1-py3-none-any.whl (15 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.4267486Z Downloading aiohttp_retry-2.9.1-py3-none-any.whl (10.0 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.4310518Z Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.4352153Z Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.4398198Z Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.4469261Z Downloading durationpy-0.11-py3-none-any.whl (4.1 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5287273Z Downloading frozenlist-1.8.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (231 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5335554Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5378285Z Downloading idna-3.20-py3-none-any.whl (69 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5421856Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5446756Z Using cached packaging-26.3-py3-none-any.whl (129 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5475615Z Downloading propcache-0.5.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (235 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5533348Z Downloading pycryptodome-4.0.1-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.5 MB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5736606Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.5/2.5 MB 139.2 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5772207Z Downloading pydantic-2.14.1-py3-none-any.whl (488 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.5969206Z Downloading pydantic_core-2.50.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6128293Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 136.1 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6159464Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6206946Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6259657Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 294.1 MB/s  0:00:00
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6291133Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6338988Z Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6384002Z Downloading charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (269 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6431790Z Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6670765Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6716597Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6781410Z Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6826599Z Downloading websocket_client-1.9.2-py3-none-any.whl (95 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6871073Z Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6914627Z Downloading pyproject_hooks-1.3.3-py3-none-any.whl (10 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6956753Z Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.6999308Z Downloading oauthlib-4.0.0-py3-none-any.whl (159 kB)
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.8775707Z Building wheels for collected packages: k8s-inspector
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:08.8782142Z   Building editable for k8s-inspector (pyproject.toml): started
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.0358105Z   Building editable for k8s-inspector (pyproject.toml): finished with status 'done'
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.0362225Z   Created wheel for k8s-inspector: filename=k8s_inspector-0.1.0-0.editable-py3-none-any.whl size=15863 sha256=6a01d51f64b38cb6f36c72b308ad13791f2ba85321b4ed1b473247a1b94b5971
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.0364011Z   Stored in directory: /tmp/pip-ephem-wheel-cache-y18gspc1/wheels/b7/53/a3/e26e92a0463561f51eec8cb841926f0fc3e421ba406f6eca93
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.0382893Z Successfully built k8s-inspector
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.1328522Z Installing collected packages: durationpy, websockets, websocket-client, urllib3, typing-extensions, six, setuptools, PyYAML, pyproject_hooks, pygments, pycryptodome, propcache, prometheus-client, pluggy, packaging, oauthlib, multidict, iniconfig, idna, h11, frozenlist, charset_normalizer, certifi, attrs, annotated-types, aiohappyeyeballs, yarl, wheel, typing-inspection, requests, python-dateutil, pytest, pydantic-core, httpcore, build, anyio, aiosignal, requests_toolbelt, requests-oauthlib, pydantic, httpx, aiohttp, lark-oapi, aiohttp-retry, kubernetes, k8s-inspector
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.3880629Z   Attempting uninstall: setuptools
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.3891840Z     Found existing installation: setuptools 79.0.1
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.5313257Z     Uninstalling setuptools-79.0.1:
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:09.5532196Z       Successfully uninstalled setuptools-79.0.1
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:22.8128735Z 
+container	Run python -m pip install -r requirements.txt	2026-10-18T08:56:22.8156291Z Successfully installed PyYAML-6.0.3 aiohappyeyeballs-2.7.1 aiohttp-3.14.5 aiohttp-retry-2.9.1 aiosignal-1.4.0 annotated-types-0.8.0 anyio-4.15.1 attrs-26.1.0 build-1.6.1 certifi-2026.7.22 charset_normalizer-3.5.2 durationpy-0.11 frozenlist-1.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 iniconfig-2.3.1 k8s-inspector-0.1.0 kubernetes-37.0.1 lark-oapi-1.7.5 multidict-7.1.0 oauthlib-4.0.0 packaging-26.3 pluggy-1.7.0 prometheus-client-0.26.0 propcache-0.5.4 pycryptodome-4.0.1 pydantic-2.14.1 pydantic-core-2.50.1 pygments-2.21.0 pyproject_hooks-1.3.3 pytest-9.1.1 python-dateutil-2.9.0.post0 requests-2.34.2 requests-oauthlib-2.0.0 requests_toolbelt-1.0.0 setuptools-84.0.0 six-1.17.0 typing-extensions-4.16.0 typing-inspection-0.4.4 urllib3-2.8.0 websocket-client-1.9.2 websockets-15.0.1 wheel-0.48.0 yarl-1.25.1
+container	Run docker build -t k8s-inspector:ci .	﻿2026-10-18T08:56:23.0459865Z ##[group]Run docker build -t k8s-inspector:ci .
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0460341Z ^[[36;1mdocker build -t k8s-inspector:ci .^[[0m
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0523196Z shell: /usr/bin/bash -e {0}
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0523438Z env:
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0523671Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0524031Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0524372Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0524852Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0525144Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0525438Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:23.0525700Z ##[endgroup]
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.1155101Z #0 building with "default" instance using docker driver
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.1155380Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.1155502Z #1 [internal] load build definition from Dockerfile
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.3645617Z #1 transferring dockerfile:
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.5190990Z #1 transferring dockerfile: 943B done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.6704034Z #1 DONE 0.7s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.7953542Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:24.7954553Z #2 [internal] load metadata for docker.io/library/python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:25.1819857Z #2 ...
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:25.1820113Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:25.1820405Z #3 [auth] library/python:pull token for registry-1.docker.io
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:25.1820732Z #3 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:25.3319527Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:25.3320620Z #2 [internal] load metadata for docker.io/library/python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.1082062Z #2 DONE 2.3s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2392191Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2397871Z #4 [internal] load .dockerignore
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2398311Z #4 transferring context: 150B done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2398622Z #4 DONE 0.1s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2398767Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2398928Z #5 [internal] load build context
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2399211Z #5 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2399336Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2399869Z #6 [builder 1/7] FROM docker.io/library/python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.2400997Z #6 resolve docker.io/library/python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89 0.0s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3775316Z #6 ...
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3775591Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3775725Z #5 [internal] load build context
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3776013Z #5 transferring context: 322.23kB 0.0s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3776251Z #5 DONE 0.1s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3776344Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.3776690Z #6 [builder 1/7] FROM docker.io/library/python:3.11-slim-bookworm@sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.4878337Z #6 sha256:f8852cf3b2aa7e17f0a15968c0f38a4836ce399ddb4097cfa823ad72eff582e7 3.34MB / 3.34MB 0.2s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.4879376Z #6 sha256:0a310eeecf4e1f5a0743f9a6520c90c88d089c903ca5fd283f501e3a805f5f89 6.55kB / 6.55kB done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.4880306Z #6 sha256:8a00ecb83ed9d0864dfd102a1bdb2067fda907ceb30bb86d09da9ee558b19590 1.75kB / 1.75kB done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.4881134Z #6 sha256:141fe9b385f3bb6d618c07ace1836c0b3c72bf525566ac3eb13cd1f405069877 5.50kB / 5.50kB done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.4881632Z #6 sha256:da3de1e6d2c4711343857750e90ad16aea8a393ecbefd5bac3af4a12135fd704 0B / 18.32MB 0.2s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.4882143Z #6 sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39 6.29MB / 28.25MB 0.2s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.5882959Z #6 sha256:f8852cf3b2aa7e17f0a15968c0f38a4836ce399ddb4097cfa823ad72eff582e7 3.34MB / 3.34MB 0.2s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.5883953Z #6 sha256:da3de1e6d2c4711343857750e90ad16aea8a393ecbefd5bac3af4a12135fd704 13.63MB / 18.32MB 0.3s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.5884845Z #6 sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39 28.25MB / 28.25MB 0.3s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.5886024Z #6 sha256:f9b274ee4fbe248a842b5b75ee2e2e2db298596c140c7febbb6e987c77d1d246 0B / 249B 0.3s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.7875960Z #6 sha256:da3de1e6d2c4711343857750e90ad16aea8a393ecbefd5bac3af4a12135fd704 18.32MB / 18.32MB 0.5s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.7876586Z #6 sha256:f9b274ee4fbe248a842b5b75ee2e2e2db298596c140c7febbb6e987c77d1d246 249B / 249B 0.3s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.9056302Z #6 sha256:da3de1e6d2c4711343857750e90ad16aea8a393ecbefd5bac3af4a12135fd704 18.32MB / 18.32MB 0.6s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.9058505Z #6 sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39 28.25MB / 28.25MB 0.6s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:27.9059556Z #6 extracting sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:28.8730720Z #6 extracting sha256:7fd1ebe418b5079d4aa36f416af9b143d127bc75b0155d71cb5fd559b5e04d39 0.8s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:29.4452994Z #6 extracting sha256:f8852cf3b2aa7e17f0a15968c0f38a4836ce399ddb4097cfa823ad72eff582e7
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:30.3283833Z #6 extracting sha256:f8852cf3b2aa7e17f0a15968c0f38a4836ce399ddb4097cfa823ad72eff582e7 0.7s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:31.1786046Z #6 extracting sha256:da3de1e6d2c4711343857750e90ad16aea8a393ecbefd5bac3af4a12135fd704
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.1205491Z #6 extracting sha256:da3de1e6d2c4711343857750e90ad16aea8a393ecbefd5bac3af4a12135fd704 0.8s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.4303118Z #6 extracting sha256:f9b274ee4fbe248a842b5b75ee2e2e2db298596c140c7febbb6e987c77d1d246
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6134724Z #6 extracting sha256:f9b274ee4fbe248a842b5b75ee2e2e2db298596c140c7febbb6e987c77d1d246 done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135208Z #6 DONE 5.3s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135314Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135399Z #7 [stage-1 2/5] WORKDIR /app
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135594Z #7 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135688Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135769Z #8 [builder 2/7] WORKDIR /build
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6135960Z #8 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6136045Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6136159Z #9 [builder 3/7] COPY constraints /build/constraints
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6136397Z #9 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6136517Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6136667Z #10 [stage-1 3/5] COPY constraints/runtime.txt /constraints/runtime.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6136952Z #10 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6137049Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:32.6137289Z #11 [builder 4/7] RUN python -m pip install --no-cache-dir -c constraints/build.txt build setuptools wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:33.8666315Z #11 1.404 Collecting build
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.0404702Z #11 1.455   Downloading build-1.6.1-py3-none-any.whl.metadata (5.6 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.0405138Z #11 1.577 Collecting setuptools
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1538066Z #11 1.588   Downloading setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1538579Z #11 1.610 Collecting wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1538856Z #11 1.620   Downloading wheel-0.48.0-py3-none-any.whl.metadata (2.3 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1539342Z #11 1.625 Requirement already satisfied: packaging>=24.0 in /usr/local/lib/python3.11/site-packages (from build) (26.3)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1539780Z #11 1.633 Collecting pyproject_hooks (from build)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1540148Z #11 1.643   Downloading pyproject_hooks-1.3.3-py3-none-any.whl.metadata (1.3 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1540498Z #11 1.677 Downloading build-1.6.1-py3-none-any.whl (31 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.1540802Z #11 1.691 Downloading setuptools-84.0.0-py3-none-any.whl (818 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.2930212Z #11 1.736    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 818.2/818.2 kB 18.7 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.2930816Z #11 1.747 Downloading wheel-0.48.0-py3-none-any.whl (33 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.2931219Z #11 1.757 Downloading pyproject_hooks-1.3.3-py3-none-any.whl (10 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.2931661Z #11 1.830 Installing collected packages: wheel, setuptools, pyproject_hooks, build
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.2932217Z #11 1.830   Attempting uninstall: wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5293767Z #11 1.832     Found existing installation: wheel 0.46.3
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5294213Z #11 1.834     Uninstalling wheel-0.46.3:
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5294495Z #11 1.837       Successfully uninstalled wheel-0.46.3
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5295273Z #11 1.874   Attempting uninstall: setuptools
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5295668Z #11 1.876     Found existing installation: setuptools 79.0.1
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5296057Z #11 1.900     Uninstalling setuptools-79.0.1:
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.5296461Z #11 1.916       Successfully uninstalled setuptools-79.0.1
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:34.7628164Z #11 2.300 Successfully installed build-1.6.1 pyproject_hooks-1.3.3 setuptools-84.0.0 wheel-0.48.0
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.0045063Z #11 2.300 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.0046265Z #11 2.391 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.0046596Z #11 2.391 [notice] A new release of pip is available: 24.0 -> 26.2.1
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.0047101Z #11 2.391 [notice] To update, run: pip install --upgrade pip
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.1894595Z #11 DONE 2.7s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3825125Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3825730Z #12 [builder 5/7] COPY pyproject.toml README.md /build/
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3826544Z #12 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3826737Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3826934Z #13 [builder 6/7] COPY k8s_inspector /build/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3827349Z #13 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3827502Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.3827757Z #14 [builder 7/7] RUN python -m build --wheel --no-isolation --outdir /wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.5036418Z #14 0.272 * Getting build dependencies for wheel...
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.6432685Z #14 0.411 running egg_info
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7850456Z #14 0.412 creating k8s_inspector.egg-info
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7851006Z #14 0.413 writing k8s_inspector.egg-info/PKG-INFO
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7851372Z #14 0.413 writing dependency_links to k8s_inspector.egg-info/dependency_links.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7851772Z #14 0.414 writing entry points to k8s_inspector.egg-info/entry_points.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7852131Z #14 0.414 writing requirements to k8s_inspector.egg-info/requires.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7852713Z #14 0.414 writing top-level names to k8s_inspector.egg-info/top_level.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7853069Z #14 0.414 writing manifest file 'k8s_inspector.egg-info/SOURCES.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7853393Z #14 0.418 reading manifest file 'k8s_inspector.egg-info/SOURCES.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7853710Z #14 0.418 writing manifest file 'k8s_inspector.egg-info/SOURCES.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7853978Z #14 0.443 * Building wheel...
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.7854193Z #14 0.553 running bdist_wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8867598Z #14 0.557 running build
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8868073Z #14 0.557 running build_py
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8868457Z #14 0.558 creating build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8868966Z #14 0.558 copying k8s_inspector/collector.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8869703Z #14 0.558 copying k8s_inspector/delivery_identity.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8870338Z #14 0.559 copying k8s_inspector/delivery_worker.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8870948Z #14 0.559 copying k8s_inspector/delivery_models.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8871478Z #14 0.559 copying k8s_inspector/common.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8871956Z #14 0.559 copying k8s_inspector/cli.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8874074Z #14 0.560 copying k8s_inspector/sinks.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8874687Z #14 0.560 copying k8s_inspector/rules_events.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8875249Z #14 0.560 copying k8s_inspector/notify.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8875786Z #14 0.560 copying k8s_inspector/delivery_adapter.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8876382Z #14 0.560 copying k8s_inspector/observation_models.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8876960Z #14 0.561 copying k8s_inspector/mcp_server.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8877485Z #14 0.561 copying k8s_inspector/rules_pods.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8878293Z #14 0.561 copying k8s_inspector/metrics.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8878845Z #14 0.561 copying k8s_inspector/alert_routing.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8879451Z #14 0.561 copying k8s_inspector/bridge_observability.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8880015Z #14 0.562 copying k8s_inspector/models.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8880585Z #14 0.562 copying k8s_inspector/alertmanager_bridge.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8881471Z #14 0.562 copying k8s_inspector/rule_catalog.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8882022Z #14 0.562 copying k8s_inspector/config.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8882981Z #14 0.563 copying k8s_inspector/snapshot.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8883537Z #14 0.563 copying k8s_inspector/provider_error.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8884101Z #14 0.563 copying k8s_inspector/kube.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8884636Z #14 0.563 copying k8s_inspector/state_store.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8885167Z #14 0.563 copying k8s_inspector/rules_nodes.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8885711Z #14 0.564 copying k8s_inspector/bridge_store.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8886246Z #14 0.564 copying k8s_inspector/report.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8886800Z #14 0.564 copying k8s_inspector/rules_control.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8887346Z #14 0.564 copying k8s_inspector/runner.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8887896Z #14 0.564 copying k8s_inspector/feishu_app.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8888415Z #14 0.565 copying k8s_inspector/checks.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8909888Z #14 0.565 copying k8s_inspector/observation_state.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8910586Z #14 0.565 copying k8s_inspector/bridge_auth.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8911190Z #14 0.565 copying k8s_inspector/expected_targets.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8911754Z #14 0.565 copying k8s_inspector/__init__.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8912315Z #14 0.566 copying k8s_inspector/compatibility.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8913161Z #14 0.566 copying k8s_inspector/rule_evaluation.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8913753Z #14 0.566 copying k8s_inspector/rules_storage.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8914294Z #14 0.566 copying k8s_inspector/profiles.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8914826Z #14 0.566 copying k8s_inspector/bridge_admin.py -> build/lib/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8915260Z #14 0.567 running egg_info
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8915582Z #14 0.567 writing k8s_inspector.egg-info/PKG-INFO
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8916094Z #14 0.568 writing dependency_links to k8s_inspector.egg-info/dependency_links.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8916684Z #14 0.569 writing entry points to k8s_inspector.egg-info/entry_points.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8917230Z #14 0.569 writing requirements to k8s_inspector.egg-info/requires.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8917778Z #14 0.569 writing top-level names to k8s_inspector.egg-info/top_level.txt
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8918306Z #14 0.571 reading manifest file 'k8s_inspector.egg-info/SOURCES.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8918817Z #14 0.573 writing manifest file 'k8s_inspector.egg-info/SOURCES.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8919292Z #14 0.575 installing to build/bdist.linux-x86_64/wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8919663Z #14 0.575 running install
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8919948Z #14 0.578 running install_lib
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8920278Z #14 0.579 creating build/bdist.linux-x86_64/wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8920714Z #14 0.579 creating build/bdist.linux-x86_64/wheel/k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8921368Z #14 0.580 copying build/lib/k8s_inspector/collector.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8922211Z #14 0.580 copying build/lib/k8s_inspector/delivery_identity.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8923670Z #14 0.580 copying build/lib/k8s_inspector/delivery_worker.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8924562Z #14 0.580 copying build/lib/k8s_inspector/delivery_models.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8925402Z #14 0.580 copying build/lib/k8s_inspector/common.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8926295Z #14 0.581 copying build/lib/k8s_inspector/cli.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8927046Z #14 0.581 copying build/lib/k8s_inspector/sinks.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8927845Z #14 0.581 copying build/lib/k8s_inspector/rules_events.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8928627Z #14 0.581 copying build/lib/k8s_inspector/notify.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8929538Z #14 0.581 copying build/lib/k8s_inspector/delivery_adapter.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8930442Z #14 0.581 copying build/lib/k8s_inspector/observation_models.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8931278Z #14 0.582 copying build/lib/k8s_inspector/mcp_server.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8932083Z #14 0.582 copying build/lib/k8s_inspector/rules_pods.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8933054Z #14 0.582 copying build/lib/k8s_inspector/metrics.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8933862Z #14 0.582 copying build/lib/k8s_inspector/alert_routing.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8934626Z #14 0.582 copying build/lib/k8s_inspector/bridge_observability.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8936207Z #14 0.583 copying build/lib/k8s_inspector/models.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8937067Z #14 0.583 copying build/lib/k8s_inspector/alertmanager_bridge.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8937943Z #14 0.583 copying build/lib/k8s_inspector/rule_catalog.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8938739Z #14 0.583 copying build/lib/k8s_inspector/config.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8939549Z #14 0.583 copying build/lib/k8s_inspector/snapshot.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8940388Z #14 0.584 copying build/lib/k8s_inspector/provider_error.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8941170Z #14 0.584 copying build/lib/k8s_inspector/kube.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8941949Z #14 0.584 copying build/lib/k8s_inspector/state_store.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8942905Z #14 0.584 copying build/lib/k8s_inspector/rules_nodes.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8943751Z #14 0.584 copying build/lib/k8s_inspector/bridge_store.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8944532Z #14 0.584 copying build/lib/k8s_inspector/report.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8945323Z #14 0.585 copying build/lib/k8s_inspector/rules_control.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8946113Z #14 0.585 copying build/lib/k8s_inspector/runner.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8946881Z #14 0.585 copying build/lib/k8s_inspector/feishu_app.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8947658Z #14 0.585 copying build/lib/k8s_inspector/checks.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8948468Z #14 0.585 copying build/lib/k8s_inspector/observation_state.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8949468Z #14 0.586 copying build/lib/k8s_inspector/bridge_auth.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8950289Z #14 0.586 copying build/lib/k8s_inspector/expected_targets.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8951099Z #14 0.586 copying build/lib/k8s_inspector/__init__.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8952010Z #14 0.586 copying build/lib/k8s_inspector/compatibility.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8958635Z #14 0.586 copying build/lib/k8s_inspector/rule_evaluation.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8959525Z #14 0.587 copying build/lib/k8s_inspector/rules_storage.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8960356Z #14 0.587 copying build/lib/k8s_inspector/profiles.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8961175Z #14 0.587 copying build/lib/k8s_inspector/bridge_admin.py -> build/bdist.linux-x86_64/wheel/./k8s_inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8961743Z #14 0.587 running install_egg_info
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8962326Z #14 0.588 Copying k8s_inspector.egg-info to build/bdist.linux-x86_64/wheel/./k8s_inspector-0.1.0-py3.11.egg-info
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8963108Z #14 0.589 running install_scripts
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8963576Z #14 0.590 creating build/bdist.linux-x86_64/wheel/k8s_inspector-0.1.0.dist-info/WHEEL
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8964397Z #14 0.590 creating '/wheel/.tmp-5c__6w3z/k8s_inspector-0.1.0-py3-none-any.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8965093Z #14 0.591 adding 'k8s_inspector/__init__.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8965472Z #14 0.591 adding 'k8s_inspector/alert_routing.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8965880Z #14 0.592 adding 'k8s_inspector/alertmanager_bridge.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8966284Z #14 0.592 adding 'k8s_inspector/bridge_admin.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8966670Z #14 0.593 adding 'k8s_inspector/bridge_auth.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8967092Z #14 0.593 adding 'k8s_inspector/bridge_observability.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8967494Z #14 0.593 adding 'k8s_inspector/bridge_store.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8967874Z #14 0.594 adding 'k8s_inspector/checks.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8968220Z #14 0.594 adding 'k8s_inspector/cli.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8968566Z #14 0.595 adding 'k8s_inspector/collector.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8968924Z #14 0.595 adding 'k8s_inspector/common.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8969295Z #14 0.595 adding 'k8s_inspector/compatibility.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8969725Z #14 0.596 adding 'k8s_inspector/config.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8970113Z #14 0.596 adding 'k8s_inspector/delivery_adapter.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8970525Z #14 0.596 adding 'k8s_inspector/delivery_identity.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8970928Z #14 0.596 adding 'k8s_inspector/delivery_models.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8971337Z #14 0.596 adding 'k8s_inspector/delivery_worker.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8971751Z #14 0.597 adding 'k8s_inspector/expected_targets.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8972146Z #14 0.597 adding 'k8s_inspector/feishu_app.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8972644Z #14 0.597 adding 'k8s_inspector/kube.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8972979Z #14 0.598 adding 'k8s_inspector/mcp_server.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8973343Z #14 0.599 adding 'k8s_inspector/metrics.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8973694Z #14 0.599 adding 'k8s_inspector/models.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8974052Z #14 0.599 adding 'k8s_inspector/notify.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8974441Z #14 0.599 adding 'k8s_inspector/observation_models.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8974858Z #14 0.600 adding 'k8s_inspector/observation_state.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8975256Z #14 0.600 adding 'k8s_inspector/profiles.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8975627Z #14 0.600 adding 'k8s_inspector/provider_error.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8976003Z #14 0.600 adding 'k8s_inspector/report.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8976357Z #14 0.601 adding 'k8s_inspector/rule_catalog.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8976743Z #14 0.601 adding 'k8s_inspector/rule_evaluation.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8977318Z #14 0.601 adding 'k8s_inspector/rules_control.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8977701Z #14 0.601 adding 'k8s_inspector/rules_events.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8978077Z #14 0.602 adding 'k8s_inspector/rules_nodes.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8978456Z #14 0.602 adding 'k8s_inspector/rules_pods.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8978835Z #14 0.602 adding 'k8s_inspector/rules_storage.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8979202Z #14 0.602 adding 'k8s_inspector/runner.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8979709Z #14 0.603 adding 'k8s_inspector/sinks.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8980065Z #14 0.603 adding 'k8s_inspector/snapshot.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8980455Z #14 0.603 adding 'k8s_inspector/state_store.py'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8980864Z #14 0.604 adding 'k8s_inspector-0.1.0.dist-info/METADATA'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8981298Z #14 0.604 adding 'k8s_inspector-0.1.0.dist-info/WHEEL'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8981753Z #14 0.604 adding 'k8s_inspector-0.1.0.dist-info/entry_points.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8982235Z #14 0.604 adding 'k8s_inspector-0.1.0.dist-info/top_level.txt'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8982825Z #14 0.605 adding 'k8s_inspector-0.1.0.dist-info/RECORD'
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8983228Z #14 0.605 removing build/bdist.linux-x86_64/wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8983654Z #14 0.625 Successfully built k8s_inspector-0.1.0-py3-none-any.whl
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:35.8984027Z #14 DONE 0.7s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:36.0170039Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:36.0170595Z #15 [stage-1 4/5] COPY --from=builder /wheel /wheel
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:36.1768298Z #15 DONE 0.0s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:36.1768585Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:36.1769104Z #16 [stage-1 5/5] RUN python -m pip install --no-cache-dir -c /constraints/runtime.txt /wheel/*.whl && python -m pip check
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.0613855Z #16 1.035 Processing /wheel/k8s_inspector-0.1.0-py3-none-any.whl
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.1987261Z #16 1.121 Collecting kubernetes<38,>=29.0.0 (from k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.1988031Z #16 1.173   Downloading kubernetes-37.0.1-py2.py3-none-any.whl.metadata (1.9 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.3101453Z #16 1.212 Collecting PyYAML<7,>=6.0.1 (from k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.3102312Z #16 1.222   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.3103529Z #16 1.244 Collecting prometheus-client<1,>=0.20.0 (from k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.3104235Z #16 1.254   Downloading prometheus_client-0.26.0-py3-none-any.whl.metadata (2.1 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.3104877Z #16 1.284 Collecting lark-oapi==1.7.5 (from k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.4824631Z #16 1.296   Downloading lark_oapi-1.7.5-py3-none-any.whl.metadata (15 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.4825379Z #16 1.333 Collecting requests>=2.25 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.4826052Z #16 1.343   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.4826681Z #16 1.360 Collecting requests_toolbelt>=0.9 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.4827442Z #16 1.370   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.4828105Z #16 1.457 Collecting pycryptodome>=3.9 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.5979851Z #16 1.467   Downloading pycryptodome-4.0.1-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (5.8 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.5980793Z #16 1.572 Collecting websockets<16,>=11 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.7037030Z #16 1.583   Downloading websockets-15.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.8 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.7037771Z #16 1.629 Collecting httpx<1.0,>=0.24 (from lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.7038185Z #16 1.639   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.7038578Z #16 1.668 Collecting certifi>=2026.7.22 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.7038980Z #16 1.678   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.8329597Z #16 1.696 Collecting python-dateutil>=2.8.2 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.8330486Z #16 1.707   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.8331222Z #16 1.807 Collecting pydantic>=2.13.5 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.9336061Z #16 1.817   Downloading pydantic-2.14.1-py3-none-any.whl.metadata (133 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.9337417Z #16 1.836      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.0/133.0 kB 7.6 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.9338184Z #16 1.870 Collecting websocket-client!=0.40.0,!=0.41.*,!=0.42.*,>=0.32.0 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.9339008Z #16 1.880   Downloading websocket_client-1.9.2-py3-none-any.whl.metadata (8.3 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.9339714Z #16 1.898 Collecting requests-oauthlib (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:37.9340438Z #16 1.908   Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl.metadata (11 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.1834001Z #16 1.930 Collecting typing-extensions>=4.16.0 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.1835223Z #16 1.940   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.1835694Z #16 1.972 Collecting urllib3<3.0.0,>=2.8.0 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.1836131Z #16 1.983   Downloading urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.1836557Z #16 1.997 Collecting durationpy>=0.11 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.1836960Z #16 2.007   Downloading durationpy-0.11-py3-none-any.whl.metadata (474 bytes)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.4657906Z #16 2.440 Collecting aiohttp<4.0.0,>=3.14.3 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.6039520Z #16 2.450   Downloading aiohttp-3.14.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.6040842Z #16 2.469 Collecting aiohttp-retry>=2.9.1 (from kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.6041764Z #16 2.479   Downloading aiohttp_retry-2.9.1-py3-none-any.whl.metadata (8.8 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.6042872Z #16 2.512 Collecting aiohappyeyeballs>=2.5.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.6043757Z #16 2.522   Downloading aiohappyeyeballs-2.7.1-py3-none-any.whl.metadata (5.9 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.6044406Z #16 2.578 Collecting aiosignal>=1.4.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.7121890Z #16 2.588   Downloading aiosignal-1.4.0-py3-none-any.whl.metadata (3.7 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.7122624Z #16 2.609 Collecting attrs>=17.3.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.7123310Z #16 2.619   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.7123969Z #16 2.676 Collecting frozenlist>=1.1.1 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.7124572Z #16 2.686   Downloading frozenlist-1.8.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (20 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:38.9228957Z #16 2.897 Collecting multidict<8.0,>=4.5 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.1550969Z #16 2.907   Downloading multidict-7.1.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (6.2 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.1552096Z #16 2.968 Collecting propcache>=0.2.0 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.1553356Z #16 2.979   Downloading propcache-0.5.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (25 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.2719237Z #16 3.246 Collecting yarl<2.0,>=1.25.1 (from aiohttp<4.0.0,>=3.14.3->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3878099Z #16 3.256   Downloading yarl-1.25.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (111 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3879467Z #16 3.259      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 111.6/111.6 kB 70.8 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3880255Z #16 3.298 Collecting anyio (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3881309Z #16 3.308   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3882048Z #16 3.331 Collecting httpcore==1.* (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3882848Z #16 3.342   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.3883371Z #16 3.362 Collecting idna (from httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.6125429Z #16 3.373   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.6125979Z #16 3.393 Collecting h11>=0.16 (from httpcore==1.*->httpx<1.0,>=0.24->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.6126448Z #16 3.403   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.6126892Z #16 3.425 Collecting annotated-types>=0.6.0 (from pydantic>=2.13.5->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:39.6127353Z #16 3.436   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.1666178Z #16 4.141 Collecting pydantic-core==2.50.1 (from pydantic>=2.13.5->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.3477267Z #16 4.151   Downloading pydantic_core-2.50.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.5 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.3477962Z #16 4.167 Collecting typing-inspection>=0.4.4 (from pydantic>=2.13.5->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.3478472Z #16 4.177   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.3478967Z #16 4.199 Collecting six>=1.5 (from python-dateutil>=2.8.2->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.3479407Z #16 4.209   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.3479847Z #16 4.322 Collecting charset_normalizer<4,>=2 (from requests>=2.25->lark-oapi==1.7.5->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.5296295Z #16 4.332   Downloading charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (46 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.5297630Z #16 4.334      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.4/46.4 kB 344.8 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.5298409Z #16 4.390 Collecting oauthlib>=3.0.0 (from requests-oauthlib->kubernetes<38,>=29.0.0->k8s-inspector==0.1.0)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.5298882Z #16 4.400   Downloading oauthlib-4.0.0-py3-none-any.whl.metadata (8.6 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.5299232Z #16 4.504 Downloading lark_oapi-1.7.5-py3-none-any.whl (7.7 MB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.6386737Z #16 4.575    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.7/7.7 MB 110.9 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.6387387Z #16 4.588 Downloading kubernetes-37.0.1-py2.py3-none-any.whl (7.5 MB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7436067Z #16 4.613    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.5/7.5 MB 322.5 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7436539Z #16 4.623 Downloading prometheus_client-0.26.0-py3-none-any.whl (64 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7436990Z #16 4.624    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.5/64.5 kB 360.2 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7438193Z #16 4.635 Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7438885Z #16 4.638    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 448.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7439391Z #16 4.648 Downloading aiohttp-3.14.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (1.9 MB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7440664Z #16 4.654    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.9/1.9 MB 448.5 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7441168Z #16 4.664 Downloading aiohttp_retry-2.9.1-py3-none-any.whl (10.0 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7441506Z #16 4.674 Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7442818Z #16 4.675    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 137.0/137.0 kB 454.7 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7443270Z #16 4.685 Downloading durationpy-0.11-py3-none-any.whl (4.1 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7444052Z #16 4.695 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7444437Z #16 4.696    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 414.6 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7444757Z #16 4.706 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7445984Z #16 4.708    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 358.8 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.7446417Z #16 4.718 Downloading pycryptodome-4.0.1-cp39-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.5 MB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8459637Z #16 4.724    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.5/2.5 MB 458.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8460120Z #16 4.735 Downloading pydantic-2.14.1-py3-none-any.whl (488 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8460553Z #16 4.737    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 488.1/488.1 kB 471.0 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8461017Z #16 4.747 Downloading pydantic_core-2.50.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.2 MB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8461611Z #16 4.753    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 408.6 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8462054Z #16 4.763 Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8462836Z #16 4.765    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 462.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8463247Z #16 4.775 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8463631Z #16 4.776    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.1/73.1 kB 414.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8463978Z #16 4.786 Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8464399Z #16 4.787    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.5/54.5 kB 410.5 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8464733Z #16 4.797 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8465136Z #16 4.799    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 362.5 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8465675Z #16 4.809 Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8466059Z #16 4.810    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.7/135.7 kB 455.5 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.8466398Z #16 4.820 Downloading websocket_client-1.9.2-py3-none-any.whl (95 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9554573Z #16 4.822    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 95.8/95.8 kB 442.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9555336Z #16 4.832 Downloading websockets-15.0.1-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (182 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9556359Z #16 4.833    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 182.3/182.3 kB 469.8 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9556834Z #16 4.843 Downloading requests_oauthlib-2.0.0-py2.py3-none-any.whl (24 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9557266Z #16 4.853 Downloading aiohappyeyeballs-2.7.1-py3-none-any.whl (15 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9557659Z #16 4.863 Downloading aiosignal-1.4.0-py3-none-any.whl (7.5 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9558015Z #16 4.873 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9558430Z #16 4.883 Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9558857Z #16 4.884    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 67.5/67.5 kB 401.1 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9559433Z #16 4.895 Downloading charset_normalizer-3.5.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (269 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9560151Z #16 4.897    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 270.0/270.0 kB 441.6 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9560754Z #16 4.907 Downloading frozenlist-1.8.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (231 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9561295Z #16 4.908    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 231.1/231.1 kB 475.6 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9561604Z #16 4.918 Downloading idna-3.20-py3-none-any.whl (69 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9561976Z #16 4.920    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 369.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:40.9562652Z #16 4.930 Downloading multidict-7.1.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (480 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1833843Z #16 4.932    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 480.4/480.4 kB 465.5 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1834347Z #16 4.942 Downloading oauthlib-4.0.0-py3-none-any.whl (159 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1834776Z #16 4.943    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 159.7/159.7 kB 468.4 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1835290Z #16 4.953 Downloading propcache-0.5.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (235 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1835885Z #16 4.955    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 235.4/235.4 kB 470.3 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1836229Z #16 4.965 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1836591Z #16 4.975 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1837070Z #16 4.984 Downloading yarl-1.25.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (117 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1837616Z #16 4.986    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 117.7/117.7 kB 387.9 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1837948Z #16 4.996 Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1838336Z #16 4.997    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 132.1/132.1 kB 451.1 MB/s eta 0:00:00
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.1838646Z #16 5.007 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:41.2468930Z #16 5.221 Installing collected packages: durationpy, websockets, websocket-client, urllib3, typing-extensions, six, PyYAML, pycryptodome, propcache, prometheus-client, oauthlib, multidict, idna, h11, frozenlist, charset_normalizer, certifi, attrs, annotated-types, aiohappyeyeballs, yarl, typing-inspection, requests, python-dateutil, pydantic-core, httpcore, anyio, aiosignal, requests_toolbelt, requests-oauthlib, pydantic, httpx, aiohttp, lark-oapi, aiohttp-retry, kubernetes, k8s-inspector
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:53.1645041Z #16 17.14 Successfully installed PyYAML-6.0.3 aiohappyeyeballs-2.7.1 aiohttp-3.14.5 aiohttp-retry-2.9.1 aiosignal-1.4.0 annotated-types-0.8.0 anyio-4.15.1 attrs-26.1.0 certifi-2026.7.22 charset_normalizer-3.5.2 durationpy-0.11 frozenlist-1.8.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 k8s-inspector-0.1.0 kubernetes-37.0.1 lark-oapi-1.7.5 multidict-7.1.0 oauthlib-4.0.0 prometheus-client-0.26.0 propcache-0.5.4 pycryptodome-4.0.1 pydantic-2.14.1 pydantic-core-2.50.1 python-dateutil-2.9.0.post0 requests-2.34.2 requests-oauthlib-2.0.0 requests_toolbelt-1.0.0 six-1.17.0 typing-extensions-4.16.0 typing-inspection-0.4.4 urllib3-2.8.0 websocket-client-1.9.2 websockets-15.0.1 yarl-1.25.1
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:53.3816128Z #16 17.14 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:53.3819686Z #16 17.21 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:53.3820014Z #16 17.21 [notice] A new release of pip is available: 24.0 -> 26.2.1
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:53.3820463Z #16 17.21 [notice] To update, run: pip install --upgrade pip
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:55.2149134Z #16 19.19 No broken requirements found.
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:57.1211410Z #16 DONE 21.1s
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:57.2725439Z 
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:57.2726051Z #17 exporting to image
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:56:57.2726408Z #17 exporting layers
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:57:00.1129230Z #17 exporting layers 3.0s done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:57:00.1301703Z #17 writing image sha256:15f5bee8ef73b348901c61a0854a7df161be35c2d6dcc267de1de3bca28077e9 done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:57:00.1302378Z #17 naming to docker.io/library/k8s-inspector:ci done
+container	Run docker build -t k8s-inspector:ci .	2026-10-18T08:57:00.1302912Z #17 DONE 3.0s
+container	Real CLI and Bridge container smoke	﻿2026-10-18T08:57:00.1380184Z ##[group]Run python -m pytest tests/test_release_artifacts.py -k image_cli -v
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1380652Z ^[[36;1mpython -m pytest tests/test_release_artifacts.py -k image_cli -v^[[0m
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1437432Z shell: /usr/bin/bash -e {0}
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1437655Z env:
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1437885Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1438238Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1438569Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1438861Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1439146Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1439438Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1439708Z   INSPECTOR_TEST_IMAGE: k8s-inspector:ci
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.1439919Z ##[endgroup]
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.4960986Z ============================= test session starts ==============================
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.4961877Z platform linux -- Python 3.11.17, pytest-9.1.1, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.11.17/x64/bin/python
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.4962745Z cachedir: .pytest_cache
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.4963123Z rootdir: /home/runner/work/K-Inspection/K-Inspection
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.4963542Z configfile: pyproject.toml
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.4963852Z plugins: anyio-4.15.1
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.5136132Z collecting ... collected 4 items / 2 deselected / 2 selected
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:00.5136521Z 
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:01.1730324Z tests/test_release_artifacts.py::test_image_cli_and_bridge_entrypoints[k8s_inspector.cli] PASSED [ 50%]
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:01.6628818Z tests/test_release_artifacts.py::test_image_cli_and_bridge_entrypoints[k8s_inspector.alertmanager_bridge] PASSED [100%]
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:01.6629497Z 
+container	Real CLI and Bridge container smoke	2026-10-18T08:57:01.6629714Z ======================= 2 passed, 2 deselected in 1.16s ========================
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	﻿2026-10-18T08:57:01.6904659Z ##[group]Run docker image inspect k8s-inspector:ci > image-metadata.json
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6905099Z ^[[36;1mdocker image inspect k8s-inspector:ci > image-metadata.json^[[0m
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6961154Z shell: /usr/bin/bash -e {0}
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6961367Z env:
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6961743Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6962096Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6962565Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6962876Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6963164Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6963468Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+container	Run docker image inspect k8s-inspector:ci > image-metadata.json	2026-10-18T08:57:01.6963725Z ##[endgroup]
+container	Run actions/upload-artifact@v4	﻿2026-10-18T08:57:01.7193318Z ##[group]Run actions/upload-artifact@v4
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7193558Z with:
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7193723Z   name: image-metadata
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7193913Z   path: image-metadata.json
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7194115Z   if-no-files-found: warn
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7194303Z   compression-level: 6
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7194487Z   overwrite: false
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7194664Z   include-hidden-files: false
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7194862Z env:
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7195060Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7195396Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7195722Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7196009Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7196303Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7196601Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.7196858Z ##[endgroup]
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.8600445Z (node:2652) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.8601452Z (Use `node --trace-deprecation ...` to show where the warning was created)
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.8698106Z With the provided path, there will be 1 file uploaded
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.8699036Z Artifact name is valid!
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:01.8699358Z Root directory input is valid!
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.2275802Z Beginning upload of artifact content to blob storage
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.2410250Z (node:2652) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.4414292Z Uploaded bytes 1549
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.4983762Z Finished uploading artifact content to blob storage!
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.4984523Z SHA256 digest of uploaded artifact zip is c9510a3947afecbe420fcdeaeea65f5866761bdeec76eb6f648ea0e08e8da97e
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.4985759Z Finalizing artifact upload
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.7141559Z Artifact image-metadata.zip successfully finalized. Artifact ID 12131451856
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.7142612Z Artifact image-metadata has been successfully uploaded! Final size is 1549 bytes. Artifact ID is 12131451856
+container	Run actions/upload-artifact@v4	2026-10-18T08:57:02.7147593Z Artifact download URL: https://github.com/NotYourBug/K-Inspection/actions/runs/39113353394/artifacts/12131451856
+container	Post Run actions/setup-python@v5	﻿2026-10-18T08:57:02.7299797Z Post job cleanup.
+container	Post Run actions/setup-python@v5	2026-10-18T08:57:02.8223208Z (node:2664) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+container	Post Run actions/setup-python@v5	2026-10-18T08:57:02.8223828Z (Use `node --trace-deprecation ...` to show where the warning was created)
+container	Post Run actions/checkout@v4	﻿2026-10-18T08:57:02.8356330Z Post job cleanup.
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9039717Z [command]/usr/bin/git version
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9075986Z git version 2.55.0
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9104213Z Temporarily overriding HOME='/home/runner/work/_temp/f614f398-7a1f-40bc-9552-033a99e2e7c0' before making global git config changes
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9105205Z Adding repository directory to the temporary git global config as a safe directory
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9109746Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/K-Inspection/K-Inspection
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9141956Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9172089Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9380709Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9404835Z http.https://github.com/.extraheader
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9413630Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9447079Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9667428Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+container	Post Run actions/checkout@v4	2026-10-18T08:57:02.9719073Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+container	Complete job	﻿2026-10-18T08:57:03.0039068Z Cleaning up orphan processes
+container	Complete job	2026-10-18T08:57:03.0304282Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

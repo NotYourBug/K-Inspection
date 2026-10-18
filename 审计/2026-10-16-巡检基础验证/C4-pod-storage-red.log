@@ -1,0 +1,44 @@
+....FFFF                                                                 [100%]
+================================== FAILURES ===================================
+____________________ test_historical_oom_is_separate_rule _____________________
+
+    def test_historical_oom_is_separate_rule():
+        from tests.factories import pod, container_status
+>       from k8s_inspector.rules_pods import evaluate_pods
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_pods'
+
+tests\test_rule_observations.py:63: ModuleNotFoundError
+_______________ test_pod_grace_does_not_prove_healthy_recovery ________________
+
+    def test_pod_grace_does_not_prove_healthy_recovery():
+        from tests.factories import pod, NOW as pod_now
+        from dataclasses import replace
+>       from k8s_inspector.rules_pods import evaluate_pods
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_pods'
+
+tests\test_rule_observations.py:75: ModuleNotFoundError
+______ test_storage_delayed_binding_and_lost_survive_association_failure ______
+
+    def test_storage_delayed_binding_and_lost_survive_association_failure():
+        from tests.factories import pvc, storage_class
+>       from k8s_inspector.rules_storage import evaluate_storage
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_storage'
+
+tests\test_rule_observations.py:83: ModuleNotFoundError
+_______ test_scheduled_consumer_uses_transition_grace_and_unknown_time ________
+
+    def test_scheduled_consumer_uses_transition_grace_and_unknown_time():
+        from datetime import timedelta
+        from dataclasses import replace
+        from kubernetes import client
+        from tests.factories import pvc, pod, storage_class
+>       from k8s_inspector.rules_storage import evaluate_storage
+E       ModuleNotFoundError: No module named 'k8s_inspector.rules_storage'
+
+tests\test_rule_observations.py:99: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_rule_observations.py::test_historical_oom_is_separate_rule
+FAILED tests/test_rule_observations.py::test_pod_grace_does_not_prove_healthy_recovery
+FAILED tests/test_rule_observations.py::test_storage_delayed_binding_and_lost_survive_association_failure
+FAILED tests/test_rule_observations.py::test_scheduled_consumer_uses_transition_grace_and_unknown_time
+4 failed, 4 passed in 4.69s

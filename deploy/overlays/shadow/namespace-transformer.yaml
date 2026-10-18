@@ -1,0 +1,28 @@
+apiVersion: builtin
+kind: NamespaceTransformer
+metadata:
+  name: shadow-namespace
+  namespace: k8s-inspector-shadow
+setRoleBindingSubjects: allServiceAccounts
+fieldSpecs:
+- kind: ServiceAccount
+  path: metadata/namespace
+  create: true
+- kind: ConfigMap
+  path: metadata/namespace
+  create: true
+- kind: PersistentVolumeClaim
+  path: metadata/namespace
+  create: true
+- kind: CronJob
+  path: metadata/namespace
+  create: true
+- kind: Deployment
+  path: metadata/namespace
+  create: true
+- kind: Service
+  path: metadata/namespace
+  create: true
+- kind: NetworkPolicy
+  path: metadata/namespace
+  create: true

@@ -1,0 +1,1643 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-inspector-shadow
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-inspector
+  namespace: k8s-inspector-shadow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: shadow-k8s-inspector-addon-observer
+  namespace: kube-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: shadow-k8s-inspector
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - pods
+  - events
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+- nonResourceURLs:
+  - /healthz
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: shadow-k8s-inspector-addon-observer
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: shadow-k8s-inspector-addon-observer
+subjects:
+- kind: ServiceAccount
+  name: k8s-inspector
+  namespace: k8s-inspector-shadow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: shadow-k8s-inspector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: shadow-k8s-inspector
+subjects:
+- kind: ServiceAccount
+  name: k8s-inspector
+  namespace: k8s-inspector-shadow
+---
+apiVersion: v1
+data:
+  alertmanager.yml: |
+    route:
+      receiver: feishu-bridge
+      group_by:
+      - cluster
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 2h
+      routes:
+      - matchers:
+        - shadow="true"
+        receiver: shadow-null
+    inhibit_rules:
+    - source_matchers:
+      - alertname="K8sInspectorStale"
+      target_matchers:
+      - alertname=~"K8sInspectorHasFail|K8sInspectorHasWarn|K8sInspectorCheckFail|K8sInspectorPendingPVC"
+      equal:
+      - cluster
+      - profile
+    receivers:
+    - name: feishu-bridge
+      webhook_configs:
+      - url: http://k8s-inspector-alert-bridge:8000/alert
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /etc/bridge-auth/token
+    - name: shadow-null
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-alertmanager-config
+  namespace: k8s-inspector-shadow
+---
+apiVersion: v1
+data:
+  expected-targets.yaml: |
+    targets:
+    - cluster_id: example-cluster
+      profile: 10m
+      max_run_age_seconds: 1800
+      rule_ids:
+      - control.api
+      - control.components
+    - cluster_id: example-cluster
+      profile: 5m
+      max_run_age_seconds: 900
+      rule_ids:
+      - nodes.ready
+      - pods.current
+      - pvc.binding
+    - cluster_id: example-cluster
+      profile: daily
+      max_run_age_seconds: 129600
+      rule_ids:
+      - nodes.ready
+      - pods.current
+      - pvc.binding
+      - control.api
+      - control.components
+      - nodes.utilization
+      - nodes.pressure
+      - pods.history
+      - events.warning
+      - addons.ready
+    - cluster_id: example-cluster
+      profile: hourly
+      max_run_age_seconds: 7200
+      rule_ids:
+      - nodes.ready
+      - pods.current
+      - pvc.binding
+      - control.api
+      - control.components
+      - nodes.utilization
+      - nodes.pressure
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-expected-targets
+  namespace: k8s-inspector-shadow
+---
+apiVersion: v1
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    rule_files:
+    - /etc/prometheus/rules/*.yaml
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          - alertmanager:9093
+    scrape_configs:
+    - job_name: prometheus
+      static_configs:
+      - targets:
+        - 127.0.0.1:9090
+    - job_name: pushgateway
+      honor_labels: true
+      static_configs:
+      - targets:
+        - pushgateway:9091
+    - job_name: inspector-inventory
+      static_configs:
+      - targets:
+        - k8s-inspector-inventory:9400
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-prometheus-config
+  namespace: k8s-inspector-shadow
+---
+apiVersion: v1
+data:
+  inspection-v2-shadow.yaml: |
+    groups:
+    - name: k8s-inspector-v2
+      rules:
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="5m",rule_id="nodes.ready",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="5m",rule_id="nodes.ready",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: critical
+          rule_id: nodes.ready
+          profile: 5m
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: nodes.ready'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="5m",rule_id="pods.current",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="5m",rule_id="pods.current",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: critical
+          rule_id: pods.current
+          profile: 5m
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: pods.current'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="5m",rule_id="pvc.binding",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="5m",rule_id="pvc.binding",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: critical
+          rule_id: pvc.binding
+          profile: 5m
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: pvc.binding'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="10m",rule_id="control.api",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="10m",rule_id="control.api",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: critical
+          rule_id: control.api
+          profile: 10m
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: control.api'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="10m",rule_id="control.components",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="10m",rule_id="control.components",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: critical
+          rule_id: control.components
+          profile: 10m
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: control.components'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="hourly",rule_id="nodes.utilization",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="hourly",rule_id="nodes.utilization",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: warning
+          rule_id: nodes.utilization
+          profile: hourly
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: nodes.utilization'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="hourly",rule_id="nodes.pressure",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="hourly",rule_id="nodes.pressure",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: warning
+          rule_id: nodes.pressure
+          profile: hourly
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: nodes.pressure'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="daily",rule_id="pods.history",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="daily",rule_id="pods.history",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: warning
+          rule_id: pods.history
+          profile: daily
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: pods.history'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="daily",rule_id="events.warning",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="daily",rule_id="events.warning",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: warning
+          rule_id: events.warning
+          profile: daily
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: events.warning'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorBusinessFailure
+        expr: max by (cluster, profile, rule_id, scope) ((last_over_time(inspector_last_valid_failures{profile="daily",rule_id="addons.ready",scope="cluster"}[30d])
+          > 0) or (last_over_time(inspector_confirmed_failures{profile="daily",rule_id="addons.ready",scope="cluster"}[30d])
+          > 0))
+        for: 1m
+        labels:
+          shadow: 'true'
+          category: business
+          severity: warning
+          rule_id: addons.ready
+          profile: daily
+          scope: cluster
+        annotations:
+          summary: 'Inspection finding: addons.ready'
+          description: Last valid unhealthy observation; verify recovery using fresh evidence.
+      - alert: K8sInspectorTargetNeverRan
+        expr: inspector_expected_target unless on (cluster, profile) count_over_time(inspector_last_run_timestamp_seconds[30d])
+        for: 5m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Expected inspection target has never run
+          description: Expected inventory has no run history for this target.
+      - alert: K8sInspectorTelemetryMissing
+        expr: (inspector_expected_target unless on (cluster, profile) inspector_last_run_timestamp_seconds)
+          and on (cluster, profile) count_over_time(inspector_last_run_timestamp_seconds[30d])
+        for: 5m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Inspection telemetry missing
+          description: Target ran before but its current telemetry is absent.
+      - alert: K8sInspectorRunStale
+        expr: (time() - max by (cluster, profile) (inspector_last_run_timestamp_seconds))
+          > on (cluster, profile) inspector_expected_max_run_age_seconds
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Inspection run is stale
+          description: Run completion time exceeded the expected target budget.
+      - alert: K8sInspectorExpectedObservationMissing
+        expr: inspector_expected_rule unless on (cluster, profile, rule_id, scope) inspector_rule_observation_valid
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Expected rule observation missing
+          description: Expected rule has no current quality sample.
+      - alert: K8sInspectorObservationInvalid
+        expr: max by (cluster, profile, rule_id, scope) (inspector_rule_observation_valid
+          == 0) and on (cluster, profile, rule_id, scope) inspector_expected_rule
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Current observation is unknown
+          description: Incomplete or invalid collection cannot prove recovery.
+      - alert: K8sInspectorObservationStale
+        expr: ((time() - max by (cluster, profile, rule_id, scope) (inspector_last_valid_observation_timestamp_seconds))
+          > on (cluster, profile) group_left inspector_expected_max_run_age_seconds) and
+          on (cluster, profile, rule_id, scope) inspector_expected_rule
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Last valid observation is stale
+          description: Stale evidence does not verify business recovery.
+      - alert: K8sInspectorRunFailed
+        expr: max by (cluster, profile) (inspector_run_success == 0) and on (cluster,
+          profile) inspector_expected_target
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Inspection execution or required output failed
+          description: Check collection quality and sink results in the run manifest.
+      - alert: K8sInspectorSinkFailed
+        expr: max by (cluster, profile, sink) (inspector_sink_success == 0) and on (cluster,
+          profile) inspector_expected_target
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Inspection output failed
+          description: A completed sink attempt failed; inspect local manifests and logs.
+      - alert: K8sInspectorInventoryUnavailable
+        expr: max by (job) (up{job="inspector-inventory"} == 0) or absent(up{job="inspector-inventory"})
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Expected target inventory unavailable
+          description: Restore independent inventory; missing-target detection requires
+            it.
+      - alert: K8sInspectorPushgatewayUnavailable
+        expr: max by (job) (up{job="pushgateway"} == 0) or absent(up{job="pushgateway"})
+        for: 2m
+        labels:
+          shadow: 'true'
+          severity: critical
+          category: quality
+        annotations:
+          summary: Inspection Pushgateway unavailable
+          description: Restore the telemetry path; absent metrics do not prove recovery.
+  k8s-inspector-rules.yaml: |
+    groups:
+      - name: k8s-inspector
+        rules:
+          - alert: K8sInspectorStale
+            expr: |
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"})
+              ) > 900
+              or
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"})
+              ) > 1800
+              or
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"})
+              ) > 7200
+              or
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"})
+              ) > 129600
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "巡检任务未按预期运行（stale）"
+              description: "k8s-inspector 在对应 profile 的 last_run 超过阈值未更新"
+
+          - alert: K8sInspectorHasFail
+            expr: |
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile="5m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile="10m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile="hourly"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="fail",profile=~"daily|full"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "巡检发现 FAIL"
+              description: "k8s-inspector report_summary{status=fail} > 0"
+
+          - alert: K8sInspectorHasWarn
+            expr: |
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile="5m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile="10m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile="hourly"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_report_summary{status="warn",profile=~"daily|full"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "巡检发现 WARN"
+              description: "k8s-inspector report_summary{status=warn} > 0"
+
+          - alert: K8sInspectorCheckFail
+            expr: |
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile="5m"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile="10m"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile="hourly"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile, check) (k8s_inspector_check_status{profile=~"daily|full"}) == 2
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "检查项 FAIL"
+              description: "check={{ $labels.check }} 返回 FAIL（2）"
+
+          - alert: K8sInspectorPendingPVC
+            expr: |
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile="5m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="5m"}) < 900
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile="10m"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="10m"}) < 1800
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile="hourly"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile="hourly"}) < 7200
+              )
+              or
+              (
+                max by (cluster, profile) (k8s_inspector_check_issue_count{check="pvcs",issue="pending",profile=~"daily|full"}) > 0
+              )
+              and on (cluster, profile)
+              (
+                time() - max by (cluster, profile) (k8s_inspector_last_run_timestamp{profile=~"daily|full"}) < 129600
+              )
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "存在 Pending PVC"
+              description: "pending pvc > 0"
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-prometheus-rules
+  namespace: k8s-inspector-shadow
+---
+apiVersion: v1
+data:
+  INSPECTOR_CLUSTER: example-cluster
+  INSPECTOR_EXIT_MODE: always0
+  PUSHGATEWAY_JOB: k8s-inspector-shadow
+  PUSHGATEWAY_URL: http://pushgateway:9091
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-runtime-597bh8b2gc
+  namespace: k8s-inspector-shadow
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: k8s-inspector-shadow
+spec:
+  ports:
+  - name: http
+    port: 9093
+    targetPort: http
+  selector:
+    app: alertmanager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: k8s-inspector-shadow
+spec:
+  ports:
+  - name: http
+    port: 8000
+    targetPort: http
+  selector:
+    app: k8s-inspector-alert-bridge
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-inspector-inventory
+  namespace: k8s-inspector-shadow
+spec:
+  ports:
+  - port: 9400
+    targetPort: 9400
+  selector:
+    app: k8s-inspector-inventory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: k8s-inspector-shadow
+spec:
+  ports:
+  - name: http
+    port: 9090
+    targetPort: http
+  selector:
+    app: prometheus
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pushgateway
+  namespace: k8s-inspector-shadow
+spec:
+  ports:
+  - name: http
+    port: 9091
+    targetPort: http
+  selector:
+    app: pushgateway
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: monitoring
+  name: k8s-inspector-alertmanager-data
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: replace-with-report-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-bridge-state
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: report
+  name: k8s-inspector-out
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: replace-with-report-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: monitoring
+  name: k8s-inspector-prometheus-data
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: replace-with-report-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-10m
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-5m
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-daily
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-hourly
+  namespace: k8s-inspector-shadow
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: k8s-inspector-shadow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --config.file=/etc/alertmanager/alertmanager.yml
+        - --storage.path=/alertmanager
+        image: prom/alertmanager:v0.27.0
+        name: alertmanager
+        ports:
+        - containerPort: 9093
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/bridge-auth
+          name: bridge-auth
+          readOnly: true
+        - mountPath: /etc/alertmanager/alertmanager.yml
+          name: config
+          subPath: alertmanager.yml
+        - mountPath: /alertmanager
+          name: data
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+      volumes:
+      - name: bridge-auth
+        secret:
+          defaultMode: 288
+          secretName: inspector-shadow-bridge-auth
+      - configMap:
+          name: k8s-inspector-alertmanager-config
+        name: config
+      - name: data
+        persistentVolumeClaim:
+          claimName: k8s-inspector-alertmanager-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: k8s-inspector-shadow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-inspector-alert-bridge
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: k8s-inspector-alert-bridge
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - command:
+        - python
+        - -m
+        - k8s_inspector.alertmanager_bridge
+        env:
+        - name: FEISHU_MODE
+          value: app
+        - name: FEISHU_CHAT_POLICY
+          value: fixed
+        - name: FEISHU_CHAT_ID
+          valueFrom:
+            secretKeyRef:
+              key: fixed_chat_id
+              name: k8s-inspector-shadow-feishu
+        - name: FEISHU_WEBHOOK
+          valueFrom:
+            secretKeyRef:
+              key: feishu_webhook
+              name: k8s-inspector-shadow-feishu
+              optional: true
+        - name: FEISHU_APP_ID
+          valueFrom:
+            secretKeyRef:
+              key: app_id
+              name: k8s-inspector-shadow-feishu
+        - name: FEISHU_APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: app_secret
+              name: k8s-inspector-shadow-feishu
+        - name: INSPECTOR_REPORT_DIR
+          value: /data/shadow
+        - name: INSPECTOR_REPORT_MAX_RESULTS
+          value: "5"
+        - name: INSPECTOR_REPORT_MAX_ITEMS
+          value: "3"
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        - name: HOME
+          value: /tmp
+        - name: BRIDGE_DELIVERY_MODE
+          value: async
+        - name: BRIDGE_STATE_DB
+          value: /var/lib/inspector/bridge.db
+        - name: BRIDGE_SOURCES_FILE
+          value: /etc/bridge-auth/sources.json
+        image: your-registry/k8s-inspector:0.1.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          initialDelaySeconds: 10
+        name: bridge
+        ports:
+        - containerPort: 8000
+          name: http
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 2
+        volumeMounts:
+        - mountPath: /data/shadow
+          name: out
+          readOnly: true
+        - mountPath: /var/lib/inspector
+          name: bridge-state
+        - mountPath: /etc/bridge-auth
+          name: bridge-auth
+          readOnly: true
+        - mountPath: /data/out
+          name: out
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      restartPolicy: Always
+      securityContext:
+        fsGroup: 10001
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: bridge-auth
+        secret:
+          defaultMode: 288
+          secretName: inspector-shadow-bridge-auth
+      - name: bridge-state
+        persistentVolumeClaim:
+          claimName: k8s-inspector-bridge-state
+      - name: out
+        persistentVolumeClaim:
+          claimName: k8s-inspector-out
+      - emptyDir:
+          sizeLimit: 16Mi
+        name: tmp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-inspector-inventory
+  namespace: k8s-inspector-shadow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-inspector-inventory
+  template:
+    metadata:
+      annotations:
+        inspector/config-sha256: 45ad879d5ccc0f5d841a3e994ccdb130ce45d105bc3c550549b4b851f7a62210
+      labels:
+        app: k8s-inspector-inventory
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --config
+        - /etc/inventory/expected-targets.yaml
+        command:
+        - python
+        - -m
+        - k8s_inspector.expected_targets
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        image: your-registry/k8s-inspector:0.1.0
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 9400
+        name: inventory
+        ports:
+        - containerPort: 9400
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9400
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/inventory
+          name: inventory
+          readOnly: true
+      securityContext:
+        runAsGroup: 10001
+        runAsNonRoot: true
+        runAsUser: 10001
+      volumes:
+      - configMap:
+          name: k8s-inspector-expected-targets
+        name: inventory
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: k8s-inspector-shadow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention.time=45d
+        image: prom/prometheus:v2.53.0
+        name: prometheus
+        ports:
+        - containerPort: 9090
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - mountPath: /etc/prometheus/prometheus.yml
+          name: config
+          subPath: prometheus.yml
+        - mountPath: /etc/prometheus/rules
+          name: rules
+        - mountPath: /prometheus
+          name: data
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+      volumes:
+      - configMap:
+          name: k8s-inspector-prometheus-config
+        name: config
+      - configMap:
+          name: k8s-inspector-prometheus-rules
+        name: rules
+      - name: data
+        persistentVolumeClaim:
+          claimName: k8s-inspector-prometheus-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pushgateway
+  namespace: k8s-inspector-shadow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pushgateway
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pushgateway
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - args:
+        - --web.listen-address=:9091
+        image: prom/pushgateway:v1.8.0
+        name: pushgateway
+        ports:
+        - containerPort: 9091
+          name: http
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+      securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-cleanup
+  namespace: k8s-inspector-shadow
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 930
+      backoffLimit: 0
+      template:
+        spec:
+          automountServiceAccountToken: false
+          containers:
+          - args:
+            - cleanup
+            - --root
+            - /data/shadow/archive
+            - --hourly-days
+            - "7"
+            - --daily-days
+            - "30"
+            - --dry-run
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: cleanup
+            resources:
+              limits:
+                cpu: 200m
+                memory: 256Mi
+              requests:
+                cpu: 10m
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/shadow
+              name: out
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: 30 3 * * *
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-controlplane-10m
+  namespace: k8s-inspector-shadow
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 510
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - 10m
+            - --formats
+            - json
+            - --output-dir
+            - /data/shadow
+            - --persist-level
+            - issue
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-597bh8b2gc
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/shadow
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-10m
+      ttlSecondsAfterFinished: 86400
+  schedule: '*/10 * * * *'
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-daily
+  namespace: k8s-inspector-shadow
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 1830
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - daily
+            - --formats
+            - json,html
+            - --output-dir
+            - /data/shadow
+            - --archive
+            - daily
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-597bh8b2gc
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/shadow
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-daily
+      ttlSecondsAfterFinished: 86400
+  schedule: 0 2 * * *
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-dataplane-5m
+  namespace: k8s-inspector-shadow
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 270
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - 5m
+            - --formats
+            - json
+            - --output-dir
+            - /data/shadow
+            - --persist-level
+            - issue
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-597bh8b2gc
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/shadow
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-5m
+      ttlSecondsAfterFinished: 86400
+  schedule: '*/5 * * * *'
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-infra-hourly
+  namespace: k8s-inspector-shadow
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 930
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - hourly
+            - --formats
+            - json
+            - --output-dir
+            - /data/shadow
+            - --archive
+            - hourly
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-597bh8b2gc
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/shadow
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-hourly
+      ttlSecondsAfterFinished: 86400
+  schedule: 0 * * * *
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: k8s-inspector-alert-bridge
+  namespace: k8s-inspector-shadow
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: alertmanager
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - port: 8000
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app: k8s-inspector-alert-bridge
+  policyTypes:
+  - Ingress

@@ -1,0 +1,165 @@
+FFFFFFFF                                                                 [100%]
+================================== FAILURES ===================================
+__________ test_wait_for_first_consumer_without_consumer_is_not_fail __________
+
+    def test_wait_for_first_consumer_without_consumer_is_not_fail():
+        core, storage = apis([pvc("data", phase="Pending", storage_class="delayed")],
+                             classes=[storage_class("delayed", "WaitForFirstConsumer")])
+>       result = inspect(core, storage)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505199925248'>, storage = <MagicMock id='2505198200320'>
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+____________________________ test_lost_pvc_is_fail ____________________________
+
+    def test_lost_pvc_is_fail():
+        core, _ = apis([pvc("data", phase="Lost")])
+>       result = inspect(core)
+                 ^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:35: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505200724032'>, storage = None
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+_____________ test_old_pending_with_failed_consumer_has_evidence ______________
+
+    def test_old_pending_with_failed_consumer_has_evidence():
+        volume = client.V1Volume(name="data", persistent_volume_claim=
+                                 client.V1PersistentVolumeClaimVolumeSource(claim_name="data"))
+        consumer = pod("app", phase="Pending", ready=False, volumes=[volume])
+        core, storage = apis([pvc("data", phase="Pending", storage_class="delayed")],
+                             [consumer], [storage_class("delayed", "WaitForFirstConsumer")])
+>       result = inspect(core, storage)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:46: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505175055536'>, storage = <MagicMock id='2505175600064'>
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+___________________ test_storageclass_forbidden_is_unknown ____________________
+
+    def test_storageclass_forbidden_is_unknown():
+        core, storage = apis([pvc("data", phase="Pending", storage_class="delayed")])
+        storage.list_storage_class.side_effect = PermissionError("forbidden")
+>       result = inspect(core, storage)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505202688288'>, storage = <MagicMock id='2505175673136'>
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+_______________ test_recent_pending_is_observed_without_failure _______________
+
+    def test_recent_pending_is_observed_without_failure():
+        core, storage = apis([pvc("data", phase="Pending", age_seconds=10)])
+>       result = inspect(core, storage)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505203757904'>, storage = <MagicMock id='2505203769440'>
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+________________ test_missing_association_data_is_not_healthy _________________
+
+    def test_missing_association_data_is_not_healthy():
+        core, _ = apis([pvc("data", phase="Pending")])
+>       assert inspect(core).status == Status.WARN
+               ^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:70: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505203820128'>, storage = None
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+____________________ test_pvc_association_lists_are_reused ____________________
+
+    def test_pvc_association_lists_are_reused():
+        core, storage = apis([pvc(f"p{x}", phase="Pending", storage_class="immediate")
+                             for x in range(10)], classes=[storage_class("immediate")])
+>       assert inspect(core, storage).status == Status.FAIL
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:76: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505203774528'>, storage = <MagicMock id='2505203770160'>
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+_______________ test_lost_survives_pending_association_failure ________________
+
+    def test_lost_survives_pending_association_failure():
+        core, storage = apis([pvc("lost", phase="Lost"),
+                             pvc("pending", phase="Pending", storage_class="broken")])
+        storage.list_storage_class.side_effect = PermissionError("forbidden")
+>       result = inspect(core, storage)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_pvc_semantics.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+core = <MagicMock id='2505203754256'>, storage = <MagicMock id='2505203749792'>
+
+    def inspect(core, storage=None):
+>       return check_pending_pvcs(core, InspectorConfig(), storage, now=NOW)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: check_pending_pvcs() got an unexpected keyword argument 'now'
+
+tests\test_pvc_semantics.py:21: TypeError
+=========================== short test summary info ===========================
+FAILED tests/test_pvc_semantics.py::test_wait_for_first_consumer_without_consumer_is_not_fail
+FAILED tests/test_pvc_semantics.py::test_lost_pvc_is_fail - TypeError: check_...
+FAILED tests/test_pvc_semantics.py::test_old_pending_with_failed_consumer_has_evidence
+FAILED tests/test_pvc_semantics.py::test_storageclass_forbidden_is_unknown - ...
+FAILED tests/test_pvc_semantics.py::test_recent_pending_is_observed_without_failure
+FAILED tests/test_pvc_semantics.py::test_missing_association_data_is_not_healthy
+FAILED tests/test_pvc_semantics.py::test_pvc_association_lists_are_reused - T...
+FAILED tests/test_pvc_semantics.py::test_lost_survives_pending_association_failure
+8 failed in 6.57s

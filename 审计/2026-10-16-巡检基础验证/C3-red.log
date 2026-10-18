@@ -1,0 +1,159 @@
+FFFFFFFFFFFFF                                                            [100%]
+================================== FAILURES ===================================
+______________________ test_unknown_profile_is_rejected _______________________
+
+    def test_unknown_profile_is_rejected():
+>       from k8s_inspector.runner import run_inspection
+E       ModuleNotFoundError: No module named 'k8s_inspector.runner'
+
+tests\test_runner.py:21: ModuleNotFoundError
+_________ test_profile_collections_match_existing_frequency_contract __________
+
+    def test_profile_collections_match_existing_frequency_contract():
+>       from k8s_inspector.rule_catalog import collection_keys, normalize_profile
+E       ModuleNotFoundError: No module named 'k8s_inspector.rule_catalog'
+
+tests\test_runner.py:29: ModuleNotFoundError
+_______________ test_run_deadline_marks_remaining_rules_unknown _______________
+
+    def test_run_deadline_marks_remaining_rules_unknown():
+>       from k8s_inspector.runner import run_inspection
+E       ModuleNotFoundError: No module named 'k8s_inspector.runner'
+
+tests\test_runner.py:38: ModuleNotFoundError
+________________ test_known_failure_survives_later_rule_error _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001B83B9334A0>
+
+    def test_known_failure_survives_later_rule_error(monkeypatch):
+>       from k8s_inspector import runner
+E       ImportError: cannot import name 'runner' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_runner.py:48: ImportError
+_____________ test_catalog_mismatched_identity_is_execution_error _____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001B83B933F20>
+
+    def test_catalog_mismatched_identity_is_execution_error(monkeypatch):
+>       from k8s_inspector import runner
+E       ImportError: cannot import name 'runner' from 'k8s_inspector' (C:\Users\23033\Desktop\Cluster-Stability-Inspector\k8s_inspector\__init__.py)
+
+tests\test_runner.py:65: ImportError
+_______________ test_cli_default_does_not_override_file_config ________________
+
+    def test_cli_default_does_not_override_file_config():
+>       cfg = config.resolve_config({'cluster_id': 'file-cluster', 'profile': 'hourly'},
+              ^^^^^^^^^^^^^^^^^^^^^
+                                    {'INSPECTOR_CLUSTER': 'env-cluster'}, {})
+E       AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:6: AttributeError
+___________________________ test_explicit_cli_wins ____________________________
+
+    def test_explicit_cli_wins():
+>       cfg = config.resolve_config({'cluster_id': 'file'}, {'INSPECTOR_CLUSTER': 'env'},
+              ^^^^^^^^^^^^^^^^^^^^^
+                                    {'cluster_id': 'cli', 'profile': 'dataplane'})
+E       AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:12: AttributeError
+________ test_invalid_effective_configuration_is_friendly_error[data0] ________
+
+data = {'timeouts': {'connect': -1}}
+
+    @pytest.mark.parametrize('data', [
+        {'timeouts': {'connect': -1}}, {'deadlines': {'5m': float('nan')}},
+        {'profile': 'typo'}, {'cluster_id': ' '}, {1: 1, 'bad': 2},
+    ])
+    def test_invalid_effective_configuration_is_friendly_error(data):
+        with pytest.raises(ValueError):
+>           config.resolve_config(data, {}, {})
+            ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:23: AttributeError
+________ test_invalid_effective_configuration_is_friendly_error[data1] ________
+
+data = {'deadlines': {'5m': nan}}
+
+    @pytest.mark.parametrize('data', [
+        {'timeouts': {'connect': -1}}, {'deadlines': {'5m': float('nan')}},
+        {'profile': 'typo'}, {'cluster_id': ' '}, {1: 1, 'bad': 2},
+    ])
+    def test_invalid_effective_configuration_is_friendly_error(data):
+        with pytest.raises(ValueError):
+>           config.resolve_config(data, {}, {})
+            ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:23: AttributeError
+________ test_invalid_effective_configuration_is_friendly_error[data2] ________
+
+data = {'profile': 'typo'}
+
+    @pytest.mark.parametrize('data', [
+        {'timeouts': {'connect': -1}}, {'deadlines': {'5m': float('nan')}},
+        {'profile': 'typo'}, {'cluster_id': ' '}, {1: 1, 'bad': 2},
+    ])
+    def test_invalid_effective_configuration_is_friendly_error(data):
+        with pytest.raises(ValueError):
+>           config.resolve_config(data, {}, {})
+            ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:23: AttributeError
+________ test_invalid_effective_configuration_is_friendly_error[data3] ________
+
+data = {'cluster_id': ' '}
+
+    @pytest.mark.parametrize('data', [
+        {'timeouts': {'connect': -1}}, {'deadlines': {'5m': float('nan')}},
+        {'profile': 'typo'}, {'cluster_id': ' '}, {1: 1, 'bad': 2},
+    ])
+    def test_invalid_effective_configuration_is_friendly_error(data):
+        with pytest.raises(ValueError):
+>           config.resolve_config(data, {}, {})
+            ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:23: AttributeError
+________ test_invalid_effective_configuration_is_friendly_error[data4] ________
+
+data = {1: 1, 'bad': 2}
+
+    @pytest.mark.parametrize('data', [
+        {'timeouts': {'connect': -1}}, {'deadlines': {'5m': float('nan')}},
+        {'profile': 'typo'}, {'cluster_id': ' '}, {1: 1, 'bad': 2},
+    ])
+    def test_invalid_effective_configuration_is_friendly_error(data):
+        with pytest.raises(ValueError):
+>           config.resolve_config(data, {}, {})
+            ^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:23: AttributeError
+_______________ test_cli_defaults_leave_file_profile_effective ________________
+
+    def test_cli_defaults_leave_file_profile_effective():
+        from k8s_inspector.cli import build_parser
+        args = build_parser().parse_args(['run'])
+>       cfg = config.resolve_config({'profile': '5m'}, {}, {'profile': args.profile})
+              ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'k8s_inspector.config' has no attribute 'resolve_config'
+
+tests\test_effective_config.py:29: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_runner.py::test_unknown_profile_is_rejected - ModuleNotFoun...
+FAILED tests/test_runner.py::test_profile_collections_match_existing_frequency_contract
+FAILED tests/test_runner.py::test_run_deadline_marks_remaining_rules_unknown
+FAILED tests/test_runner.py::test_known_failure_survives_later_rule_error - I...
+FAILED tests/test_runner.py::test_catalog_mismatched_identity_is_execution_error
+FAILED tests/test_effective_config.py::test_cli_default_does_not_override_file_config
+FAILED tests/test_effective_config.py::test_explicit_cli_wins - AttributeErro...
+FAILED tests/test_effective_config.py::test_invalid_effective_configuration_is_friendly_error[data0]
+FAILED tests/test_effective_config.py::test_invalid_effective_configuration_is_friendly_error[data1]
+FAILED tests/test_effective_config.py::test_invalid_effective_configuration_is_friendly_error[data2]
+FAILED tests/test_effective_config.py::test_invalid_effective_configuration_is_friendly_error[data3]
+FAILED tests/test_effective_config.py::test_invalid_effective_configuration_is_friendly_error[data4]
+FAILED tests/test_effective_config.py::test_cli_defaults_leave_file_profile_effective
+13 failed in 6.16s

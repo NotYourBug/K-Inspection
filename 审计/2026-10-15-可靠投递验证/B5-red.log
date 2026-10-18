@@ -1,0 +1,346 @@
+FFFFFFFFFF.....................................                          [100%]
+================================== FAILURES ===================================
+______ test_202_means_persisted_not_sent_and_body_cannot_override_source ______
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_202_means_persisted_not_s0')
+
+    def test_202_means_persisted_not_sent_and_body_cannot_override_source(tmp_path):
+>       with serve(tmp_path) as (server, provider, _):
+             ^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:63: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+__________________ test_missing_or_wrong_token_is_401[None] ___________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_missing_or_wrong_token_is0')
+token = None
+
+    @pytest.mark.parametrize("token", [None, "wrong-token"])
+    def test_missing_or_wrong_token_is_401(tmp_path, token):
+>       with serve(tmp_path) as (server, _, _):
+             ^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:80: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_______________ test_missing_or_wrong_token_is_401[wrong-token] _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_missing_or_wrong_token_is1')
+token = 'wrong-token'
+
+    @pytest.mark.parametrize("token", [None, "wrong-token"])
+    def test_missing_or_wrong_token_is_401(tmp_path, token):
+>       with serve(tmp_path) as (server, _, _):
+             ^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:80: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______________ test_storage_failure_never_acknowledges[trigger] _______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_storage_failure_never_ack0')
+failure = 'trigger'
+
+    @pytest.mark.parametrize("failure", ["trigger", "capacity", "lock"])
+    def test_storage_failure_never_acknowledges(tmp_path, failure):
+>       with serve(tmp_path, max_backlog=1 if failure == "capacity" else 10000) as (server, _, _):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+______________ test_storage_failure_never_acknowledges[capacity] ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_storage_failure_never_ack1')
+failure = 'capacity'
+
+    @pytest.mark.parametrize("failure", ["trigger", "capacity", "lock"])
+    def test_storage_failure_never_acknowledges(tmp_path, failure):
+>       with serve(tmp_path, max_backlog=1 if failure == "capacity" else 10000) as (server, _, _):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________________ test_storage_failure_never_acknowledges[lock] ________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_storage_failure_never_ack2')
+failure = 'lock'
+
+    @pytest.mark.parametrize("failure", ["trigger", "capacity", "lock"])
+    def test_storage_failure_never_acknowledges(tmp_path, failure):
+>       with serve(tmp_path, max_backlog=1 if failure == "capacity" else 10000) as (server, _, _):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+_____________________ test_body_limit_and_invalid_payload _____________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_body_limit_and_invalid_pa0')
+
+    def test_body_limit_and_invalid_payload(tmp_path):
+>       with serve(tmp_path) as (server, _, _):
+             ^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+____________ test_concurrency_limit_returns_503_before_new_handler ____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_concurrency_limit_returns0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001D55DBDD130>
+
+    def test_concurrency_limit_returns_503_before_new_handler(tmp_path, monkeypatch):
+        entered, release = threading.Event(), threading.Event()
+        original = getattr(bridge, "handle_alert_request", None)
+        def blocking(*args, **kwargs):
+            entered.set()
+            assert release.wait(3)
+            return original(*args, **kwargs)
+        monkeypatch.setattr(bridge, "handle_alert_request", blocking, raising=False)
+>       with serve(tmp_path, max_requests=1) as (server, _, _):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\contextlib.py:137: in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:34: in serve
+    source_credentials=credentials(), chat_routes=(FixedChatRoute({"owner_team": "storage"}, "oc_storage"),),
+                       ^^^^^^^^^^^^^
+tests\test_bridge_ingress.py:26: in credentials
+    module = importlib.import_module("k8s_inspector.bridge_auth")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+________________ test_async_startup_requires_database_and_auth ________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1421/test_async_startup_requires_da0')
+
+    def test_async_startup_requires_database_and_auth(tmp_path):
+>       cfg = bridge.BridgeConfig(mode="webhook", feishu_webhook="https://example.invalid/hook",
+                                  delivery_mode="async")
+E       TypeError: BridgeConfig.__init__() got an unexpected keyword argument 'delivery_mode'
+
+tests\test_bridge_ingress.py:130: TypeError
+_____ test_auth_rotation_keeps_logical_source_and_rejects_ambiguous_token _____
+
+    def test_auth_rotation_keeps_logical_source_and_rejects_ambiguous_token():
+>       auth = importlib.import_module("k8s_inspector.bridge_auth")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_bridge_ingress.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+<frozen importlib._bootstrap>:1387: in _gcd_import
+    ???
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+name = 'k8s_inspector.bridge_auth'
+import_ = <function _gcd_import at 0x000001D55A4B80E0>
+
+>   ???
+E   ModuleNotFoundError: No module named 'k8s_inspector.bridge_auth'
+
+<frozen importlib._bootstrap>:1324: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_bridge_ingress.py::test_202_means_persisted_not_sent_and_body_cannot_override_source
+FAILED tests/test_bridge_ingress.py::test_missing_or_wrong_token_is_401[None]
+FAILED tests/test_bridge_ingress.py::test_missing_or_wrong_token_is_401[wrong-token]
+FAILED tests/test_bridge_ingress.py::test_storage_failure_never_acknowledges[trigger]
+FAILED tests/test_bridge_ingress.py::test_storage_failure_never_acknowledges[capacity]
+FAILED tests/test_bridge_ingress.py::test_storage_failure_never_acknowledges[lock]
+FAILED tests/test_bridge_ingress.py::test_body_limit_and_invalid_payload - Mo...
+FAILED tests/test_bridge_ingress.py::test_concurrency_limit_returns_503_before_new_handler
+FAILED tests/test_bridge_ingress.py::test_async_startup_requires_database_and_auth
+FAILED tests/test_bridge_ingress.py::test_auth_rotation_keeps_logical_source_and_rejects_ambiguous_token
+10 failed, 37 passed in 1.52s

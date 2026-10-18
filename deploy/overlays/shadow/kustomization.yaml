@@ -1,0 +1,59 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../example
+- namespace.yaml
+- inventory.yaml
+transformers:
+- namespace-transformer.yaml
+- rbac-transformer.yaml
+- control-role.yaml
+- control-rolebinding.yaml
+patches:
+- target:
+    kind: CronJob
+    name: k8s-inspector-dataplane-5m
+  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
+    "value": ["run", "--in-cluster", "--profile", "5m", "--formats", "json", "--output-dir",
+    "/data/shadow", "--persist-level", "issue"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
+    "value": "/data/shadow"}]'
+- target:
+    kind: CronJob
+    name: k8s-inspector-controlplane-10m
+  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
+    "value": ["run", "--in-cluster", "--profile", "10m", "--formats", "json", "--output-dir",
+    "/data/shadow", "--persist-level", "issue"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
+    "value": "/data/shadow"}]'
+- target:
+    kind: CronJob
+    name: k8s-inspector-infra-hourly
+  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
+    "value": ["run", "--in-cluster", "--profile", "hourly", "--formats", "json", "--output-dir",
+    "/data/shadow", "--archive", "hourly"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
+    "value": "/data/shadow"}]'
+- target:
+    kind: CronJob
+    name: k8s-inspector-daily
+  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
+    "value": ["run", "--in-cluster", "--profile", "daily", "--formats", "json,html",
+    "--output-dir", "/data/shadow", "--archive", "daily"]}, {"op": "replace", "path":
+    "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
+    "value": "/data/shadow"}]'
+- target:
+    kind: CronJob
+    name: k8s-inspector-cleanup
+  patch: '[{"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/args",
+    "value": ["cleanup", "--root", "/data/shadow/archive", "--hourly-days", "7", "--daily-days",
+    "30", "--dry-run"]}, {"op": "replace", "path": "/spec/jobTemplate/spec/template/spec/containers/0/volumeMounts/0/mountPath",
+    "value": "/data/shadow"}]'
+- path: bridge-shadow.yaml
+- path: am-auth-shadow.yaml
+- path: am-shadow.yaml
+- path: prom-shadow.yaml
+- path: rules-shadow.yaml
+configMapGenerator:
+- name: k8s-inspector-runtime
+  namespace: kube-system
+  behavior: merge
+  literals:
+  - PUSHGATEWAY_JOB=k8s-inspector-shadow

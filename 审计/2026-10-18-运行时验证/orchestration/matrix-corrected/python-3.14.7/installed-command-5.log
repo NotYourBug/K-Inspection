@@ -1,0 +1,13 @@
+usage: python.exe -m k8s_inspector.expected_targets [-h] --config CONFIG
+                                                    [--listen-host LISTEN_HOST]
+                                                    [--listen-port LISTEN_PORT]
+
+Independent expected inventory exporter; never reads CronJob/Pushgateway
+state.
+
+options:
+  -h, --help            show this help message and exit
+  --config CONFIG
+  --listen-host LISTEN_HOST
+  --listen-port LISTEN_PORT
+

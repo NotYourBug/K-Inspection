@@ -1,0 +1,12 @@
+usage: k8s-inspector cleanup [-h] [--root ROOT] [--hourly-days HOURLY_DAYS]
+                             [--daily-days DAILY_DAYS] [--dry-run]
+
+options:
+  -h, --help            show this help message and exit
+  --root ROOT           Archive root directory (default ./out/archive)
+  --hourly-days HOURLY_DAYS
+                        Hourly archive retention days (default 7)
+  --daily-days DAILY_DAYS
+                        Daily archive retention days (default 30)
+  --dry-run             List expired archives without deleting
+

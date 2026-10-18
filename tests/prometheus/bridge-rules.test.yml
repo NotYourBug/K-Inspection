@@ -1,0 +1,54 @@
+rule_files:
+  - ../../deploy/monitoring/bridge-rules.yaml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'inspector_bridge_unhandled_dead_jobs'
+        values: '1+0x10'
+      - series: 'inspector_bridge_oldest_pending_age_seconds'
+        values: '301+0x10'
+      - series: 'inspector_bridge_worker_heartbeat_age_seconds'
+        values: '31+0x10'
+      - series: 'inspector_bridge_database_writable'
+        values: '0+0x10'
+      - series: 'up{job="inspector-bridge"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: InspectorBridgeDeadDeliveries
+        exp_alerts:
+          - exp_labels: {severity: critical, notification_channel: independent}
+            exp_annotations: {summary: Bridge has unhandled dead deliveries}
+      - eval_time: 6m
+        alertname: InspectorBridgeBacklogOld
+        exp_alerts:
+          - exp_labels: {severity: warning, notification_channel: independent}
+            exp_annotations: {summary: Bridge delivery backlog is older than five minutes}
+      - eval_time: 6m
+        alertname: InspectorBridgeWorkerStalled
+        exp_alerts:
+          - exp_labels: {severity: critical, notification_channel: independent}
+            exp_annotations: {summary: Bridge worker is stopped or stalled}
+      - eval_time: 6m
+        alertname: InspectorBridgeDatabaseUnavailable
+        exp_alerts:
+          - exp_labels: {severity: critical, notification_channel: independent}
+            exp_annotations: {summary: Bridge delivery database is not writable}
+  - interval: 1m
+    input_series:
+      - series: 'inspector_bridge_unhandled_dead_jobs'
+        values: '0+0x10'
+      - series: 'inspector_bridge_oldest_pending_age_seconds'
+        values: '300+0x10'
+      - series: 'inspector_bridge_worker_heartbeat_age_seconds'
+        values: '30+0x10'
+      - series: 'inspector_bridge_database_writable'
+        values: '1+0x10'
+      - series: 'up{job="inspector-bridge"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - {eval_time: 6m, alertname: InspectorBridgeDeadDeliveries, exp_alerts: []}
+      - {eval_time: 6m, alertname: InspectorBridgeBacklogOld, exp_alerts: []}
+      - {eval_time: 6m, alertname: InspectorBridgeWorkerStalled, exp_alerts: []}
+      - {eval_time: 6m, alertname: InspectorBridgeDatabaseUnavailable, exp_alerts: []}

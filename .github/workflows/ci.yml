@@ -1,0 +1,76 @@
+name: Offline release preparation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-and-wheel:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.9', '3.11', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install constrained development environment
+        run: python -m pip install -r requirements.txt
+      - name: Install fixed validation tools with official checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          work="$(mktemp -d)"
+          for spec in prometheus:2.53.0:promtool alertmanager:0.27.0:amtool; do
+            IFS=: read -r project version executable <<< "$spec"
+            archive="$project-$version.linux-amd64.tar.gz"
+            curl -fsSL "https://github.com/prometheus/$project/releases/download/v$version/$archive" -o "$work/$archive"
+            curl -fsSL "https://github.com/prometheus/$project/releases/download/v$version/sha256sums.txt" -o "$work/checksums"
+            (cd "$work" && sha256sum --check --ignore-missing checksums)
+            tar -xzf "$work/$archive" -C "$work" "$project-$version.linux-amd64/$executable"
+            install "$work/$project-$version.linux-amd64/$executable" "$HOME/.local/bin/$executable"
+          done
+          archive=kustomize_v5.4.3_linux_amd64.tar.gz
+          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/$archive" -o "$work/$archive"
+          curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/checksums.txt" -o "$work/checksums"
+          (cd "$work" && sha256sum --check --ignore-missing checksums)
+          tar -xzf "$work/$archive" -C "$work" kustomize
+          install "$work/kustomize" "$HOME/.local/bin/kustomize"
+      - name: Source, installed wheel, rendered monitoring and both rule suites
+        run: python -m tools.verify_release --offline --local-checks-only --output-dir out/ci-release
+      - name: Record resolved dependencies
+        run: python -m pip freeze > dependency-versions.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-python-${{ matrix.python }}
+          path: |
+            out/ci-release/*.json
+            out/ci-release/*.log
+            out/ci-release/*.yaml
+            out/ci-release/configs/
+            out/ci-release/package/wheel/
+            out/ci-release/package/*.log
+            dependency-versions.txt
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements.txt
+      - run: docker build -t k8s-inspector:ci .
+      - name: Real CLI and Bridge container smoke
+        env:
+          INSPECTOR_TEST_IMAGE: k8s-inspector:ci
+        run: python -m pytest tests/test_release_artifacts.py -k image_cli -v
+      - run: docker image inspect k8s-inspector:ci > image-metadata.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-metadata
+          path: image-metadata.json

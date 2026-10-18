@@ -1,0 +1,257 @@
+{
+  "3.11.16": {
+    "success": true,
+    "commands": [
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "--help"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "run",
+          "--help"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "cleanup",
+          "--help"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.alertmanager_bridge",
+          "--help"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.bridge_admin",
+          "--help"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.expected_targets",
+          "--help"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-m",
+          "pip",
+          "--isolated",
+          "check"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-c",
+          "import importlib.util,json,sys;assert importlib.util.find_spec(\"pytest\") is None;assert importlib.util.find_spec(\"build\") is None;print(json.dumps({\"prefix\":sys.prefix,\"base_prefix\":sys.base_prefix,\"path\":sys.path}))"
+        ],
+        "exit": 0
+      },
+      {
+        "arguments": [
+          "-c",
+          "import kubernetes,yaml,prometheus_client,lark_oapi;import importlib.metadata as m;print({n:m.version(n) for n in (\"kubernetes\",\"lark-oapi\",\"PyYAML\",\"prometheus-client\")})"
+        ],
+        "exit": 0
+      }
+    ],
+    "wheel_sha256": "cb930c9e1413843a87a20ec60f2ba95d1c8a4b4c9320c8da67a2abccdd92a1ac"
+  },
+  "3.9.25": {
+    "success": true,
+    "commands": [
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 18.81
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "run",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 3.58
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "cleanup",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 3.94
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.alertmanager_bridge",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 1.39
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.bridge_admin",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 0.44
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.expected_targets",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 0.5
+      },
+      {
+        "arguments": [
+          "-m",
+          "pip",
+          "--isolated",
+          "check"
+        ],
+        "exit": 0,
+        "seconds": 3.67
+      },
+      {
+        "arguments": [
+          "-c",
+          "import importlib.util,json,sys;assert importlib.util.find_spec(\"pytest\") is None;assert importlib.util.find_spec(\"build\") is None;print(json.dumps({\"prefix\":sys.prefix,\"base_prefix\":sys.base_prefix,\"path\":sys.path}))"
+        ],
+        "exit": 0,
+        "seconds": 0.3
+      },
+      {
+        "arguments": [
+          "-c",
+          "import kubernetes,yaml,prometheus_client,lark_oapi;import importlib.metadata as m;print({n:m.version(n) for n in (\"kubernetes\",\"lark-oapi\",\"PyYAML\",\"prometheus-client\")})"
+        ],
+        "exit": 0,
+        "seconds": 204.83
+      }
+    ],
+    "wheel_sha256": "eae12aedbb8952c82abd1b48b4663d5dd1bce116ab463d5268331a2b3d810bc8"
+  },
+  "3.14.7": {
+    "success": true,
+    "commands": [
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 9.23
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "run",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 2.28
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.cli",
+          "cleanup",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 2.38
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.alertmanager_bridge",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 2.11
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.bridge_admin",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 0.42
+      },
+      {
+        "arguments": [
+          "-m",
+          "k8s_inspector.expected_targets",
+          "--help"
+        ],
+        "exit": 0,
+        "seconds": 0.52
+      },
+      {
+        "arguments": [
+          "-m",
+          "pip",
+          "--isolated",
+          "check"
+        ],
+        "exit": 0,
+        "seconds": 3.78
+      },
+      {
+        "arguments": [
+          "-c",
+          "import importlib.util,json,sys;assert importlib.util.find_spec(\"pytest\") is None;assert importlib.util.find_spec(\"build\") is None;print(json.dumps({\"prefix\":sys.prefix,\"base_prefix\":sys.base_prefix,\"path\":sys.path}))"
+        ],
+        "exit": 0,
+        "seconds": 0.2
+      },
+      {
+        "arguments": [
+          "-c",
+          "import kubernetes,yaml,prometheus_client,lark_oapi;import importlib.metadata as m;print({n:m.version(n) for n in (\"kubernetes\",\"lark-oapi\",\"PyYAML\",\"prometheus-client\")})"
+        ],
+        "exit": 0,
+        "seconds": 280.91
+      }
+    ],
+    "wheel_sha256": "ca05c5393bcfe0aa768aaeb7f9f81c132259d387fef7e4a7c797bb649145aea2"
+  }
+}

@@ -1,0 +1,16 @@
+.git
+.venv
+.superpowers
+.env
+.env.*
+.kube
+*.pem
+*.key
+out
+审计
+tests
+docs
+build
+dist
+__pycache__
+*.egg-info

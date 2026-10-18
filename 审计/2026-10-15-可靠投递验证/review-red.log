@@ -1,0 +1,409 @@
+FFF.FFFFFF                                                               [100%]
+================================== FAILURES ===================================
+_ test_old_firing_retry_cannot_overtake_resolved_but_other_destination_progresses _
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_old_firing_retry_cannot_o0')
+
+    def test_old_firing_retry_cannot_overtake_resolved_but_other_destination_progresses(tmp_path):
+        store, clock = DeliveryStore(tmp_path / "bridge.db"), Clock()
+        firing, resolved = content(), content(status="resolved")
+        firing_id = accept(store, firing).new_job_ids[0]
+        calls = []
+        class Provider:
+            def send(self, job):
+                calls.append(job.delivery_id)
+                if job.delivery_id == firing_id and calls.count(firing_id) == 1:
+                    return DeliveryResult(False, True, retry_after_seconds=600)
+                return DeliveryResult(True)
+        w = worker(store, Provider(), clock)
+        assert w.run_once()
+        clock.advance(300)
+        resolved_id = accept(store, resolved, clock()).new_job_ids[0]
+>       assert not w.run_once(), "resolved must wait behind the earlier accepted firing"
+E       AssertionError: resolved must wait behind the earlier accepted firing
+E       assert not True
+E        +  where True = run_once()
+E        +    where run_once = <k8s_inspector.delivery_worker.DeliveryWorker object at 0x000001C22A6F31D0>.run_once
+
+tests\test_delivery_review_regressions.py:49: AssertionError
+_____ test_annotation_a_b_a_is_new_transition_not_an_old_duplicate[False] _____
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_annotation_a_b_a_is_new_t0')
+already_sent = False
+
+    @pytest.mark.parametrize("already_sent", [False, True])
+    def test_annotation_a_b_a_is_new_transition_not_an_old_duplicate(tmp_path, already_sent):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        first = accept(store, content("1"))
+        if already_sent:
+            mark_sent(store)
+        second = accept(store, content("0"), NOW + timedelta(seconds=60))
+        if already_sent:
+            mark_sent(store, NOW + timedelta(seconds=60))
+        third = accept(store, content("1"), NOW + timedelta(seconds=120))
+>       assert len(third.new_job_ids) == 1 and not third.reused_job_ids
+E       AssertionError: assert (0 == 1)
+E        +  where 0 = len(())
+E        +    where () = AcceptResult(receipt_id='e0e2a990-91f9-432e-bb1f-714f573ab9f5', new_job_ids=(), reused_job_ids=('1cb0fbf7-c77a-4ddf-ab6f-caba5cfe2a2b',)).new_job_ids
+
+tests\test_delivery_review_regressions.py:67: AssertionError
+_____ test_annotation_a_b_a_is_new_transition_not_an_old_duplicate[True] ______
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_annotation_a_b_a_is_new_t1')
+already_sent = True
+
+    @pytest.mark.parametrize("already_sent", [False, True])
+    def test_annotation_a_b_a_is_new_transition_not_an_old_duplicate(tmp_path, already_sent):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        first = accept(store, content("1"))
+        if already_sent:
+            mark_sent(store)
+        second = accept(store, content("0"), NOW + timedelta(seconds=60))
+        if already_sent:
+            mark_sent(store, NOW + timedelta(seconds=60))
+        third = accept(store, content("1"), NOW + timedelta(seconds=120))
+>       assert len(third.new_job_ids) == 1 and not third.reused_job_ids
+E       AssertionError: assert (0 == 1)
+E        +  where 0 = len(())
+E        +    where () = AcceptResult(receipt_id='e2863c81-4140-41a4-8019-780ff55c6ad2', new_job_ids=(), reused_job_ids=('8b21f2f5-5f8f-4319-9bfe-38ff8027e300',)).new_job_ids
+
+tests\test_delivery_review_regressions.py:67: AssertionError
+__________ test_sdk_non_integer_zero_cannot_confirm_delivery[False] ___________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_sdk_non_integer_zero_cann0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C22A72D610>
+code = False
+
+    @pytest.mark.parametrize("code", [False, 0.0])
+    def test_sdk_non_integer_zero_cannot_confirm_delivery(tmp_path, monkeypatch, code):
+        from lark_oapi.core.token.manager import TokenManager
+        from lark_oapi.core.http import transport
+        monkeypatch.setattr(TokenManager, "get_self_tenant_token", lambda _cfg: "fake-token")
+        monkeypatch.setattr(transport.requests, "request", lambda *a, **kw:
+            SimpleNamespace(status_code=200, headers={}, content=json.dumps({"code": code}).encode()))
+        store = DeliveryStore(tmp_path / "bridge.db")
+        job_id = accept(store, content()).new_job_ids[0]
+        result = DeliveryAdapter(feishu_app=FeishuAppClient(FeishuAppConfig("app", "secret"))).send(store.get_job(job_id))
+>       assert not result.success and result.result_unknown
+E       assert (not True)
+E        +  where True = DeliveryResult(success=True, retryable=False, result_unknown=False, external_id=None, error_code=None, retry_after_seconds=None, error_kind=None).success
+
+tests\test_delivery_review_regressions.py:90: AssertionError
+___________ test_sdk_non_integer_zero_cannot_confirm_delivery[0.0] ____________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_sdk_non_integer_zero_cann1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C232F098E0>
+code = 0.0
+
+    @pytest.mark.parametrize("code", [False, 0.0])
+    def test_sdk_non_integer_zero_cannot_confirm_delivery(tmp_path, monkeypatch, code):
+        from lark_oapi.core.token.manager import TokenManager
+        from lark_oapi.core.http import transport
+        monkeypatch.setattr(TokenManager, "get_self_tenant_token", lambda _cfg: "fake-token")
+        monkeypatch.setattr(transport.requests, "request", lambda *a, **kw:
+            SimpleNamespace(status_code=200, headers={}, content=json.dumps({"code": code}).encode()))
+        store = DeliveryStore(tmp_path / "bridge.db")
+        job_id = accept(store, content()).new_job_ids[0]
+        result = DeliveryAdapter(feishu_app=FeishuAppClient(FeishuAppConfig("app", "secret"))).send(store.get_job(job_id))
+>       assert not result.success and result.result_unknown
+E       assert (not True)
+E        +  where True = DeliveryResult(success=True, retryable=False, result_unknown=False, external_id=None, error_code=None, retry_after_seconds=None, error_kind=None).success
+
+tests\test_delivery_review_regressions.py:90: AssertionError
+________ test_dead_can_be_disposed_with_reason_without_erasing_history ________
+
+self = ArgumentParser(prog='inspector-bridge-admin', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+args = ['--db', 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1440\\test_dead_can_be_disposed_with0\\bridge.db', 'resolve-dead', '--delivery-id', 'cacfa54b-52f1-40e7-b160-0be3aaae67ce', '--reason', ...]
+namespace = Namespace(db='C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1440\\test_dead_can_be_disposed_with0\\bridge.db', command=None)
+intermixed = False
+
+    def _parse_known_args2(self, args, namespace, intermixed):
+        if args is None:
+            # args default to the system args
+            args = _sys.argv[1:]
+        else:
+            # make sure that args are mutable
+            args = list(args)
+    
+        # default Namespace built from parser defaults
+        if namespace is None:
+            namespace = Namespace()
+    
+        # add any action defaults that aren't present
+        for action in self._actions:
+            if action.dest is not SUPPRESS:
+                if not hasattr(namespace, action.dest):
+                    if action.default is not SUPPRESS:
+                        setattr(namespace, action.dest, action.default)
+    
+        # add any parser defaults that aren't present
+        for dest in self._defaults:
+            if not hasattr(namespace, dest):
+                setattr(namespace, dest, self._defaults[dest])
+    
+        # parse the arguments and exit if there are any errors
+        if self.exit_on_error:
+            try:
+>               namespace, args = self._parse_known_args(args, namespace, intermixed)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1943: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2165: in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2141: in consume_positionals
+    take_action(action, args)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2003: in take_action
+    argument_values = self._get_values(action, argument_strings)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2523: in _get_values
+    self._check_value(action, value[0])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='inspector-bridge-admin', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+action = _SubParsersAction(option_strings=[], dest='command', nargs='A...', const=None, default=None, type=None, choices={'insp...ss=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)}, required=True, help=None, metavar=None)
+value = 'resolve-dead'
+
+    def _check_value(self, action, value):
+        # converted value must be one of the choices (if specified)
+        choices = action.choices
+        if choices is not None:
+            if isinstance(choices, str):
+                choices = iter(choices)
+            if value not in choices:
+                args = {'value': str(value),
+                        'choices': ', '.join(map(str, action.choices))}
+                msg = _('invalid choice: %(value)r (choose from %(choices)s)')
+>               raise ArgumentError(action, msg % args)
+E               argparse.ArgumentError: argument command: invalid choice: 'resolve-dead' (choose from inspect, requeue, backup, prune)
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2573: ArgumentError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_dead_can_be_disposed_with0')
+
+    def test_dead_can_be_disposed_with_reason_without_erasing_history(tmp_path):
+        from k8s_inspector.bridge_admin import main
+        store = DeliveryStore(tmp_path / "bridge.db", max_backlog=1)
+        job_id = accept(store, content()).new_job_ids[0]
+        job = store.claim_due(NOW)
+        store.finish(job_id, job.lease_token, DeliveryResult(False, error_code="230002"), NOW)
+        assert store.stats(NOW).dead_count == store.stats(NOW).backlog_count == 1
+>       assert main(["--db", str(store.path), "resolve-dead", "--delivery-id", job_id,
+                     "--reason", "obsolete destination verified; delivery waived"]) == 0
+
+tests\test_delivery_review_regressions.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\bridge_admin.py:25: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1904: in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1914: in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1945: in _parse_known_args2
+    self.error(str(err))
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2650: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='inspector-bridge-admin', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = "inspector-bridge-admin: error: argument command: invalid choice: 'resolve-dead' (choose from inspect, requeue, backup, prune)\n"
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2637: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: inspector-bridge-admin [-h] --db DB {inspect,requeue,backup,prune} ...
+inspector-bridge-admin: error: argument command: invalid choice: 'resolve-dead' (choose from inspect, requeue, backup, prune)
+_ test_unknown_can_be_acknowledged_with_audit_and_retention_from_confirmation _
+
+self = ArgumentParser(prog='inspector-bridge-admin', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+args = ['--db', 'C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1440\\test_unknown_can_be_acknowledg0\\bridge.db', 'acknowledge-unknown', '--delivery-id', '55f64c31-18fb-43f2-a89d-0ed2b9dc0a27', '--reason', ...]
+namespace = Namespace(db='C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1440\\test_unknown_can_be_acknowledg0\\bridge.db', command=None)
+intermixed = False
+
+    def _parse_known_args2(self, args, namespace, intermixed):
+        if args is None:
+            # args default to the system args
+            args = _sys.argv[1:]
+        else:
+            # make sure that args are mutable
+            args = list(args)
+    
+        # default Namespace built from parser defaults
+        if namespace is None:
+            namespace = Namespace()
+    
+        # add any action defaults that aren't present
+        for action in self._actions:
+            if action.dest is not SUPPRESS:
+                if not hasattr(namespace, action.dest):
+                    if action.default is not SUPPRESS:
+                        setattr(namespace, action.dest, action.default)
+    
+        # add any parser defaults that aren't present
+        for dest in self._defaults:
+            if not hasattr(namespace, dest):
+                setattr(namespace, dest, self._defaults[dest])
+    
+        # parse the arguments and exit if there are any errors
+        if self.exit_on_error:
+            try:
+>               namespace, args = self._parse_known_args(args, namespace, intermixed)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1943: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2165: in _parse_known_args
+    positionals_end_index = consume_positionals(start_index)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2141: in consume_positionals
+    take_action(action, args)
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2003: in take_action
+    argument_values = self._get_values(action, argument_strings)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2523: in _get_values
+    self._check_value(action, value[0])
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='inspector-bridge-admin', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+action = _SubParsersAction(option_strings=[], dest='command', nargs='A...', const=None, default=None, type=None, choices={'insp...ss=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)}, required=True, help=None, metavar=None)
+value = 'acknowledge-unknown'
+
+    def _check_value(self, action, value):
+        # converted value must be one of the choices (if specified)
+        choices = action.choices
+        if choices is not None:
+            if isinstance(choices, str):
+                choices = iter(choices)
+            if value not in choices:
+                args = {'value': str(value),
+                        'choices': ', '.join(map(str, action.choices))}
+                msg = _('invalid choice: %(value)r (choose from %(choices)s)')
+>               raise ArgumentError(action, msg % args)
+E               argparse.ArgumentError: argument command: invalid choice: 'acknowledge-unknown' (choose from inspect, requeue, backup, prune)
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2573: ArgumentError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_unknown_can_be_acknowledg0')
+
+    def test_unknown_can_be_acknowledged_with_audit_and_retention_from_confirmation(tmp_path):
+        from k8s_inspector.bridge_admin import main
+        store = DeliveryStore(tmp_path / "bridge.db")
+        now = datetime.now(timezone.utc)
+        old = now - timedelta(days=31)
+        job_id = accept(store, content(), old).new_job_ids[0]
+        first = store.claim_due(old)
+        store.finish(job_id, first.lease_token, DeliveryResult(False, True, True), old,
+                     retry_at=old + timedelta(seconds=5))
+        mark_sent(store, old + timedelta(seconds=5))
+        assert store.stats(now).unknown_count == 1
+>       assert main(["--db", str(store.path), "acknowledge-unknown", "--delivery-id", job_id,
+                     "--reason", "supplier history checked; duplicate impact accepted"]) == 0
+
+tests\test_delivery_review_regressions.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+k8s_inspector\bridge_admin.py:25: in main
+    args = parser.parse_args(argv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1904: in parse_args
+    args, argv = self.parse_known_args(args, namespace)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1914: in parse_known_args
+    return self._parse_known_args2(args, namespace, intermixed=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:1945: in _parse_known_args2
+    self.error(str(err))
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2650: in error
+    self.exit(2, _('%(prog)s: error: %(message)s\n') % args)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ArgumentParser(prog='inspector-bridge-admin', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict_handler='error', add_help=True)
+status = 2
+message = "inspector-bridge-admin: error: argument command: invalid choice: 'acknowledge-unknown' (choose from inspect, requeue, backup, prune)\n"
+
+    def exit(self, status=0, message=None):
+        if message:
+            self._print_message(message, _sys.stderr)
+>       _sys.exit(status)
+E       SystemExit: 2
+
+..\..\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\argparse.py:2637: SystemExit
+---------------------------- Captured stderr call -----------------------------
+usage: inspector-bridge-admin [-h] --db DB {inspect,requeue,backup,prune} ...
+inspector-bridge-admin: error: argument command: invalid choice: 'acknowledge-unknown' (choose from inspect, requeue, backup, prune)
+_________ test_backup_never_reports_success_when_directory_sync_fails _________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_backup_never_reports_succ0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C22A640830>
+
+    def test_backup_never_reports_success_when_directory_sync_fails(tmp_path, monkeypatch):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        accept(store, content())
+        def fail_sync(_path):
+            raise OSError("directory durability failed")
+        monkeypatch.setattr(storage, "_sync_directory", fail_sync, raising=False)
+        monkeypatch.setattr(storage, "_publish_backup", lambda a, b: storage._publish_posix(a, b), raising=False)
+>       with pytest.raises(StorageUnavailable):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE StorageUnavailable
+
+tests\test_delivery_review_regressions.py:140: Failed
+______________ test_v2_migration_backfills_order_and_cycle_dedup ______________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1440/test_v2_migration_backfills_or0')
+
+    def test_v2_migration_backfills_order_and_cycle_dedup(tmp_path):
+        store = DeliveryStore(tmp_path / "bridge.db")
+        accept(store, content("1"))
+        mark_sent(store)
+        accept(store, content("0"), NOW + timedelta(seconds=60))
+        mark_sent(store, NOW + timedelta(seconds=60))
+        # This fixture is precisely the previous reviewed schema, with no ordering index.
+        with sqlite3.connect(store.path) as db:
+            db.execute("drop table if exists delivery_members")
+            db.execute("drop table if exists delivery_order")
+            db.execute("delete from migration_history where version>2")
+            db.execute("update schema_version set version=2")
+        reopened = DeliveryStore(store.path)
+>       assert accept(reopened, content("1"), NOW + timedelta(seconds=120)).new_job_ids
+E       AssertionError: assert ()
+E        +  where () = AcceptResult(receipt_id='d80976bc-da08-4d9d-a3be-9eeabf6b3616', new_job_ids=(), reused_job_ids=('d7b42f8f-e472-4353-ac02-37c175772380',)).new_job_ids
+E        +    where AcceptResult(receipt_id='d80976bc-da08-4d9d-a3be-9eeabf6b3616', new_job_ids=(), reused_job_ids=('d7b42f8f-e472-4353-ac02-37c175772380',)) = accept(<k8s_inspector.bridge_store.DeliveryStore object at 0x000001C233342030>, AlertBatch(alerts=(Alert(status='firing', labels={'alertname': 'NodeDown', 'cluster': 'prod'}, annotations={'summary': '1'}, fingerprint='f1', starts_at='2026-10-15T00:00:00Z', ends_at=''),), group_key='', receiver='', truncated_alerts=0), (datetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc) + datetime.timedelta(seconds=120)))
+E        +      where AlertBatch(alerts=(Alert(status='firing', labels={'alertname': 'NodeDown', 'cluster': 'prod'}, annotations={'summary': '1'}, fingerprint='f1', starts_at='2026-10-15T00:00:00Z', ends_at=''),), group_key='', receiver='', truncated_alerts=0) = content('1')
+E        +      and   datetime.timedelta(seconds=120) = timedelta(seconds=120)
+
+tests\test_delivery_review_regressions.py:157: AssertionError
+============================== warnings summary ===============================
+tests/test_delivery_review_regressions.py::test_sdk_non_integer_zero_cannot_confirm_delivery[False]
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_delivery_review_regressions.py::test_sdk_non_integer_zero_cannot_confirm_delivery[False]
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py:35: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_review_regressions.py::test_old_firing_retry_cannot_overtake_resolved_but_other_destination_progresses
+FAILED tests/test_delivery_review_regressions.py::test_annotation_a_b_a_is_new_transition_not_an_old_duplicate[False]
+FAILED tests/test_delivery_review_regressions.py::test_annotation_a_b_a_is_new_transition_not_an_old_duplicate[True]
+FAILED tests/test_delivery_review_regressions.py::test_sdk_non_integer_zero_cannot_confirm_delivery[False]
+FAILED tests/test_delivery_review_regressions.py::test_sdk_non_integer_zero_cannot_confirm_delivery[0.0]
+FAILED tests/test_delivery_review_regressions.py::test_dead_can_be_disposed_with_reason_without_erasing_history
+FAILED tests/test_delivery_review_regressions.py::test_unknown_can_be_acknowledged_with_audit_and_retention_from_confirmation
+FAILED tests/test_delivery_review_regressions.py::test_backup_never_reports_success_when_directory_sync_fails
+FAILED tests/test_delivery_review_regressions.py::test_v2_migration_backfills_order_and_cycle_dedup
+9 failed, 1 passed, 2 warnings in 48.02s

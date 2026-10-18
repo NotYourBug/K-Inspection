@@ -1,0 +1,36 @@
+FF                                                                       [100%]
+================================== FAILURES ===================================
+________________ test_release_checks_fail_when_promtool_fails _________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1516/test_release_checks_fail_when_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C0307A1DF0>
+installed_env = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1516/installed-package0/project'), WindowsPath(...wsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1516/installed-package0/artifacts/wheel-build.log'))))
+
+    def test_release_checks_fail_when_promtool_fails(tmp_path,monkeypatch,installed_env):
+        from tools import verify_release as release
+        monkeypatch.setattr(release,'install_package',lambda *a,**kw:installed_env[3])
+        bad=tmp_path/'bad-promtool.py';bad.write_text('print("rejected-rule");raise SystemExit(7)',encoding='utf-8')
+>       result=release.verify_release(Path(__file__).resolve().parents[1],python_executable=Path(sys.executable),
+            output_dir=tmp_path/'release',offline=True,run_source_tests=False,
+            tool_commands={'promtool':[sys.executable,str(bad)]})
+E       TypeError: verify_release() got an unexpected keyword argument 'run_source_tests'
+
+tests\test_release_artifacts.py:15: TypeError
+___ test_missing_mandatory_tools_and_environment_never_mean_release_success ___
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1516/test_missing_mandatory_tools_a0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000001C0307A0D10>
+installed_env = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1516/installed-package0/project'), WindowsPath(...wsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1516/installed-package0/artifacts/wheel-build.log'))))
+
+    def test_missing_mandatory_tools_and_environment_never_mean_release_success(tmp_path,monkeypatch,installed_env):
+        from tools import verify_release as release
+        monkeypatch.setattr(release,'install_package',lambda *a,**kw:installed_env[3])
+>       result=release.verify_release(Path(__file__).resolve().parents[1],python_executable=Path(sys.executable),
+            output_dir=tmp_path/'offline',offline=True,run_source_tests=False)
+E       TypeError: verify_release() got an unexpected keyword argument 'run_source_tests'
+
+tests\test_release_artifacts.py:26: TypeError
+=========================== short test summary info ===========================
+FAILED tests/test_release_artifacts.py::test_release_checks_fail_when_promtool_fails
+FAILED tests/test_release_artifacts.py::test_missing_mandatory_tools_and_environment_never_mean_release_success
+2 failed, 2 deselected in 52.37s

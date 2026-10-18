@@ -1,0 +1,390 @@
+diff --git a/.gitattributes b/.gitattributes
+index 78f4060..7759aa2 100644
+--- a/.gitattributes
++++ b/.gitattributes
+@@ -6,10 +6,18 @@
+ 
+ /审计/2026-10-16-巡检基础验证/** -text
+ /审计/1[678]-* -text
+ 
+ /deploy/base/cronjobs-by-frequency.yaml text eol=lf
+ /deploy/cronjobs-by-frequency.yaml text eol=lf
+ 
+ /Dockerfile text eol=lf
+ 
+ /deploy/storage/pv-nfs.yaml text eol=lf
++
++/审计/2026-10-18-离线发布验证/** -text
++
++/审计/19-* -text
++
++/审计/2[01]-* -text
++
++/pyproject.toml text eol=lf
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a7e775f..81982d4 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -34,35 +34,34 @@ jobs:
+             (cd "$work" && sha256sum --check --ignore-missing checksums)
+             tar -xzf "$work/$archive" -C "$work" "$project-$version.linux-amd64/$executable"
+             install "$work/$project-$version.linux-amd64/$executable" "$HOME/.local/bin/$executable"
+           done
+           archive=kustomize_v5.4.3_linux_amd64.tar.gz
+           curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/$archive" -o "$work/$archive"
+           curl -fsSL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.4.3/checksums.txt" -o "$work/checksums"
+           (cd "$work" && sha256sum --check --ignore-missing checksums)
+           tar -xzf "$work/$archive" -C "$work" kustomize
+           install "$work/kustomize" "$HOME/.local/bin/kustomize"
+-      - name: Source, installed wheel and rendered deployment contracts
+-        run: python -m pytest tests/ -v
+-      - name: Rule syntax and temporal behavior
+-        run: |
+-          promtool check rules deploy/monitoring/generated/inspection-rules.yaml
+-          promtool test rules tests/prometheus/inspection-rules.test.yaml
+-      - name: Build and record candidate
+-        run: |
+-          python -m build
+-          python -m pip freeze > dependency-versions.txt
++      - name: Source, installed wheel, rendered monitoring and both rule suites
++        run: python -m tools.verify_release --offline --local-checks-only --output-dir out/ci-release
++      - name: Record resolved dependencies
++        run: python -m pip freeze > dependency-versions.txt
+       - uses: actions/upload-artifact@v4
+         with:
+           name: wheel-python-${{ matrix.python }}
+           path: |
+-            dist/
++            out/ci-release/*.json
++            out/ci-release/*.log
++            out/ci-release/*.yaml
++            out/ci-release/configs/
++            out/ci-release/package/wheel/
++            out/ci-release/package/*.log
+             dependency-versions.txt
+   container:
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v4
+       - uses: actions/setup-python@v5
+         with:
+           python-version: '3.11'
+       - run: python -m pip install -r requirements.txt
+       - run: docker build -t k8s-inspector:ci .
+diff --git a/AGENTS.md b/AGENTS.md
+index 333ce48..f7561fb 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -115,14 +115,15 @@ deploy/               # Kustomize manifests: RBAC, CronJobs (by frequency), Prom
+ 
+ - C review closure: per-rule Node/control/Pod evaluators isolate siblings; SDK retries disabled in the shared loader; page/rule deadlines rechecked after response/evaluation. API health supports old/new SDK call interfaces. In-cluster requires explicit cluster identity; kubeconfig fallback binds selected source/context/server via hash.
+ - INFO evidence carries healthy utilization and ordinary Event cursors; only WARN/FAIL count as faults. Event deltas require a trustworthy recent baseline/window. Addon shortage requires complete selector membership. UID observations describe seen resources only.
+ - compatibility.py projects v2 evidence to legacy check groups and existing metric selectors, omitting unknown counters; CSV keeps independent rule_id/UID rows. Older positive writes/exports cannot override newer complete healthy evidence.
+ 
+ 
+ ## Offline release preparation (E)
+ 
+ - pyproject.toml is dependency declaration source; requirements.txt installs constrained .[dev]. Direct runtime/tool constraints are not a full transitive lock. Actual Python3.9/3.11/3.14 CI and container results remain required.
+ - tools/verify_release.py builds an installed wheel and records source/tool/config checks. --offline shares preinstalled dependency paths only for source-isolated import smoke, never pulls Docker images and leaves clean install/runtime/storage/receiver acceptance pending; result success is false until every mandatory check passes.
++- CI uses explicit --local-checks-only: exit status requires every local check, including composed monitoring configs and both rule suites; JSON local_checks_success and exit_gate remain distinct from full release success. Missing local checks fail. Dev extra explicitly includes non-isolated build backends.
+ - deploy/ is suspended inspector base only. Explicit overlays/example adds optional Bridge async/monitoring; overlays/shadow isolates namespace, outputs, job and Secret references. The control-plane Role stays in kube-system; namespace changes require matching RBAC.
+ - tools/render_cronjobs.py consumes PROFILES, adds30s deadline margin and explicit Asia/Shanghai (target API support must be verified). Forbid/backoffLimit0; full remains manual. Each scheduled profile uses a separate block-state claim; report storage is separate. Cleanup is dry-run by default.
+ - Dockerfile uses a verified official Python3.11 manifest digest and installs a wheel as nonroot. Building/smoking it, selecting an actual published image digest and validating volumes/CNI/separate real notification destinations remain external gates. No auto-publish or deployment.
+ - tools/rollout.py is a read-only planning guard; it does not inspect actual DB counts or authorize rollback. Preserve outbox/observation state and compatible schema. See rollout.md, operations.md and report-retention.md.
+diff --git a/README.md b/README.md
+index cce1891..3a49482 100644
+--- a/README.md
++++ b/README.md
+@@ -362,13 +362,15 @@ Local kubeconfig runs derive a stable connection-bound fallback identity; produc
+ python -m pip install -r requirements.txt
+ python -m tools.render_cronjobs --output deploy/base/cronjobs-by-frequency.yaml
+ python -m tools.verify_release --offline --output-dir ./out/release-check
+ kustomize build deploy
+ kustomize build deploy/overlays/example
+ kustomize build deploy/overlays/shadow
+ ```
+ 
+ The verifier writes per-check evidence and returns1 while any mandatory check is failed/pending; offline mode never pulls/builds Docker images and explicitly records shared dependency bootstrap. `.github/workflows/ci.yml` is a prepared GitHub example, not a run CI result. No package/image is automatically published.
+ 
++CI adds `--local-checks-only` to use the mandatory local outcomes as its exit gate, including composed Prometheus/Alertmanager configs and both inspection/Bridge rule suites. The resulting JSON separates `local_checks_success` from full `success`, which remains false while external release acceptance is pending. The default command above keeps the full release gate.
++
+ The default `deploy` now contains only suspended inspector jobs/RBAC/storage. The full example and namespace-isolated shadow monitoring/async Bridge are explicit overlays. Configure actual image digest/StorageClasses/Secrets/cluster identity and complete real release gates before unsuspending. Report storage and four per-profile state claims are separate; cleanup defaults to dry-run. Legacy root YAML files are historical standalone examples and are not the canonical deployment entry point.
+ 
+ See [rollout/rollback](docs/runbooks/rollout.md), [retention/scheduling](docs/runbooks/report-retention.md) and [operations/ownership](docs/runbooks/operations.md). Real environment acceptance remains pending; ordinary alert delivery continues to existing fixed groups. D/F features are outside this preparation.
+diff --git a/docs/runbooks/rollout.md b/docs/runbooks/rollout.md
+index 9574959..aee15f8 100644
+--- a/docs/runbooks/rollout.md
++++ b/docs/runbooks/rollout.md
+@@ -1,18 +1,20 @@
+ # Controlled shadow rollout and rollback
+ 
+ Current authorization: offline preparation only. No kubectl apply, real Feishu sends, failure injection or production switching has been performed. A site owner must review a concrete candidate and authorize the actual test environment before any of those steps.
+ 
+ ## Prepare the candidate locally
+ 
+ 1. Run source tests, build/install the wheel outside source, render base/example/shadow and run promtool/amtool. `python -m tools.verify_release --offline --output-dir ./out/release-check` writes individual outcomes and artifacts; exit1 is expected while clean dependency installation, selected pins, Docker/runtime matrix or external acceptance is pending. Reuse requires a new output directory. Do not relabel an offline failure/pending report as release-ready.
+ 2. CI is an unexecuted GitHub example until a repository/runner exists. It uses Python3.9/3.11/3.14, selected direct/tool constraints, real Kustomize/rule binaries and a separate Docker smoke job. The local Windows3.12 run does not establish that matrix. Save actual resolved versions; the constraints are not a full transitive lock.
++
++   CI uses `--offline --local-checks-only` to require wheel/install/imports, the complete source suite, all three renders, composed Prometheus/Alertmanager configs and both inspection/Bridge rule suites. This explicit flag changes only the process exit gate: JSON still reports full `success=false` while external checks are pending, with a separate `local_checks_success` and `exit_gate=local`. Omitting the flag retains the full release gate and expected exit1. Missing local outcomes fail either local evaluation or release evaluation.
+ 3. Build the nonroot image from the verified pinned official Python3.11 base manifest. Record local image metadata; a local image ID is not a published registry digest. After a separately authorized push, pin the actual deployment image digest in a site overlay. Example image tags and StorageClass names remain placeholders.
+ 4. Render with `kustomize build deploy/overlays/shadow`. Review exact resources, ConfigMaps, Secret references, storage bindings and diffs. The shadow namespace is k8s-inspector-shadow; report root /data/shadow, Pushgateway job k8s-inspector-shadow, per-profile state PVCs and Bridge state PVC are namespace-isolated. Control-plane Role/RoleBinding stay in kube-system with shadow-prefixed names and shadow ServiceAccount subjects. Changing control_plane_namespace requires matching site RBAC patches.
+ 
+ The shadow overlay starts suspended. Its example monitoring scrapes its own Pushgateway and inventory, and keeps the legacy rules alongside new rules labelled shadow=true. The shadow-null route discards every new shadow notification while preserving authenticated legacy delivery into a dedicated test destination. This prevents new/old business rules from both notifying. Operators must independently verify the resolved chat IDs differ: distinct Secret names prove configuration isolation, not actual provider destination identity.
+ 
+ ## Site inputs and authorization
+ 
+ Supply target Kubernetes version (timeZone support), actual image digest, cluster_id, workload/control namespaces, managed-control-plane capabilities, node/Pod scale, report RWX and per-profile/Bridge verified local/block StorageClasses, CNI/API/DNS/proxy/Feishu egress requirements, Alertmanager source Secret and a dedicated test Feishu Secret. Never post credentials to logs. The base ingress policy assumes monitoring Pods in the same namespace; cross-namespace existing monitoring needs a reviewed policy. Egress is intentionally site-specific and remains a release gate.
+ 
+ Do not treat ReadWriteOnce as proof of suitable SQLite storage. Verify actual CSI/PV filesystem, permissions/nonroot, lock exclusivity, Pod replacement, node/volume interruption, backup and restoration using disposable state. Prometheus/Alertmanager example data use separate persistent claims; the45-day Prometheus sample retention still needs actual capacity, persistence and restart validation. Their availability and the independent receiver remain separate acceptance items.
+diff --git a/pyproject.toml b/pyproject.toml
+index 711e17b..842e9ba 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,26 +1,26 @@
+-[build-system]
+-requires = ["setuptools>=68,<85", "wheel>=0.45,<0.49"]
+-build-backend = "setuptools.build_meta"
+-
+-[project]
+-name = "k8s-inspector"
+-version = "0.1.0"
+-description = "Kubernetes cluster inspection tool for SRE"
+-readme = "README.md"
+-requires-python = ">=3.9"
+-dependencies = [
+-  "kubernetes>=29.0.0,<38",
+-  "PyYAML>=6.0.1,<7",
+-  "prometheus-client>=0.20.0,<1",
+-  "lark-oapi==1.7.5",
+-]
+-
+-[project.scripts]
+-k8s-inspector = "k8s_inspector.cli:main"
+-
+-[project.optional-dependencies]
+-dev = ["build>=1.2,<2", "pytest>=8.4,<10", "tomli>=2; python_version<'3.11'"]
+-
+-[tool.setuptools.packages.find]
+-include = ["k8s_inspector", "k8s_inspector.*"]
+-namespaces = false
++[build-system]
++requires = ["setuptools>=68,<85", "wheel>=0.45,<0.49"]
++build-backend = "setuptools.build_meta"
++
++[project]
++name = "k8s-inspector"
++version = "0.1.0"
++description = "Kubernetes cluster inspection tool for SRE"
++readme = "README.md"
++requires-python = ">=3.9"
++dependencies = [
++  "kubernetes>=29.0.0,<38",
++  "PyYAML>=6.0.1,<7",
++  "prometheus-client>=0.20.0,<1",
++  "lark-oapi==1.7.5",
++]
++
++[project.scripts]
++k8s-inspector = "k8s_inspector.cli:main"
++
++[project.optional-dependencies]
++dev = ["build>=1.2,<2", "setuptools>=68,<85", "wheel>=0.45,<0.49", "pytest>=8.4,<10", "tomli>=2; python_version<'3.11'"]
++
++[tool.setuptools.packages.find]
++include = ["k8s_inspector", "k8s_inspector.*"]
++namespaces = false
+diff --git a/tests/test_release_gates.py b/tests/test_release_gates.py
+new file mode 100644
+index 0000000..e65cafe
+--- /dev/null
++++ b/tests/test_release_gates.py
+@@ -0,0 +1,99 @@
++"""Release gates must catch missing bootstrap tools and broken shipped configs."""
++from dataclasses import replace
++from pathlib import Path
++import json
++import shutil
++import sys
++
++import build
++from packaging.requirements import Requirement
++import pytest
++import yaml
++
++from tests.test_installed_package import installed_env
++
++
++ROOT = Path(__file__).resolve().parents[1]
++
++
++def test_dev_bootstrap_requests_every_nonisolated_build_backend():
++    try:
++        import tomllib
++    except ImportError:
++        import tomli as tomllib
++    config = tomllib.loads((ROOT / 'pyproject.toml').read_text(encoding='utf-8'))
++    requested = {Requirement(item).name.lower() for item in
++                 config['project']['dependencies'] + config['project']['optional-dependencies']['dev']}
++    required = {Requirement(item).name.lower() for item in build.ProjectBuilder(ROOT).build_system_requires}
++    assert required <= requested, f'Non-isolated build tools missing from bootstrap: {required - requested}'
++
++
++@pytest.fixture
++def release_project(tmp_path, monkeypatch, installed_env):
++    from tools import verify_release as release
++    project = tmp_path / 'project'
++    project.mkdir()
++    for folder in ('deploy', 'constraints', 'tests/prometheus'):
++        shutil.copytree(ROOT / folder, project / folder)
++    for name in ('pyproject.toml', 'Dockerfile'):
++        shutil.copyfile(ROOT / name, project / name)
++    monkeypatch.setattr(release, 'install_package', lambda *a, **kw: installed_env[3])
++    commands = {name: release._tool(ROOT, name, {}) for name in ('kustomize', 'promtool', 'amtool')}
++    assert all(commands.values()), 'Actual validation tools are required'
++    return project, commands
++
++
++def validation_result(release_project, output):
++    from tools import verify_release as release
++    project, commands = release_project
++    result = release.verify_release(project, python_executable=Path(sys.executable), output_dir=output,
++                                    offline=True, run_source_tests=False, tool_commands=commands)
++    # This fixture tests config gates, not source-suite execution; package evidence
++    # is real and source suite is run independently by the outer pytest process.
++    checks = dict(result.checks)
++    checks['source_tests'] = release.CheckOutcome(True, 'Outer pytest process')
++    return replace(result, checks=checks)
++
++
++def test_local_ci_gate_rejects_invalid_composed_alertmanager(release_project, tmp_path):
++    from tools import verify_release as release
++    good = validation_result(release_project, tmp_path / 'good')
++    assert release.local_checks_success(good), {k: v.detail for k, v in good.checks.items() if not v.success}
++    project, _ = release_project
++    path = project / 'deploy/overlays/shadow/am-shadow.yaml'
++    config = yaml.safe_load(path.read_text(encoding='utf-8'))
++    content = yaml.safe_load(config['data']['alertmanager.yml'])
++    content['route']['group_wait'] = 'invalid-duration'
++    config['data']['alertmanager.yml'] = yaml.safe_dump(content)
++    path.write_text(yaml.safe_dump(config), encoding='utf-8')
++    bad = validation_result(release_project, tmp_path / 'bad')
++    assert not bad.checks['amtool'].success
++    assert not release.local_checks_success(bad)
++
++
++def test_bridge_temporal_fixture_failure_blocks_local_ci_gate(release_project, tmp_path):
++    from tools import verify_release as release
++    project, _ = release_project
++    fixture = project / 'tests/prometheus/bridge-rules.test.yml'
++    fixture.write_text('invalid: [', encoding='utf-8')
++    result = validation_result(release_project, tmp_path / 'broken-bridge')
++    assert not result.checks['promtool'].success, 'Bridge fixture must be executed, not omitted'
++    assert not release.local_checks_success(result)
++    assert (tmp_path / 'broken-bridge/bridge-rules-check.log').is_file()
++    assert (tmp_path / 'broken-bridge/bridge-rules-test.log').is_file()
++
++
++def test_local_exit_gate_keeps_release_pending_and_fails_missing_checks(tmp_path, monkeypatch):
++    from tools import verify_release as release
++    checks = {name: release.CheckOutcome(True, 'verified') for name in release.LOCAL_REQUIRED_CHECKS}
++    checks['environment_acceptance'] = release.CheckOutcome(False, 'PENDING')
++    result = release.VerificationResult(False, checks, ())
++    monkeypatch.setattr(release, 'verify_release', lambda *a, **kw: result)
++    assert release.main(['--offline', '--local-checks-only', '--output-dir', str(tmp_path)]) == 0
++    evidence = json.loads((tmp_path / 'verification.json').read_text(encoding='utf-8'))
++    assert evidence['success'] is False
++    assert evidence['local_checks_success'] is True
++    assert evidence['exit_gate'] == 'local'
++    assert release.main(['--offline', '--output-dir', str(tmp_path)]) == 1
++    del checks['amtool']
++    assert release.main(['--offline', '--local-checks-only', '--output-dir', str(tmp_path)]) == 1
+diff --git a/tools/verify_release.py b/tools/verify_release.py
+index b8fcf22..0438935 100644
+--- a/tools/verify_release.py
++++ b/tools/verify_release.py
+@@ -18,20 +18,33 @@ class CheckOutcome:
+     detail: str
+ 
+ 
+ @dataclass(frozen=True)
+ class VerificationResult:
+     success: bool
+     checks: dict[str, CheckOutcome]
+     artifacts: tuple[Path, ...]
+ 
+ 
++LOCAL_REQUIRED_CHECKS = (
++    'wheel', 'venv', 'install', 'imports', 'source_tests',
++    'kustomize_base', 'kustomize_example', 'kustomize_shadow',
++    'kustomize', 'promtool', 'amtool', 'runtime_metadata', 'selected_constraints',
++)
++
++
++def local_checks_success(result: VerificationResult) -> bool:
++    """Local CI evidence only; this never approves external release acceptance."""
++    return all(result.checks.get(name, CheckOutcome(False, 'Missing')).success
++               for name in LOCAL_REQUIRED_CHECKS)
++
++
+ def _command(command, *, cwd, log, timeout=180):
+     try:
+         result=subprocess.run([str(x) for x in command],cwd=cwd,capture_output=True,text=True,
+                               encoding='utf-8',errors='replace',timeout=timeout)
+         log.write_text(result.stdout+'\n'+result.stderr,encoding='utf-8')
+         return CheckOutcome(result.returncode==0,f'exit={result.returncode}; evidence={log.name}')
+     except (OSError,subprocess.TimeoutExpired) as exc:
+         log.write_text(type(exc).__name__,encoding='utf-8')
+         return CheckOutcome(False,f'{type(exc).__name__}; evidence={log.name}')
+ 
+@@ -144,20 +157,22 @@ def verify_release(project_dir: Path, *, python_executable: Path, output_dir: Pa
+                             auth=webhook.get('http_config',{}).get('authorization',{})
+                             if 'credentials_file' in auth:
+                                 token=configs/'validation-token';token.write_text('validation-only-not-a-real-token',encoding='utf-8')
+                                 auth['credentials_file']=str(token)
+                     file=configs/(name+'-alertmanager.yml');file.write_text(yaml.safe_dump(config),encoding='utf-8')
+                     if amtool:
+                         am_checks.append(_command(amtool+['check-config',str(file)],cwd=project,log=output/(name+'-amconfig.log')))
+     if promtool:
+         prom_checks.append(_command(promtool+['check','rules',str(project/'deploy/monitoring/generated/inspection-rules.yaml')],cwd=project,log=output/'rules-check.log'))
+         prom_checks.append(_command(promtool+['test','rules',str(project/'tests/prometheus/inspection-rules.test.yaml')],cwd=project,log=output/'rules-test.log'))
++        prom_checks.append(_command(promtool+['check','rules',str(project/'deploy/monitoring/bridge-rules.yaml')],cwd=project,log=output/'bridge-rules-check.log'))
++        prom_checks.append(_command(promtool+['test','rules',str(project/'tests/prometheus/bridge-rules.test.yml')],cwd=project,log=output/'bridge-rules-test.log'))
+     checks['promtool']=CheckOutcome(bool(prom_checks) and all(c.success for c in prom_checks),
+         '; '.join(c.detail for c in prom_checks) if prom_checks else 'PENDING: promtool unavailable')
+     checks['amtool']=CheckOutcome(bool(am_checks) and all(c.success for c in am_checks),
+         '; '.join(c.detail for c in am_checks) if am_checks else 'PENDING: amtool/config unavailable')
+     if not offline and shutil.which('docker'):
+         image='k8s-inspector-verify:'+uuid.uuid4().hex
+         build=_command(['docker','build','-t',image,str(project)],cwd=project,log=output/'docker-build.log',timeout=1200)
+         smoke=[build]
+         if build.success:
+             for module in ('cli','alertmanager_bridge'):
+@@ -203,21 +218,26 @@ def verify_release(project_dir: Path, *, python_executable: Path, output_dir: Pa
+     artifacts.extend([manifest,*output.glob('*.log')])
+     return VerificationResult(all(c.success for c in checks.values()),checks,tuple(artifacts))
+ 
+ 
+ def main(argv=None):
+     parser=argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--project-dir',type=Path,default=Path.cwd())
+     parser.add_argument('--python',type=Path,default=Path(sys.executable))
+     parser.add_argument('--output-dir',type=Path,required=True)
+     parser.add_argument('--offline',action='store_true')
++    parser.add_argument('--local-checks-only',action='store_true',
++                        help='Exit on mandatory local CI checks only; release acceptance stays pending in JSON')
+     args=parser.parse_args(argv)
+     result=verify_release(args.project_dir,python_executable=args.python,output_dir=args.output_dir,offline=args.offline)
+-    data={'success':result.success,'checks':{k:vars(v) for k,v in result.checks.items()},
++    local_success=local_checks_success(result)
++    data={'success':result.success,'local_checks_success':local_success,
++          'exit_gate':'local' if args.local_checks_only else 'release',
++          'checks':{k:vars(v) for k,v in result.checks.items()},
+           'artifacts':[str(p) for p in result.artifacts]}
+     (args.output_dir/'verification.json').write_text(json.dumps(data,indent=2),encoding='utf-8')
+     print(json.dumps(data,indent=2))
+-    return 0 if result.success else 1
++    return 0 if (local_success if args.local_checks_only else result.success) else 1
+ 
+ 
+ if __name__=='__main__':
+     raise SystemExit(main())

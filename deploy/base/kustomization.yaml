@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- rbac.yaml
+- storage.yaml
+- cronjobs-by-frequency.yaml
+- cleanup-cronjob.yaml
+configMapGenerator:
+- name: k8s-inspector-runtime
+  namespace: kube-system
+  literals:
+  - INSPECTOR_CLUSTER=replace-with-cluster-id
+  - INSPECTOR_EXIT_MODE=always0
+  - PUSHGATEWAY_URL=
+  - PUSHGATEWAY_JOB=k8s-inspector

@@ -1,0 +1,56 @@
+usage: k8s-inspector run [-h] [--kubeconfig KUBECONFIG] [--context CONTEXT]
+                         [--in-cluster] [--config CONFIG] [--cluster CLUSTER]
+                         [--profile {5m,10m,hourly,daily,full}]
+                         [--state-dir STATE_DIR] [--output-dir OUTPUT_DIR]
+                         [--output-policy {best-effort,strict}]
+                         [--formats FORMATS]
+                         [--persist-level {all,issue,none}]
+                         [--archive {none,hourly,daily}]
+                         [--fail-on {fail,warn}]
+                         [--feishu-webhook FEISHU_WEBHOOK]
+                         [--pushgateway-url PUSHGATEWAY_URL]
+                         [--pushgateway-job PUSHGATEWAY_JOB]
+                         [--pushgateway-timeout PUSHGATEWAY_TIMEOUT]
+                         [--exit-mode {strict,always0}]
+
+options:
+  -h, --help            show this help message and exit
+  --kubeconfig KUBECONFIG
+  --context CONTEXT
+  --in-cluster
+  --config CONFIG       JSON/YAML config file path (optional)
+  --cluster CLUSTER     Cluster identifier (priority over INSPECTOR_CLUSTER
+                        env var)
+  --profile {5m,10m,hourly,daily,full}
+                        Execution frequency preset
+  --state-dir STATE_DIR
+                        Persistent observation state root (or
+                        INSPECTOR_STATE_DIR)
+  --output-dir OUTPUT_DIR
+  --output-policy {best-effort,strict}
+                        strict returns 1 if any configured output fails
+  --formats FORMATS     Output formats, comma-separated: json,csv,html
+  --persist-level {all,issue,none}
+                        Extra output/archive policy; canonical latest JSON is
+                        always refreshed
+  --archive {none,hourly,daily}
+                        Archive mode: none=flat; hourly/daily=subdirectory by
+                        time
+  --fail-on {fail,warn}
+                        Exit code policy: fail=non-zero only on FAIL;
+                        warn=non-zero on WARN or FAIL
+  --feishu-webhook FEISHU_WEBHOOK
+                        Feishu bot webhook URL (also settable via
+                        FEISHU_WEBHOOK env var)
+  --pushgateway-url PUSHGATEWAY_URL
+                        Pushgateway URL (also settable via PUSHGATEWAY_URL env
+                        var)
+  --pushgateway-job PUSHGATEWAY_JOB
+                        Pushgateway job name (also settable via
+                        PUSHGATEWAY_JOB, default k8s-inspector)
+  --pushgateway-timeout PUSHGATEWAY_TIMEOUT
+                        Pushgateway push timeout in seconds (default 5)
+  --exit-mode {strict,always0}
+                        Exit code mode: strict=normal 0/1/2; always0=always
+                        exit 0 (for Prometheus alerts)
+

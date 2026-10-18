@@ -1,0 +1,60 @@
+FF.FF                                                                    [100%]
+================================== FAILURES ===================================
+__________________ test_job_deadline_matches_runner_catalog ___________________
+
+jobs = [{'apiVersion': 'batch/v1', 'kind': 'CronJob', 'metadata': {'name': 'k8s-inspector-cleanup', 'namespace': 'kube-system...yPolicy': 'Forbid', 'jobTemplate': {'spec': {'template': {'spec': {...}}}}, 'schedule': '0 * * * *', 'suspend': True}}]
+
+    def test_job_deadline_matches_runner_catalog(jobs):
+        observed={}
+        for job in jobs:
+            if 'cleanup' in job['metadata']['name']: continue
+            c=job['spec']['jobTemplate']['spec']['template']['spec']['containers'][0]
+            profile=c['args'][c['args'].index('--profile')+1]
+            observed[profile]=job['spec']['jobTemplate']['spec'].get('activeDeadlineSeconds')
+>       assert observed=={'5m':270,'10m':510,'hourly':930,'daily':1830}
+E       AssertionError: assert {'10m': None,...hourly': None} == {'5m': 270, '...'daily': 1830}
+E         
+E         Differing items:
+E         {'5m': None} != {'5m': 270}
+E         {'daily': None} != {'daily': 1830}
+E         {'hourly': None} != {'hourly': 930}
+E         {'10m': None} != {'10m': 510}
+E         Use -v to get more diff
+
+tests\test_scheduling_contract.py:20: AssertionError
+__________ test_schedules_have_explicit_timezone_and_no_job_retries ___________
+
+jobs = [{'apiVersion': 'batch/v1', 'kind': 'CronJob', 'metadata': {'name': 'k8s-inspector-cleanup', 'namespace': 'kube-system...yPolicy': 'Forbid', 'jobTemplate': {'spec': {'template': {'spec': {...}}}}, 'schedule': '0 * * * *', 'suspend': True}}]
+
+    def test_schedules_have_explicit_timezone_and_no_job_retries(jobs):
+        for job in jobs:
+>           assert job['spec'].get('timeZone')=='Asia/Shanghai'
+E           AssertionError: assert None == 'Asia/Shanghai'
+E            +  where None = <built-in method get of dict object at 0x00000243DD781980>('timeZone')
+E            +    where <built-in method get of dict object at 0x00000243DD781980> = {'concurrencyPolicy': 'Forbid', 'jobTemplate': {'spec': {'template': {'spec': {'automountServiceAccountToken': False, ...runAsGroup': 10001, 'runAsNonRoot': True, 'runAsUser': 10001, ...}, ...}}}}, 'schedule': '30 3 * * *', 'suspend': True}.get
+
+tests\test_scheduling_contract.py:25: AssertionError
+__________ test_generator_uses_supplied_catalog_and_rejects_overlap ___________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1514/test_generator_uses_supplied_c0')
+
+    def test_generator_uses_supplied_catalog_and_rejects_overlap(tmp_path):
+>       from tools.render_cronjobs import render_cronjobs
+E       ModuleNotFoundError: No module named 'tools.render_cronjobs'
+
+tests\test_scheduling_contract.py:41: ModuleNotFoundError
+________________ test_committed_jobs_match_catalog_generation _________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1514/test_committed_jobs_match_cata0')
+
+    def test_committed_jobs_match_catalog_generation(tmp_path):
+>       from tools.render_cronjobs import render_cronjobs
+E       ModuleNotFoundError: No module named 'tools.render_cronjobs'
+
+tests\test_scheduling_contract.py:50: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_scheduling_contract.py::test_job_deadline_matches_runner_catalog
+FAILED tests/test_scheduling_contract.py::test_schedules_have_explicit_timezone_and_no_job_retries
+FAILED tests/test_scheduling_contract.py::test_generator_uses_supplied_catalog_and_rejects_overlap
+FAILED tests/test_scheduling_contract.py::test_committed_jobs_match_catalog_generation
+4 failed, 1 passed in 9.24s

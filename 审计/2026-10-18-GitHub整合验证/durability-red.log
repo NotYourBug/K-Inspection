@@ -1,0 +1,156 @@
+FFFFFs                                                                   [100%]
+================================== FAILURES ===================================
+_________ test_posix_publication_syncs_file_then_replace_then_parent __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1536/test_posix_publication_syncs_f0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002DC6AA7F2F0>
+
+    def test_posix_publication_syncs_file_then_replace_then_parent(tmp_path, monkeypatch):
+        from k8s_inspector import report as reports
+        path = tmp_path / 'state.json'
+        events = []
+        real_fsync, real_replace = os.fsync, os.replace
+    
+        def sync_file(fd):
+            events.append('file')
+            real_fsync(fd)
+    
+        def replace(source, destination):
+            events.append('replace')
+            real_replace(source, destination)
+    
+        def sync_directory(directory):
+            assert directory == path.parent
+            assert path.read_text(encoding='utf-8') == 'new fault'
+            events.append('directory')
+    
+        monkeypatch.setattr(reports, '_WINDOWS', False, raising=False)
+        monkeypatch.setattr(os, 'fsync', sync_file)
+        monkeypatch.setattr(os, 'replace', replace)
+        monkeypatch.setattr(reports, '_sync_directory', sync_directory, raising=False)
+        reports.atomic_write_text(path, 'new fault')
+>       assert events == ['file', 'replace', 'directory']
+E       AssertionError: assert ['file', 'replace'] == ['file', 'rep..., 'directory']
+E         
+E         Right contains one more item: 'directory'
+E         Use -v to get more diff
+
+tests\test_github_review_regressions.py:88: AssertionError
+_________________ test_new_state_directory_entries_are_synced _________________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1536/test_new_state_directory_entri0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002DC6AA7E720>
+
+    def test_new_state_directory_entries_are_synced(tmp_path, monkeypatch):
+        from k8s_inspector import report as reports
+        from k8s_inspector.observation_state import profile_run_lock
+        synced = []
+        monkeypatch.setattr(reports, '_WINDOWS', False, raising=False)
+        monkeypatch.setattr(reports, '_sync_directory', synced.append, raising=False)
+        directory = tmp_path / 'new' / 'profile'
+        with profile_run_lock(directory):
+            reports.atomic_write_text(directory / 'state.json', 'fault')
+>       assert synced == [tmp_path, tmp_path / 'new', directory]
+E       AssertionError: assert [] == [WindowsPath(...new/profile')]
+E         
+E         Right contains 3 more items, first extra item: WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1536/test_new_state_directory_entri0')
+E         Use -v to get more diff
+
+tests\test_github_review_regressions.py:100: AssertionError
+_________ test_directory_sync_failure_is_required_state_sink_failure __________
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1536/test_directory_sync_failure_is0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002DC6AC105C0>
+
+    def test_directory_sync_failure_is_required_state_sink_failure(tmp_path, monkeypatch):
+        from k8s_inspector import report as reports
+        from k8s_inspector.observation_state import ObservationStateStore
+        from k8s_inspector.sinks import run_sinks, execution_success
+        from tests.test_report_v2 import report
+    
+        def fail(directory):
+            raise OSError('directory sync failed')
+    
+        monkeypatch.setattr(reports, '_WINDOWS', False, raising=False)
+        monkeypatch.setattr(reports, '_sync_directory', fail, raising=False)
+        store = ObservationStateStore(tmp_path / 'state.json')
+        value = report()
+        outcomes = run_sinks({'observation_state': lambda: store.update(value)}, frozenset({'observation_state'}))
+>       assert not outcomes[0].success and outcomes[0].error_kind == 'OSError'
+E       AssertionError: assert (not True)
+E        +  where True = SinkResult(name='observation_state', success=True, required=True, error_kind=None, detail=None).success
+
+tests\test_github_review_regressions.py:117: AssertionError
+_ test_windows_replacement_requests_write_through_and_propagates_errors[True] _
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1536/test_windows_replacement_reque0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002DC6AC11D30>
+succeeds = True
+
+    @pytest.mark.parametrize('succeeds', [True, False])
+    def test_windows_replacement_requests_write_through_and_propagates_errors(tmp_path, monkeypatch, succeeds):
+        from k8s_inspector import report as reports
+        path = tmp_path / 'state.json'
+        path.write_text('old', encoding='utf-8')
+        calls = []
+    
+        def move(source, destination, flags):
+            calls.append(flags)
+            if succeeds:
+                os.replace(source, destination)
+            return int(succeeds)
+    
+        monkeypatch.setattr(reports, '_WINDOWS', True, raising=False)
+        monkeypatch.setattr(ctypes, 'WinDLL', lambda *a, **kw: NS(MoveFileExW=move), raising=False)
+        monkeypatch.setattr(ctypes, 'get_last_error', lambda: 5, raising=False)
+        monkeypatch.setattr(ctypes, 'WinError', lambda code: OSError(code, 'move failed'), raising=False)
+        if succeeds:
+            reports.atomic_write_text(path, 'new')
+        else:
+            with pytest.raises(OSError):
+                reports.atomic_write_text(path, 'new')
+>       assert calls == [0x1 | 0x8]
+E       assert [] == [9]
+E         
+E         Right contains one more item: 9
+E         Use -v to get more diff
+
+tests\test_github_review_regressions.py:144: AssertionError
+_ test_windows_replacement_requests_write_through_and_propagates_errors[False] _
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1536/test_windows_replacement_reque1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002DC6AA7E900>
+succeeds = False
+
+    @pytest.mark.parametrize('succeeds', [True, False])
+    def test_windows_replacement_requests_write_through_and_propagates_errors(tmp_path, monkeypatch, succeeds):
+        from k8s_inspector import report as reports
+        path = tmp_path / 'state.json'
+        path.write_text('old', encoding='utf-8')
+        calls = []
+    
+        def move(source, destination, flags):
+            calls.append(flags)
+            if succeeds:
+                os.replace(source, destination)
+            return int(succeeds)
+    
+        monkeypatch.setattr(reports, '_WINDOWS', True, raising=False)
+        monkeypatch.setattr(ctypes, 'WinDLL', lambda *a, **kw: NS(MoveFileExW=move), raising=False)
+        monkeypatch.setattr(ctypes, 'get_last_error', lambda: 5, raising=False)
+        monkeypatch.setattr(ctypes, 'WinError', lambda code: OSError(code, 'move failed'), raising=False)
+        if succeeds:
+            reports.atomic_write_text(path, 'new')
+        else:
+>           with pytest.raises(OSError):
+                 ^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE OSError
+
+tests\test_github_review_regressions.py:142: Failed
+=========================== short test summary info ===========================
+FAILED tests/test_github_review_regressions.py::test_posix_publication_syncs_file_then_replace_then_parent
+FAILED tests/test_github_review_regressions.py::test_new_state_directory_entries_are_synced
+FAILED tests/test_github_review_regressions.py::test_directory_sync_failure_is_required_state_sink_failure
+FAILED tests/test_github_review_regressions.py::test_windows_replacement_requests_write_through_and_propagates_errors[True]
+FAILED tests/test_github_review_regressions.py::test_windows_replacement_requests_write_through_and_propagates_errors[False]
+5 failed, 1 skipped, 6 deselected in 2.33s

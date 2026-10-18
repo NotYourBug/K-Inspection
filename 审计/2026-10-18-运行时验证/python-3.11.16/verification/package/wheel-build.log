@@ -1,0 +1,123 @@
+running egg_info
+writing k8s_inspector.egg-info\PKG-INFO
+writing dependency_links to k8s_inspector.egg-info\dependency_links.txt
+writing entry points to k8s_inspector.egg-info\entry_points.txt
+writing requirements to k8s_inspector.egg-info\requires.txt
+writing top-level names to k8s_inspector.egg-info\top_level.txt
+reading manifest file 'k8s_inspector.egg-info\SOURCES.txt'
+writing manifest file 'k8s_inspector.egg-info\SOURCES.txt'
+running bdist_wheel
+running build
+running build_py
+running egg_info
+writing k8s_inspector.egg-info\PKG-INFO
+writing dependency_links to k8s_inspector.egg-info\dependency_links.txt
+writing entry points to k8s_inspector.egg-info\entry_points.txt
+writing requirements to k8s_inspector.egg-info\requires.txt
+writing top-level names to k8s_inspector.egg-info\top_level.txt
+reading manifest file 'k8s_inspector.egg-info\SOURCES.txt'
+writing manifest file 'k8s_inspector.egg-info\SOURCES.txt'
+installing to build\bdist.win-amd64\wheel
+running install
+running install_lib
+creating build\bdist.win-amd64\wheel
+creating build\bdist.win-amd64\wheel\k8s_inspector
+copying build\lib\k8s_inspector\alertmanager_bridge.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\alert_routing.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\bridge_admin.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\bridge_auth.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\bridge_observability.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\bridge_store.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\checks.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\cli.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\collector.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\common.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\compatibility.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\config.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\delivery_adapter.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\delivery_identity.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\delivery_models.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\delivery_worker.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\expected_targets.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\feishu_app.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\kube.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\mcp_server.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\metrics.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\models.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\notify.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\observation_models.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\observation_state.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\profiles.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\provider_error.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\report.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rules_control.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rules_events.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rules_nodes.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rules_pods.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rules_storage.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rule_catalog.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\rule_evaluation.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\runner.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\sinks.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\snapshot.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\state_store.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+copying build\lib\k8s_inspector\__init__.py -> build\bdist.win-amd64\wheel\.\k8s_inspector
+running install_egg_info
+Copying k8s_inspector.egg-info to build\bdist.win-amd64\wheel\.\k8s_inspector-0.1.0-py3.11.egg-info
+running install_scripts
+creating build\bdist.win-amd64\wheel\k8s_inspector-0.1.0.dist-info\WHEEL
+creating 'C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\out\\ra\\w31116\\package\\wheel\\.tmp-sqntx6ts\\k8s_inspector-0.1.0-py3-none-any.whl' and adding 'build\\bdist.win-amd64\\wheel' to it
+adding 'k8s_inspector/__init__.py'
+adding 'k8s_inspector/alert_routing.py'
+adding 'k8s_inspector/alertmanager_bridge.py'
+adding 'k8s_inspector/bridge_admin.py'
+adding 'k8s_inspector/bridge_auth.py'
+adding 'k8s_inspector/bridge_observability.py'
+adding 'k8s_inspector/bridge_store.py'
+adding 'k8s_inspector/checks.py'
+adding 'k8s_inspector/cli.py'
+adding 'k8s_inspector/collector.py'
+adding 'k8s_inspector/common.py'
+adding 'k8s_inspector/compatibility.py'
+adding 'k8s_inspector/config.py'
+adding 'k8s_inspector/delivery_adapter.py'
+adding 'k8s_inspector/delivery_identity.py'
+adding 'k8s_inspector/delivery_models.py'
+adding 'k8s_inspector/delivery_worker.py'
+adding 'k8s_inspector/expected_targets.py'
+adding 'k8s_inspector/feishu_app.py'
+adding 'k8s_inspector/kube.py'
+adding 'k8s_inspector/mcp_server.py'
+adding 'k8s_inspector/metrics.py'
+adding 'k8s_inspector/models.py'
+adding 'k8s_inspector/notify.py'
+adding 'k8s_inspector/observation_models.py'
+adding 'k8s_inspector/observation_state.py'
+adding 'k8s_inspector/profiles.py'
+adding 'k8s_inspector/provider_error.py'
+adding 'k8s_inspector/report.py'
+adding 'k8s_inspector/rule_catalog.py'
+adding 'k8s_inspector/rule_evaluation.py'
+adding 'k8s_inspector/rules_control.py'
+adding 'k8s_inspector/rules_events.py'
+adding 'k8s_inspector/rules_nodes.py'
+adding 'k8s_inspector/rules_pods.py'
+adding 'k8s_inspector/rules_storage.py'
+adding 'k8s_inspector/runner.py'
+adding 'k8s_inspector/sinks.py'
+adding 'k8s_inspector/snapshot.py'
+adding 'k8s_inspector/state_store.py'
+adding 'k8s_inspector-0.1.0.dist-info/METADATA'
+adding 'k8s_inspector-0.1.0.dist-info/WHEEL'
+adding 'k8s_inspector-0.1.0.dist-info/entry_points.txt'
+adding 'k8s_inspector-0.1.0.dist-info/top_level.txt'
+adding 'k8s_inspector-0.1.0.dist-info/RECORD'
+removing build\bdist.win-amd64\wheel
+Successfully built k8s_inspector-0.1.0-py3-none-any.whl
+
+* Getting build dependencies for wheel...
+* Building wheel...
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+

@@ -1,0 +1,8 @@
+Checking 'deploy/monitoring/generated/alertmanager-snippet.yaml'  SUCCESS
+Found:
+ - global config
+ - route
+ - 0 inhibit rules
+ - 2 receivers
+ - 0 templates
+

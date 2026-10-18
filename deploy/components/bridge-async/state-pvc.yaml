@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: k8s-inspector-bridge-state
+  namespace: kube-system
+  labels:
+    inspector.storage: state
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  storageClassName: validated-block-storage
+  resources:
+    requests:
+      storage: 2Gi

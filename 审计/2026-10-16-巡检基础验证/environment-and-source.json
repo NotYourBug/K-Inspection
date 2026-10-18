@@ -1,0 +1,30 @@
+{
+  "source_base": "2f7e806",
+  "review_head": "43e642b4f7bb7840b852f5c10ff6809e696feb1f",
+  "fix_head": "ea2f6e3046aa7ae12ba9494dd6d7f12c0abb9bae",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.14",
+  "dependencies": {
+    "kubernetes": "37.0.1",
+    "lark-oapi": "1.7.5",
+    "prometheus-client": "0.26.0",
+    "PyYAML": "6.0.3",
+    "pytest": "9.1.1",
+    "setuptools": "84.0.0",
+    "wheel": "0.48.0"
+  },
+  "tools": {
+    "prometheus-2.53.0": {
+      "executable": "promtool.exe",
+      "sha256": "57bdc03779689ed7c601f1dd227fc42c79f6b95016d4051c2741e064ef946eba"
+    },
+    "alertmanager-0.27.0": {
+      "executable": "amtool.exe",
+      "sha256": "0806db0fbdd90d28809e22f5dec2e8270d744183ffbf388c3f57d0cff4c59017"
+    },
+    "kustomize-5.4.3": {
+      "executable": "kustomize.exe",
+      "sha256": "3bfc298da6621f699461e95ad9e839f5f123536ab713e72c378ef17f3a709167"
+    }
+  }
+}

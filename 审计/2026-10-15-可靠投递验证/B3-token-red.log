@@ -1,0 +1,30 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+________________ test_token_configuration_failure_is_permanent ________________
+
+job = DeliveryJob(delivery_id='eff7f048-bf94-4417-8776-49f6ddc17105', source_id='am', destination_id='team-a', content_hash=...tetime.datetime(2026, 10, 15, 0, 0, tzinfo=datetime.timezone.utc), sent_at=None, result_unknown=False, error_code=None)
+
+    def test_token_configuration_failure_is_permanent(job):
+        from lark_oapi.core.exception import ObtainAccessTokenException
+        class Client:
+            def send_card_message(self, *args, **kwargs):
+                raise ObtainAccessTokenException("token", 99991543, "secret-token")
+        result = adapter(feishu_app=Client()).send(job)
+>       assert not result.retryable and not result.result_unknown
+E       AssertionError: assert (not True)
+E        +  where True = DeliveryResult(success=False, retryable=True, result_unknown=True, external_id=None, error_code=None, retry_after_seconds=None, error_kind='provider_unknown').retryable
+
+tests\test_delivery_adapter.py:111: AssertionError
+============================== warnings summary ===============================
+tests/test_delivery_adapter.py::test_token_configuration_failure_is_permanent
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_delivery_adapter.py::test_token_configuration_failure_is_permanent
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py:35: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_delivery_adapter.py::test_token_configuration_failure_is_permanent
+1 failed, 9 deselected, 2 warnings in 47.72s

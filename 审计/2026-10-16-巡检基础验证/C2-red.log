@@ -1,0 +1,190 @@
+FFFFFFFFFFF                                                              [100%]
+================================== FAILURES ===================================
+______________________ test_second_page_error_is_partial ______________________
+
+    def test_second_page_error_is_partial():
+>       c = make_collector()
+            ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:19: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+________________________ test_deadline_stops_next_page ________________________
+
+    def test_deadline_stops_next_page():
+        tick = [0.0]
+>       c = make_collector(1, lambda: tick[0])
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 1
+clock = <function test_deadline_stops_next_page.<locals>.<lambda> at 0x0000014229DF4B80>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+________________________ test_forbidden_is_not_retried ________________________
+
+    def test_forbidden_is_not_retried():
+        sdk = Mock(side_effect=ApiException(status=403))
+>       r = make_collector().collect_list('pods', sdk)
+            ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+__________ test_classification_and_bounded_retries[404-UNSUPPORTED] ___________
+
+status = 404, expected = <ExecutionStatus.UNSUPPORTED: 'UNSUPPORTED'>
+
+    @pytest.mark.parametrize('status, expected', [(404, E.UNSUPPORTED), (429, E.ERROR), (503, E.ERROR)])
+    def test_classification_and_bounded_retries(status, expected):
+        sdk = Mock(side_effect=ApiException(status=status))
+>       r = make_collector().collect_list('pods', sdk)
+            ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+_____________ test_classification_and_bounded_retries[429-ERROR] ______________
+
+status = 429, expected = <ExecutionStatus.ERROR: 'ERROR'>
+
+    @pytest.mark.parametrize('status, expected', [(404, E.UNSUPPORTED), (429, E.ERROR), (503, E.ERROR)])
+    def test_classification_and_bounded_retries(status, expected):
+        sdk = Mock(side_effect=ApiException(status=status))
+>       r = make_collector().collect_list('pods', sdk)
+            ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+_____________ test_classification_and_bounded_retries[503-ERROR] ______________
+
+status = 503, expected = <ExecutionStatus.ERROR: 'ERROR'>
+
+    @pytest.mark.parametrize('status, expected', [(404, E.UNSUPPORTED), (429, E.ERROR), (503, E.ERROR)])
+    def test_classification_and_bounded_retries(status, expected):
+        sdk = Mock(side_effect=ApiException(status=status))
+>       r = make_collector().collect_list('pods', sdk)
+            ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:48: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+_______________________ test_410_does_not_mix_snapshots _______________________
+
+    def test_410_does_not_mix_snapshots():
+        sdk = Mock(side_effect=[page(['old'], 'p2'), ApiException(status=410), page(['new'])])
+>       r = make_collector().collect_list('nodes', sdk)
+            ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+_________________ test_empty_success_differs_from_empty_error _________________
+
+    def test_empty_success_differs_from_empty_error():
+>       assert make_collector().collect_list('x', lambda **k: page()).complete
+               ^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 30, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+__________ test_deadline_before_first_request_and_malformed_response __________
+
+    def test_deadline_before_first_request_and_malformed_response():
+        sdk = Mock()
+>       r = make_collector(0).collect_list('x', sdk)
+            ^^^^^^^^^^^^^^^^^
+
+tests\test_collector.py:67: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+deadline = 0, clock = <function <lambda> at 0x0000014228239D00>
+
+    def make_collector(deadline=30, clock=lambda: 0):
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_collector.py:10: ModuleNotFoundError
+______________________ test_snapshot_reuses_node_metrics ______________________
+
+    def test_snapshot_reuses_node_metrics():
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_snapshot.py:13: ModuleNotFoundError
+______________________ test_5m_does_not_collect_metrics _______________________
+
+    def test_5m_does_not_collect_metrics():
+>       from k8s_inspector.collector import KubeCollector
+E       ModuleNotFoundError: No module named 'k8s_inspector.collector'
+
+tests\test_snapshot.py:24: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/test_collector.py::test_second_page_error_is_partial - ModuleNot...
+FAILED tests/test_collector.py::test_deadline_stops_next_page - ModuleNotFoun...
+FAILED tests/test_collector.py::test_forbidden_is_not_retried - ModuleNotFoun...
+FAILED tests/test_collector.py::test_classification_and_bounded_retries[404-UNSUPPORTED]
+FAILED tests/test_collector.py::test_classification_and_bounded_retries[429-ERROR]
+FAILED tests/test_collector.py::test_classification_and_bounded_retries[503-ERROR]
+FAILED tests/test_collector.py::test_410_does_not_mix_snapshots - ModuleNotFo...
+FAILED tests/test_collector.py::test_empty_success_differs_from_empty_error
+FAILED tests/test_collector.py::test_deadline_before_first_request_and_malformed_response
+FAILED tests/test_snapshot.py::test_snapshot_reuses_node_metrics - ModuleNotF...
+FAILED tests/test_snapshot.py::test_5m_does_not_collect_metrics - ModuleNotFo...
+11 failed in 2.82s

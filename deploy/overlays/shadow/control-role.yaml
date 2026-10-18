@@ -1,0 +1,7 @@
+apiVersion: builtin
+kind: PatchTransformer
+metadata:
+  name: keep-control-plane-role
+target:
+  kind: Role
+patch: "- op: replace\n  path: /metadata/namespace\n  value: kube-system"

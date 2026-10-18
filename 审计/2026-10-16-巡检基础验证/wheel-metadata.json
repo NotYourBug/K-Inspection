@@ -1,0 +1,20 @@
+{
+  "wheel": "k8s_inspector-0.1.0-py3-none-any.whl",
+  "sha256": "e223322110c81448e2e7fafcb5f91a6e87c9cbc71ceeae9dd0bdeaba90250384",
+  "size": 100877,
+  "new_modules_present": [
+    "observation_models",
+    "collector",
+    "snapshot",
+    "rule_catalog",
+    "runner",
+    "rules_nodes",
+    "rules_pods",
+    "rules_storage",
+    "rules_control",
+    "rules_events",
+    "observation_state",
+    "expected_targets"
+  ],
+  "source_head": "43e642b"
+}

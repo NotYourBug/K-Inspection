@@ -1,0 +1,19 @@
+{
+  "runtime": "Python 3.12.14",
+  "platform": "Windows",
+  "baseline_tests": 163,
+  "task_suite_counts": {
+    "A2": 201,
+    "A3": 209,
+    "A6": 241,
+    "A5": 228,
+    "A4": 217,
+    "A1": 184
+  },
+  "baseline_manifest_verified": 69,
+  "windows_junction_probe": "passed",
+  "python39_syntax_only": "passed",
+  "release_runtime_or_cluster_verified": false,
+  "review_status": "3 Important fixed; 1 Minor deferred; 256 full-suite passed",
+  "final_tests": 256
+}

@@ -1,0 +1,66 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_malformed_optional_metric_does_not_hide_node_failure __________
+
+    def test_malformed_optional_metric_does_not_hide_node_failure():
+        from tests.factories import node as sdk_node
+        from k8s_inspector.rules_nodes import evaluate_nodes
+>       result = evaluate_nodes(snapshot(nodes=[sdk_node('n1', ready=False)],
+            node_metrics=[{'metadata': {'name': 'n1'}, 'usage': None}]), InspectorConfig())
+
+tests\test_rule_observations.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+snapshot = RunSnapshot(run_id='run-1', cluster_id='prod', started_at=datetime.datetime(2026, 10, 16, 0, 0, tzinfo=datetime.timezo...at=datetime.datetime(2026, 10, 16, 0, 0, tzinfo=datetime.timezone.utc), complete=True, error_kind=None, reason=None)}))
+cfg = InspectorConfig(thresholds=Thresholds(node_cpu_utilization=0.8, node_memory_utilization=0.85, pod_restart_count=3, war...timeouts={'connect': 3.0, 'read': 10.0}, deadlines={'5m': 240, '10m': 480, 'hourly': 900, 'daily': 1800, 'full': 1800})
+
+    def evaluate_nodes(snapshot, cfg):
+        findings, resources, unknown = [], [], False
+        collection = snapshot.collections.get('nodes')
+        nodes = collection.items if collection else ()
+        for node in nodes:
+            ref = resource_ref(node, 'Node')
+            ready = next((c for c in getattr(getattr(node, 'status', None), 'conditions', None) or []
+                          if c.type == 'Ready'), None)
+            value = getattr(ready, 'status', None)
+            health = H.HEALTHY if value == 'True' else H.UNHEALTHY if value in ('False', 'Unknown') else H.UNKNOWN
+            unknown |= health == H.UNKNOWN
+            resources.append((ref, health))
+            if health == H.UNHEALTHY:
+                findings.append(make_finding('nodes.ready', snapshot.cluster_id, ref, Severity.FAIL,
+                    'NodeNotReady', 'Node Ready is not True', {'ready': value}, collection.observed_at))
+        ready_result = evaluation(snapshot, 'nodes.ready', ('nodes',), findings,
+                                  unknown=unknown or not nodes, resources=resources)
+        pressure, pressure_unknown = [], not nodes
+        utilization, usage_unknown = [], not nodes
+        metrics_collection = snapshot.collections.get('node_metrics')
+        metrics = {m.get('metadata', {}).get('name'): m.get('usage', {})
+                   for m in metrics_collection.items if isinstance(m, dict)} if metrics_collection else {}
+        for node in nodes:
+            ref = resource_ref(node, 'Node')
+            conditions = {c.type: c.status for c in getattr(node.status, 'conditions', None) or []}
+            for kind in ('MemoryPressure', 'DiskPressure', 'PIDPressure'):
+                if conditions.get(kind) == 'True':
+                    pressure.append(make_finding('nodes.pressure', snapshot.cluster_id, ref, Severity.WARN,
+                        kind, f'Node {kind}', {'condition': kind}, collection.observed_at))
+                elif conditions.get(kind) != 'False':
+                    pressure_unknown = True
+            for taint in getattr(getattr(node, 'spec', None), 'taints', None) or []:
+                if taint.effect == 'NoSchedule' and taint.key not in cfg.allow_noschedule_taints:
+                    pressure.append(make_finding('nodes.pressure', snapshot.cluster_id, ref, Severity.WARN,
+                        'NoScheduleTaint', 'Node scheduling restricted', {'taint': taint.key}, collection.observed_at))
+            capacity = getattr(node.status, 'allocatable', None)
+            if not isinstance(capacity, dict):
+                capacity = getattr(node.status, 'capacity', None) or {}
+            usage = metrics.get(ref.name, {})
+            for name, threshold in (('cpu', cfg.thresholds.node_cpu_utilization),
+                                    ('memory', cfg.thresholds.node_memory_utilization)):
+                try:
+>                   raw = usage.get(name)
+                          ^^^^^^^^^
+E                   AttributeError: 'NoneType' object has no attribute 'get'
+
+k8s_inspector\rules_nodes.py:50: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_rule_observations.py::test_malformed_optional_metric_does_not_hide_node_failure
+1 failed, 13 deselected in 4.15s
