@@ -10,9 +10,13 @@
 
 **Spec:** [设计基准](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/specs/2026-10-02-remediation-design.md)；[总计划](C:/Users/23033/Desktop/Cluster-Stability-Inspector/docs/superpowers/plans/2026-10-02-remediation-roadmap.md)。
 
+## 本轮范围（2026-10-17）
+
+用户确认“先完成离线发布准备”。E1–E6在本地可交付部分执行；实际Python3.9/3.11/3.14、Docker、集群server dry-run、状态卷/CSI/CNI、通知和影子运行验收仍明确待验。下面复合步骤包含环境要求的保持未勾选，不以部分验证冒充全部完成。
+
 ## Global Constraints
 
-- 当前 .git 不存在，旧整改前 ZIP 只覆盖部分文件；不能把它作为完整版本回退保证。
+- 原始版本管理前提已解除：本地Git已建立，E基线为ac2a8b9，并保存129文件完整受版本控制源码快照及SHA256 manifest；无远端，不自动推送。
 - 本计划所有部署/真实发送/故障演练在 E5 明确的测试范围内执行；离线计划完成不代表已经授权生产发布。
 - YAML 解析不等于 Kustomize 渲染、server dry-run、真实卷挂载或 promtool 规则通过。
 - SQLite 状态卷与报告卷分离；单实例不是 HA，无节点故障无损承诺。
@@ -51,11 +55,11 @@ def test_wheel_installs_and_imports_outside_source_tree(installed_env):
 
 installed_env fixture 构建 wheel 并安装进隔离 venv，module_path 来自包 __file__，不是 shell 环境猜测。增加 test_cli_help_from_installed_wheel、test_declared_runtime_imports、test_optional_mcp_not_required_for_cli。
 
-- [ ] 保存完整版本基线，记录解释器与已安装依赖；重新运行 python -m pytest tests/ -q，不沿用历史163测试作为本轮结果。
-- [ ] 写隔离安装测试，运行 python -m pytest tests/test_installed_package.py -q。
+- [x] 保存完整版本基线，记录解释器与已安装依赖；重新运行 python -m pytest tests/ -q，不沿用历史163测试作为本轮结果。
+- [x] 写隔离安装测试，运行 python -m pytest tests/test_installed_package.py -q。
 - [ ] 修打包发现/依赖单源；落实3.9/3.11/3.14实际运行结果，不兼容时提出明确版本声明变更。
-- [ ] 用 python -m build 构建，隔离安装验证；将构建工具纳入开发约束。
-- [ ] 记录安装产物/hash/测试结果与未完成的工具验证，提交。
+- [x] 用 python -m build 构建，隔离安装验证；将构建工具纳入开发约束。
+- [x] 记录安装产物/hash/测试结果与未完成的工具验证，提交。
 
 ## E2：部署分层、状态持久化与最小权限
 
@@ -84,11 +88,11 @@ def test_inspector_role_has_no_mutating_verbs(rendered):
 
 rendered fixture 解析真实 kustomize build 输出，不将原 YAML 当渲染结果。另测 test_base_does_not_install_optional_monitoring、test_secrets_not_embedded_in_configmap、test_bridge_disables_service_account_automount。
 
-- [ ] 写部署契约测试，运行 python -m pytest tests/test_deployment_contract.py -q。
-- [ ] 拆 base/component/overlay，并迁移现有样例引用，保持示例可渲染。
+- [x] 写部署契约测试，运行 python -m pytest tests/test_deployment_contract.py -q。
+- [x] 拆 base/component/overlay，并迁移现有样例引用，保持示例可渲染。
 - [ ] 执行 kustomize build deploy/overlays/example；测试集群执行 kubectl apply --dry-run=server -k deploy/overlays/example。
 - [ ] 在专用测试卷验证 Pod 替换/备份恢复/单 writer，记录 StorageClass 与实际 volume 语义。
-- [ ] 工具或集群不可用项标待验，G2/G3 不通过；审查权限和卷后提交。
+- [x] 工具或集群不可用项标待验，G2/G3 不通过；审查权限和卷后提交。
 
 ## E3：CronJob 期限、报告保留、时区和配置单源
 
@@ -115,11 +119,11 @@ def test_cleanup_does_not_target_latest_or_bridge_state(rendered):
     assert "/var/lib/inspector" not in args
 ~~~
 
-- [ ] 写期限/时区/清理契约测试并运行 python -m pytest tests/test_scheduling_contract.py -q。
-- [ ] 实现 catalog 生成与示例参数，明确创建失败/业务 FAIL/程序错误的 Job 策略。
+- [x] 写期限/时区/清理契约测试并运行 python -m pytest tests/test_scheduling_contract.py -q。
+- [x] 实现 catalog 生成与示例参数，明确创建失败/业务 FAIL/程序错误的 Job 策略。
 - [ ] 真实测试运行一个 profile，记录耗时/API请求量/最终退出；跨时区 schedule 验证。
-- [ ] cleanup dry-run 校验名单后在测试归档执行，验证删除失败不计成功。
-- [ ] 审查配置漂移检测、存储互斥与报告保留说明，提交。
+- [x] cleanup dry-run 校验名单后在测试归档执行，验证删除失败不计成功。
+- [x] 审查配置漂移检测、存储互斥与报告保留说明，提交。
 
 ## E4：CI、真实产物与规则检查
 
@@ -145,8 +149,8 @@ def test_release_checks_fail_when_promtool_fails(verification_runner):
 ~~~
 
 - image_runner.run在fixture中用Docker --entrypoint覆盖默认CLI ENTRYPOINT，执行传入命令；否则Bridge smoke会误走CLI参数解析。
-- [ ] 写产物和检查失败测试，运行 python -m pytest tests/test_release_artifacts.py -q。
-- [ ] 实现可本地执行的验证入口，再接托管平台CI；不自动发布镜像/包。
+- [x] 写产物和检查失败测试，运行 python -m pytest tests/test_release_artifacts.py -q。
+- [x] 实现可本地执行的验证入口，再接托管平台CI；不自动发布镜像/包。
 - [ ] 运行 python -m build、docker build、kustomize build、promtool check/test；保留版本与输出证据。
 - [ ] 完成镜像smoke/隔离导入/备份恢复，不以源码pytest替代。
 - [ ] 审查候选版本manifest、digest、schema和回退路径，提交。
@@ -170,7 +174,7 @@ def test_shadow_uses_separate_outputs_and_destinations(shadow_config, production
     assert shadow_config.destination_id != production_config.destination_id
 ~~~
 
-- [ ] 写shadow隔离与回退保留任务测试，运行 python -m pytest tests/test_rollout_scenarios.py -q。
+- [x] 写shadow隔离与回退保留任务测试，运行 python -m pytest tests/test_rollout_scenarios.py -q。
 - [ ] 准备候选版本、差异、演练范围、测试群和回退步骤供上线负责人审阅。
 - [ ] 在授权测试范围执行演练，记录实际现象与原因，不仅“请求成功”。
 - [ ] 满足G3后再审批正式切换；发布确认来自真实负责人，不用观察期经过代替授权。
@@ -193,8 +197,22 @@ def test_documented_cli_commands_match_parser(documented_commands, installed_env
         assert installed_env.run(command).returncode == 0
 ~~~
 
-- [ ] 用已安装包验证手册中的help/只读命令；不为纯文案写镜像实现的测试。
-- [ ] 完成配置、运维、责任、恢复和能力表。
-- [ ] 核对全部G1–G4证据，缺环境验证明确列出，不能标“全部完成”。
+- [x] 用已安装包验证手册中的help/只读命令；不为纯文案写镜像实现的测试。
+- [x] 完成配置、运维、责任、恢复和能力表。
+- [x] 核对全部G1–G4证据，缺环境验证明确列出，不能标“全部完成”。
 - [ ] 交接给实际维护负责人，记录未启用D/F与后续范围。
 - [ ] 评审并提交；后续迭代按实际故障数据排序。
+
+
+## 离线交付与待验对照
+
+| 任务 | 本地交付 | 未完成的真实验收 |
+|---|---|---|
+| E1 | 源码快照、依赖单源/选择性约束、wheel子包发现、源码外安装 | 3.9/3.11/3.14与干净依赖安装；离线bootstrap共享已装依赖 |
+| E2 | 暂停的最小base、可选组件/example、分profile状态卷、非root/权限/ingress契约 | server dry-run、实际CSI/PV权限/锁/故障恢复、按CNI落实egress |
+| E3 | catalog生成期限/时区/重试策略、清理dry-run与保留手册 | 实际控制器timeZone、耗时/API规模/容量观测 |
+| E4 | 失败闭合校验器、源码/制品hash、官方固定base digest、CI示例 | Docker build/smoke、CI实际执行、发布后的镜像digest |
+| E5 | 独立namespace/输出/job/Secret影子配置、保留状态的只读回退检查 | 实际独立chat ID、测试范围授权、影子多次daily/故障恢复及正式切换审批 |
+| E6 | 安装包help/本地inspect/备份恢复验证、操作/责任/能力/交接模板 | 实际维护人签收与真实环境长期运行记录 |
+
+MCP部署组件/extra的实际可用性属于F；当前源码独立性问题未在E绕过。版本约束不是完整传递依赖锁。G2/G3继续开放，G4仍由D验收。原始未完成项不得因为离线交付完成就全部勾选。

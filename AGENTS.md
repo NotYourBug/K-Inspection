@@ -116,3 +116,13 @@ deploy/               # Kustomize manifests: RBAC, CronJobs (by frequency), Prom
 - C review closure: per-rule Node/control/Pod evaluators isolate siblings; SDK retries disabled in the shared loader; page/rule deadlines rechecked after response/evaluation. API health supports old/new SDK call interfaces. In-cluster requires explicit cluster identity; kubeconfig fallback binds selected source/context/server via hash.
 - INFO evidence carries healthy utilization and ordinary Event cursors; only WARN/FAIL count as faults. Event deltas require a trustworthy recent baseline/window. Addon shortage requires complete selector membership. UID observations describe seen resources only.
 - compatibility.py projects v2 evidence to legacy check groups and existing metric selectors, omitting unknown counters; CSV keeps independent rule_id/UID rows. Older positive writes/exports cannot override newer complete healthy evidence.
+
+
+## Offline release preparation (E)
+
+- pyproject.toml is dependency declaration source; requirements.txt installs constrained .[dev]. Direct runtime/tool constraints are not a full transitive lock. Actual Python3.9/3.11/3.14 CI and container results remain required.
+- tools/verify_release.py builds an installed wheel and records source/tool/config checks. --offline shares preinstalled dependency paths only for source-isolated import smoke, never pulls Docker images and leaves clean install/runtime/storage/receiver acceptance pending; result success is false until every mandatory check passes.
+- deploy/ is suspended inspector base only. Explicit overlays/example adds optional Bridge async/monitoring; overlays/shadow isolates namespace, outputs, job and Secret references. The control-plane Role stays in kube-system; namespace changes require matching RBAC.
+- tools/render_cronjobs.py consumes PROFILES, adds30s deadline margin and explicit Asia/Shanghai (target API support must be verified). Forbid/backoffLimit0; full remains manual. Each scheduled profile uses a separate block-state claim; report storage is separate. Cleanup is dry-run by default.
+- Dockerfile uses a verified official Python3.11 manifest digest and installs a wheel as nonroot. Building/smoking it, selecting an actual published image digest and validating volumes/CNI/separate real notification destinations remain external gates. No auto-publish or deployment.
+- tools/rollout.py is a read-only planning guard; it does not inspect actual DB counts or authorize rollback. Preserve outbox/observation state and compatible schema. See rollout.md, operations.md and report-retention.md.

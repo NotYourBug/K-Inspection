@@ -352,3 +352,23 @@ The new bounded `inspector_*` metrics separate run success, collection completen
 New rules default to `shadow="true"`; install the null shadow route before loading them. Existing active rules remain until controlled cutover. Activation requires an independent quality receiver and the storage, runtime, API and real-cluster gates in [the cutover runbook](docs/runbooks/inspection-monitoring.md). Local generation and tests do not deploy resources or send notifications.
 
 Local kubeconfig runs derive a stable connection-bound fallback identity; production and in-cluster runs should use an explicit `--cluster` / `INSPECTOR_CLUSTER` / config `cluster_id` (mandatory in-cluster). INFO findings preserve measurements and Event cursors without counting as faults. Event totals without a trustworthy window/baseline remain UNKNOWN. See the monitoring runbook for shadow rollout and release gates.
+
+
+## Offline release preparation
+
+`pyproject.toml` owns runtime/development declarations; `requirements.txt` is the constrained development install entry point. `constraints/runtime.txt` pins selected direct dependencies (SDK29 for Python3.9, SDK37 for newer Python); `constraints/build.txt` selects compatible build/test tools. Transitive versions and the declared runtime matrix still require actual clean-install evidence.
+
+```sh
+python -m pip install -r requirements.txt
+python -m tools.render_cronjobs --output deploy/base/cronjobs-by-frequency.yaml
+python -m tools.verify_release --offline --output-dir ./out/release-check
+kustomize build deploy
+kustomize build deploy/overlays/example
+kustomize build deploy/overlays/shadow
+```
+
+The verifier writes per-check evidence and returns1 while any mandatory check is failed/pending; offline mode never pulls/builds Docker images and explicitly records shared dependency bootstrap. `.github/workflows/ci.yml` is a prepared GitHub example, not a run CI result. No package/image is automatically published.
+
+The default `deploy` now contains only suspended inspector jobs/RBAC/storage. The full example and namespace-isolated shadow monitoring/async Bridge are explicit overlays. Configure actual image digest/StorageClasses/Secrets/cluster identity and complete real release gates before unsuspending. Report storage and four per-profile state claims are separate; cleanup defaults to dry-run. Legacy root YAML files are historical standalone examples and are not the canonical deployment entry point.
+
+See [rollout/rollback](docs/runbooks/rollout.md), [retention/scheduling](docs/runbooks/report-retention.md) and [operations/ownership](docs/runbooks/operations.md). Real environment acceptance remains pending; ordinary alert delivery continues to existing fixed groups. D/F features are outside this preparation.

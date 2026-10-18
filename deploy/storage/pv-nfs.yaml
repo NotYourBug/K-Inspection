@@ -1,3 +1,4 @@
+# Historical standalone REPORT example only; not referenced by canonical base.
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -10,5 +11,5 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   volumeMode: Filesystem
   nfs:
-    server: 192.168.32.10
+    server: nfs.example.invalid
     path: /exports/k8s-inspector
