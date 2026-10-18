@@ -1,0 +1,112 @@
+........................................................................ [ 15%]
+........................................................................ [ 31%]
+........................................................................ [ 47%]
+......................EEEE.............................................. [ 62%]
+........................................................................ [ 78%]
+........................................................................ [ 94%]
+...........................                                              [100%]
+=================================== ERRORS ====================================
+______ ERROR at setup of test_async_bridge_has_persistent_single_writer _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: accumulating components: accumulateDirectory: "expected kind 'Component' for path 'C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\deploy\\components\\bridge' but got 'Kustomization'"
+
+tests\deployment_helpers.py:16: AssertionError
+______ ERROR at setup of test_bridge_disables_service_account_automount _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: accumulating components: accumulateDirectory: "expected kind 'Component' for path 'C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\deploy\\components\\bridge' but got 'Kustomization'"
+
+tests\deployment_helpers.py:16: AssertionError
+__________ ERROR at setup of test_secrets_not_embedded_in_configmap ___________
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: accumulating components: accumulateDirectory: "expected kind 'Component' for path 'C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\deploy\\components\\bridge' but got 'Kustomization'"
+
+tests\deployment_helpers.py:16: AssertionError
+___ ERROR at setup of test_example_is_suspended_and_has_ingress_restriction ___
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: accumulating components: accumulateDirectory: "expected kind 'Component' for path 'C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\deploy\\components\\bridge' but got 'Kustomization'"
+
+tests\deployment_helpers.py:16: AssertionError
+============================== warnings summary ===============================
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\pb\google\protobuf\internal\well_known_types.py:91: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+    _EPOCH_DATETIME_NAIVE = datetime.datetime.utcfromtimestamp(0)
+
+tests/test_delivery_adapter.py::test_same_delivery_reuses_sdk_uuid_and_timeout_reaches_transport
+  C:\Users\23033\Desktop\Cluster-Stability-Inspector\.venv\Lib\site-packages\lark_oapi\ws\client.py:35: DeprecationWarning: There is no current event loop
+    loop = asyncio.get_event_loop()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR tests/test_deployment_contract.py::test_async_bridge_has_persistent_single_writer
+ERROR tests/test_deployment_contract.py::test_bridge_disables_service_account_automount
+ERROR tests/test_deployment_contract.py::test_secrets_not_embedded_in_configmap
+ERROR tests/test_deployment_contract.py::test_example_is_suspended_and_has_ingress_restriction
+455 passed, 2 warnings, 4 errors in 269.77s (0:04:29)

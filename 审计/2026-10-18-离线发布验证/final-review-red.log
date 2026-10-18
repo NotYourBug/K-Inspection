@@ -1,0 +1,70 @@
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+_________ test_dev_bootstrap_requests_every_nonisolated_build_backend _________
+
+    def test_dev_bootstrap_requests_every_nonisolated_build_backend():
+        try:
+            import tomllib
+        except ImportError:
+            import tomli as tomllib
+        config = tomllib.loads((ROOT / 'pyproject.toml').read_text(encoding='utf-8'))
+        requested = {Requirement(item).name.lower() for item in
+                     config['project']['dependencies'] + config['project']['optional-dependencies']['dev']}
+        required = {Requirement(item).name.lower() for item in build.ProjectBuilder(ROOT).build_system_requires}
+>       assert required <= requested, f'Non-isolated build tools missing from bootstrap: {required - requested}'
+E       AssertionError: Non-isolated build tools missing from bootstrap: {'wheel', 'setuptools'}
+E       assert {'setuptools', 'wheel'} <= {'build', 'ku...'pyyaml', ...}
+E         
+E         Extra items in the left set:
+E         'wheel'
+E         'setuptools'
+
+tests\test_release_gates.py:27: AssertionError
+__________ test_local_ci_gate_rejects_invalid_composed_alertmanager ___________
+
+release_project = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1528/test_local_ci_gate_rejects_inv0/project'),...ol': ['C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\alertmanager-0.27.0\\amtool.exe']})
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1528/test_local_ci_gate_rejects_inv0')
+
+    def test_local_ci_gate_rejects_invalid_composed_alertmanager(release_project, tmp_path):
+        from tools import verify_release as release
+        good = validation_result(release_project, tmp_path / 'good')
+>       assert release.local_checks_success(good), {k: v.detail for k, v in good.checks.items() if not v.success}
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.verify_release' has no attribute 'local_checks_success'
+
+tests\test_release_gates.py:60: AttributeError
+__________ test_bridge_temporal_fixture_failure_blocks_local_ci_gate __________
+
+release_project = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1528/test_bridge_temporal_fixture_f0/project'),...ol': ['C:\\Users\\23033\\Desktop\\Cluster-Stability-Inspector\\.superpowers\\tools\\alertmanager-0.27.0\\amtool.exe']})
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1528/test_bridge_temporal_fixture_f0')
+
+    def test_bridge_temporal_fixture_failure_blocks_local_ci_gate(release_project, tmp_path):
+        from tools import verify_release as release
+        project, _ = release_project
+        fixture = project / 'tests/prometheus/bridge-rules.test.yml'
+        fixture.write_text('invalid: [', encoding='utf-8')
+        result = validation_result(release_project, tmp_path / 'broken-bridge')
+>       assert not result.checks['promtool'].success, 'Bridge fixture must be executed, not omitted'
+E       AssertionError: Bridge fixture must be executed, not omitted
+E       assert not True
+E        +  where True = CheckOutcome(success=True, detail='exit=0; evidence=example-promconfig.log; exit=0; evidence=shadow-promconfig.log; exit=0; evidence=rules-check.log; exit=0; evidence=rules-test.log').success
+
+tests\test_release_gates.py:79: AssertionError
+_____ test_local_exit_gate_keeps_release_pending_and_fails_missing_checks _____
+
+tmp_path = WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1528/test_local_exit_gate_keeps_rel0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x0000016ACE066450>
+
+    def test_local_exit_gate_keeps_release_pending_and_fails_missing_checks(tmp_path, monkeypatch):
+        from tools import verify_release as release
+>       checks = {name: release.CheckOutcome(True, 'verified') for name in release.LOCAL_REQUIRED_CHECKS}
+                                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'tools.verify_release' has no attribute 'LOCAL_REQUIRED_CHECKS'
+
+tests\test_release_gates.py:87: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_release_gates.py::test_dev_bootstrap_requests_every_nonisolated_build_backend
+FAILED tests/test_release_gates.py::test_local_ci_gate_rejects_invalid_composed_alertmanager
+FAILED tests/test_release_gates.py::test_bridge_temporal_fixture_failure_blocks_local_ci_gate
+FAILED tests/test_release_gates.py::test_local_exit_gate_keeps_release_pending_and_fails_missing_checks
+4 failed in 51.30s

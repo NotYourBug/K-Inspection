@@ -1,0 +1,551 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: k8s-inspector
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: k8s-inspector-addon-observer
+  namespace: kube-system
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8s-inspector
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - pods
+  - events
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+- nonResourceURLs:
+  - /healthz
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: k8s-inspector-addon-observer
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: k8s-inspector-addon-observer
+subjects:
+- kind: ServiceAccount
+  name: k8s-inspector
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8s-inspector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8s-inspector
+subjects:
+- kind: ServiceAccount
+  name: k8s-inspector
+  namespace: kube-system
+---
+apiVersion: v1
+data:
+  INSPECTOR_CLUSTER: replace-with-cluster-id
+  INSPECTOR_EXIT_MODE: always0
+  PUSHGATEWAY_JOB: k8s-inspector
+  PUSHGATEWAY_URL: ""
+kind: ConfigMap
+metadata:
+  name: k8s-inspector-runtime-cbb9t87768
+  namespace: kube-system
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: report
+  name: k8s-inspector-out
+  namespace: kube-system
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: replace-with-report-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-10m
+  namespace: kube-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-5m
+  namespace: kube-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-daily
+  namespace: kube-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    inspector.storage: state
+  name: k8s-inspector-state-hourly
+  namespace: kube-system
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: replace-with-verified-block-sc
+  volumeMode: Filesystem
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-cleanup
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 930
+      backoffLimit: 0
+      template:
+        spec:
+          automountServiceAccountToken: false
+          containers:
+          - args:
+            - cleanup
+            - --root
+            - /data/out/archive
+            - --hourly-days
+            - "7"
+            - --daily-days
+            - "30"
+            - --dry-run
+            env:
+            - name: INSPECTOR_EXIT_MODE
+              value: always0
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: cleanup
+            resources:
+              limits:
+                cpu: 200m
+                memory: 256Mi
+              requests:
+                cpu: 10m
+                memory: 64Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+  schedule: 30 3 * * *
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-controlplane-10m
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 510
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - 10m
+            - --formats
+            - json
+            - --output-dir
+            - /data/out/latest/10m
+            - --persist-level
+            - issue
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-cbb9t87768
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-10m
+      ttlSecondsAfterFinished: 86400
+  schedule: '*/10 * * * *'
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-daily
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 1830
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - daily
+            - --formats
+            - json,html
+            - --output-dir
+            - /data/out/archive/daily
+            - --archive
+            - daily
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-cbb9t87768
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-daily
+      ttlSecondsAfterFinished: 86400
+  schedule: 0 2 * * *
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-dataplane-5m
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 270
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - 5m
+            - --formats
+            - json
+            - --output-dir
+            - /data/out/latest/5m
+            - --persist-level
+            - issue
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-cbb9t87768
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-5m
+      ttlSecondsAfterFinished: 86400
+  schedule: '*/5 * * * *'
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: k8s-inspector-infra-hourly
+  namespace: kube-system
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 930
+      backoffLimit: 0
+      template:
+        spec:
+          containers:
+          - args:
+            - run
+            - --in-cluster
+            - --profile
+            - hourly
+            - --formats
+            - json
+            - --output-dir
+            - /data/out/archive/hourly
+            - --archive
+            - hourly
+            env:
+            - name: INSPECTOR_STATE_DIR
+              value: /var/lib/inspector
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            envFrom:
+            - configMapRef:
+                name: k8s-inspector-runtime-cbb9t87768
+            image: your-registry/k8s-inspector:0.1.0
+            imagePullPolicy: IfNotPresent
+            name: inspector
+            resources:
+              limits:
+                cpu: 1000m
+                memory: 512Mi
+              requests:
+                cpu: 50m
+                memory: 128Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                - ALL
+              readOnlyRootFilesystem: true
+            volumeMounts:
+            - mountPath: /data/out
+              name: out
+            - mountPath: /var/lib/inspector
+              name: state
+          restartPolicy: Never
+          securityContext:
+            fsGroup: 10001
+            runAsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+            seccompProfile:
+              type: RuntimeDefault
+          serviceAccountName: k8s-inspector
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: out
+            persistentVolumeClaim:
+              claimName: k8s-inspector-out
+          - name: state
+            persistentVolumeClaim:
+              claimName: k8s-inspector-state-hourly
+      ttlSecondsAfterFinished: 86400
+  schedule: 0 * * * *
+  startingDeadlineSeconds: 60
+  successfulJobsHistoryLimit: 2
+  suspend: true
+  timeZone: Asia/Shanghai

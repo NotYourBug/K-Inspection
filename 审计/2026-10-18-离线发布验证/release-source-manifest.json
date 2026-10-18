@@ -1,0 +1,701 @@
+{
+  "source_commit": "f95d478702df97d66a526204033b9fc2d4bc37ce",
+  "files": [
+    {
+      "path": ".dockerignore",
+      "sha256": "de895c6a529f0d9aa8a5d1adda589e6f659a0ca5bbebf51d981db43f3fd66add"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "8093f9deb4d393f2296084129901944e96c8add04852d75b50a20a27292644e7"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "2dcad09e2b949933af3f53b682b393c23dd114cf33b3d3ab47d369644940b62e"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "fc7681fbf8a4917075633bdef09c61054f85f4e54ce95522ca3323458106a269"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "686b1b22b5e48d93a66c6c3833344f97b7a19dca6610aeaa14d0e91f7fcddc5b"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "01a03c2a8f217f9c44d7adb610c3d18004400f25722ec3701cc651735c536027"
+    },
+    {
+      "path": "Dockerfile",
+      "sha256": "b9df4c3aa053ae2c8086cd406ad27d23a28c9d2e0dd875bed925573b65d05bd0"
+    },
+    {
+      "path": "README.md",
+      "sha256": "965b70ca05136c95eb34b126060e946c001479ecd0766c76386de655bbcb8340"
+    },
+    {
+      "path": "constraints/build.txt",
+      "sha256": "e9a13ed9ce9554b83d72fcb33e9d3731175f0d924abe15812ac8d90997391d6e"
+    },
+    {
+      "path": "constraints/runtime.txt",
+      "sha256": "f39f3ad687eba2f9b8dcc834cb7b69a8d521e6ec46a553becaa22b16a7a61d2c"
+    },
+    {
+      "path": "deploy/alertmanager-config-snippet.yaml",
+      "sha256": "35a19c6ec27671f3dd7c85e4ce8f1248146149b7612a42957b8499e7082e964c"
+    },
+    {
+      "path": "deploy/alertmanager-feishu-bridge.yaml",
+      "sha256": "cb99229a7ad255515370d337abea76668fc55eceb7bfcf04b4dd42ef9fc6d306"
+    },
+    {
+      "path": "deploy/base/cleanup-cronjob.yaml",
+      "sha256": "dabd24225725575c42d7a0c418c3924e7d94456f0d78f386896fe2a87a64cd3a"
+    },
+    {
+      "path": "deploy/base/cronjobs-by-frequency.yaml",
+      "sha256": "3d1462cd2eb803c72cccd426f01377dd14ed3607b27da0dc6a4c40fc7abf052e"
+    },
+    {
+      "path": "deploy/base/kustomization.yaml",
+      "sha256": "4fac11f24d7c28a92f8e00aa4a805d1d0c826437f9412d5e4be44b9e2f12f760"
+    },
+    {
+      "path": "deploy/base/rbac.yaml",
+      "sha256": "1628f2ee8bbf2099489cdd6f361f9f92330755c06604327577edb6fee38e37cf"
+    },
+    {
+      "path": "deploy/base/storage.yaml",
+      "sha256": "e8dfa7751b5e078e4dcfaf6ec37fb229bf51bbffabe4842ff627e2e1f265ddf9"
+    },
+    {
+      "path": "deploy/cleanup-cronjob.yaml",
+      "sha256": "dabd24225725575c42d7a0c418c3924e7d94456f0d78f386896fe2a87a64cd3a"
+    },
+    {
+      "path": "deploy/components/bridge-async/alertmanager-config.yaml",
+      "sha256": "af92db99ff6b743f55ec0642bdb37bd2452b2ecbe8ae5c4bf9c9e0db6bb341e0"
+    },
+    {
+      "path": "deploy/components/bridge-async/alertmanager.yaml",
+      "sha256": "4d407fa83800c49dad51229d3f8e2d50a7f32101c9a4cc1d091be98047bdd319"
+    },
+    {
+      "path": "deploy/components/bridge-async/bridge.yaml",
+      "sha256": "15c67fcce356cbee354adbfffe79e9ea9f66a08742c2ea0bc01901603691691b"
+    },
+    {
+      "path": "deploy/components/bridge-async/kustomization.yaml",
+      "sha256": "4b0cea675d23584fafa602df0411dca32b7206c1877e6a515d582a7449e45dbe"
+    },
+    {
+      "path": "deploy/components/bridge-async/state-pvc.yaml",
+      "sha256": "144ed8211f9052769901951d7e38e304461b2d6304d54b1d7169c297a7c78d55"
+    },
+    {
+      "path": "deploy/components/bridge/kustomization.yaml",
+      "sha256": "c4ba4e8a7726d9da622f400e6c7e032ed2b54a7f4e33724d188b82e72484ddd4"
+    },
+    {
+      "path": "deploy/components/bridge/resources.yaml",
+      "sha256": "8ca878cb10a959bfba3fae65fc8487f5e56b4fd63702b0f7f1c1142b9d7025c4"
+    },
+    {
+      "path": "deploy/components/monitoring-bridge-auth/alertmanager-config.yaml",
+      "sha256": "bf1212f84f8524b3c5bd0e7aea7c4d780837cb6d096e0c771e47749b9fa4d354"
+    },
+    {
+      "path": "deploy/components/monitoring-bridge-auth/alertmanager.yaml",
+      "sha256": "069a942d8174086773a747de8897286225e8ea5167a695128d580568bfa99689"
+    },
+    {
+      "path": "deploy/components/monitoring-bridge-auth/kustomization.yaml",
+      "sha256": "2715c7c331cb17990bcb894d6a9e739bd5d57711cecc8ab1e5f2a37d7fa78137"
+    },
+    {
+      "path": "deploy/components/monitoring/kustomization.yaml",
+      "sha256": "c4ba4e8a7726d9da622f400e6c7e032ed2b54a7f4e33724d188b82e72484ddd4"
+    },
+    {
+      "path": "deploy/components/monitoring/resources.yaml",
+      "sha256": "21932a44ac6eb6de1b12af1a3c5c4f5679b42c353d97e29d1d60db176cde4558"
+    },
+    {
+      "path": "deploy/cronjob.yaml",
+      "sha256": "d3d0df75f76c2d28d1f8f86beeba25b5bc2418d711f4275449f047287cb46536"
+    },
+    {
+      "path": "deploy/cronjobs-by-frequency.yaml",
+      "sha256": "3d1462cd2eb803c72cccd426f01377dd14ed3607b27da0dc6a4c40fc7abf052e"
+    },
+    {
+      "path": "deploy/feishu-routes.example.yaml",
+      "sha256": "51e881074f2980257a67263aa4d85b2fa3fe6a86de62d32f103e0ea82c240525"
+    },
+    {
+      "path": "deploy/grafana-dashboard-k8s-inspector.json",
+      "sha256": "599b5e4a80edcf82ec5e9c30a59824b8d52dc637b96bf36cbfb665a055da7d2c"
+    },
+    {
+      "path": "deploy/kustomization.yaml",
+      "sha256": "5b95073b3ba22da0c4092d2957fa03b493be958f38614a50dfac3600f7a9c9e8"
+    },
+    {
+      "path": "deploy/monitoring-alertmanager.yaml",
+      "sha256": "eca4c88cd8e0bcdac15b2b166941c1ba2b6ce7591a3f85ae73090da777f283eb"
+    },
+    {
+      "path": "deploy/monitoring-prometheus.yaml",
+      "sha256": "094676d47184709bcdc3100eef3ec132202fca04f8a2519b1132c7de6dbce56d"
+    },
+    {
+      "path": "deploy/monitoring/bridge-rules.yaml",
+      "sha256": "a76416f7e13cc4bdcb0c9728a7f0cf09be491cb360da9548914116b6f72491ce"
+    },
+    {
+      "path": "deploy/monitoring/expected-targets.example.yaml",
+      "sha256": "62749fdea00966d1bd2cde02796b813d1a84f61e65f8363d2d328ee3af9263ed"
+    },
+    {
+      "path": "deploy/monitoring/generated/alertmanager-snippet.yaml",
+      "sha256": "eca53b7558bbc0fc42029271db991411954c6fd91760f380f06ee44cdfd8f710"
+    },
+    {
+      "path": "deploy/monitoring/generated/inspection-rules.yaml",
+      "sha256": "87444be4f4be20b9be1c32b85d53d1611f90e989236b0fc0fc5355eaf7fbb1f4"
+    },
+    {
+      "path": "deploy/monitoring/generated/inventory.yaml",
+      "sha256": "8f80102fe0ca7cc0d31e7da27e17cdb990efbd6f47b81a5419363c21320ff602"
+    },
+    {
+      "path": "deploy/monitoring/generated/scrape-snippet.yaml",
+      "sha256": "7ff17c0446103f894e91e04773a0fadf7517b17c62803e66e76c1332ab3be7bf"
+    },
+    {
+      "path": "deploy/overlays/example/kustomization.yaml",
+      "sha256": "037ec000a8fc5fc5b246684fb8d80c6d5ab8fc6d235ec2e29e7654a40a51ab5b"
+    },
+    {
+      "path": "deploy/overlays/shadow/am-auth-shadow.yaml",
+      "sha256": "63a1a45e0c41e527f23547443119552de05562d8d75a80c1f399c6b49b708dfb"
+    },
+    {
+      "path": "deploy/overlays/shadow/am-shadow.yaml",
+      "sha256": "f01ea55e220fd77c320ad4aea18ae7d8480153b445a59c489e85e48b1331fa9e"
+    },
+    {
+      "path": "deploy/overlays/shadow/bridge-shadow.yaml",
+      "sha256": "465df8def296456bf1823777028c8de4e3a7f88529186aca720643c298683795"
+    },
+    {
+      "path": "deploy/overlays/shadow/control-role.yaml",
+      "sha256": "bf74a11a11a08f7b158014b9aa5c6553f9de652bf583586f8bb079591576093f"
+    },
+    {
+      "path": "deploy/overlays/shadow/control-rolebinding.yaml",
+      "sha256": "242805f1b1302fd1c591b304172226da774b601f2ca65f307aaf95595834b7fa"
+    },
+    {
+      "path": "deploy/overlays/shadow/inventory.yaml",
+      "sha256": "eff62a9e701b7609004e19652eadb6e17bcd978d687580f0640e0264fdc0a2a2"
+    },
+    {
+      "path": "deploy/overlays/shadow/kustomization.yaml",
+      "sha256": "9efc26694277df9f9add4a307e6266f21f486aed156b8ec0828a618111900dce"
+    },
+    {
+      "path": "deploy/overlays/shadow/namespace-transformer.yaml",
+      "sha256": "2127cded9554c8861998e2b32a714f5895cb42e9c0aa6fb025970b691ed66417"
+    },
+    {
+      "path": "deploy/overlays/shadow/namespace.yaml",
+      "sha256": "cf4f50da041f653f6a5a97bc9bcbdfa001d17ae72157d8003448467de4e0951d"
+    },
+    {
+      "path": "deploy/overlays/shadow/prom-shadow.yaml",
+      "sha256": "74984f7b96f9e42d89509ecd4cbe21483f908a169bf45febe3bce5a3e94004ce"
+    },
+    {
+      "path": "deploy/overlays/shadow/rbac-transformer.yaml",
+      "sha256": "5fbf222579903246ac62a95b3f781e92018a71eca2731654f5a15755e2d9a61f"
+    },
+    {
+      "path": "deploy/overlays/shadow/rules-shadow.yaml",
+      "sha256": "b4213dcf98d9c4ce39d50144c22c8efbffe229315cef3b8b377261e71e11ea2f"
+    },
+    {
+      "path": "deploy/prometheus-alert-rules-k8s-inspector.yaml",
+      "sha256": "86b093f92c13ad6b25e98d334b3fd1d26353f0857b0f492ecf6f7f18a5c655bb"
+    },
+    {
+      "path": "deploy/prometheus-scrape-pushgateway-snippet.yaml",
+      "sha256": "bccd5c94fa4109fbc62c25c38f51f3d6a08f095539da132ba05b95cc0f2e07cb"
+    },
+    {
+      "path": "deploy/pushgateway.yaml",
+      "sha256": "d68929eeb895571f1eb0bb5d29bf4ebbf2cb930496ea96ec93b7ea5eea7e6e65"
+    },
+    {
+      "path": "deploy/rbac.yaml",
+      "sha256": "71c80ffc9d4ee85340cd6985582e60dd06aa9701a123069076520cf7de9a62e1"
+    },
+    {
+      "path": "deploy/secret-feishu.example.yaml",
+      "sha256": "6fdc7205385c7f5c25ebb270b534bcbfc40b60c6746bdec951b41228a5533671"
+    },
+    {
+      "path": "deploy/storage/bridge-state-pvc.yaml",
+      "sha256": "e2231e3a0f841fe9d8716746cb98a85c1d3884dea2c1955aa52b2ea30e04d77c"
+    },
+    {
+      "path": "deploy/storage/pv-nfs.yaml",
+      "sha256": "7232f5554b937c73474b9aef547e193fa5f6ff043f62cac9b61b2cacc10b03e6"
+    },
+    {
+      "path": "deploy/storage/pvc-k8s-inspector-out.yaml",
+      "sha256": "18198cb3a825390002cd6819b1e25f749347f8502d1e4bb7d65dc0017da340d2"
+    },
+    {
+      "path": "docs/reference/feishu-delivery-errors.md",
+      "sha256": "dc522c9c8751b4f470353d462274667ac310735928ff68ccbbc1df0e8e24f4c2"
+    },
+    {
+      "path": "docs/runbooks/bridge-delivery.md",
+      "sha256": "6976fbfdd23e27d93cc0436b332d5e8e9024a2904583fa51eab525e0d5568c59"
+    },
+    {
+      "path": "docs/runbooks/inspection-monitoring.md",
+      "sha256": "06aaf8e405d81ef2d61084201b3747cf90f458f730ca110b2081f317a0f87dc3"
+    },
+    {
+      "path": "docs/runbooks/operations.md",
+      "sha256": "b530eaac9abd6cb4c48f718b8c75bd63a19c27f7880b6a15dff21185d6a8f380"
+    },
+    {
+      "path": "docs/runbooks/report-retention.md",
+      "sha256": "6fbbd2e1bbfa5a45a1048567d89179ccd90bd152ef1dc47b7d8d1c08db3e2d52"
+    },
+    {
+      "path": "docs/runbooks/rollout.md",
+      "sha256": "7127cfddc83bdb36944eb16242607f23e32c815812d930367482afe089955503"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-coverage-and-mcp.md",
+      "sha256": "a8aaf9cadf40878c59957e088e6b14e1d36376ba0690182acbbc8d17f6c3e928"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-critical-inspection-fixes.md",
+      "sha256": "ca5638b8bf6bd5b1f7531fec8cc203ee19b02dac40bbfaeecb50ebf53bbf7bea"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-inspection-foundations-and-monitoring.md",
+      "sha256": "2d81b7b4c8fdf4e961bec12f9ad5a52d9e592c7ef5b8e011966489faa06b9c18"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-manual-incident-workflow.md",
+      "sha256": "e33f97896ff1e0bbcb4da89f5c6ae8ae509ec438289870d6e34a2b598719c970"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-production-release.md",
+      "sha256": "a95f2493876fc5115dfd20d290c512d358b2f3112a4cd1e92eb33ed25bdea745"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-reliable-alert-delivery.md",
+      "sha256": "ae88068b1a5ca445d1ca9032546811f404103ca744d9ec06a5f2e1af0d976bc7"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-02-remediation-roadmap.md",
+      "sha256": "1ff484fcf7046bde7515cc43f7c709b9b301127eca5fa851fd64e18a1cd23061"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-02-remediation-design.md",
+      "sha256": "85f22184f4d20ef1d2bca27ed108197395c8f695bb34f88c16413d160ab09f12"
+    },
+    {
+      "path": "k8s_inspector/__init__.py",
+      "sha256": "fed0283d1c479515a79ea6101553c9a93ab4efde33a22687831697000444bd42"
+    },
+    {
+      "path": "k8s_inspector/alert_routing.py",
+      "sha256": "d3491c16b91c48169c4df6a4c1eafdab945ddbe5155cd2699a78c5579d3328fa"
+    },
+    {
+      "path": "k8s_inspector/alertmanager_bridge.py",
+      "sha256": "1518fee148f04f8c4ea11b42900c872764e45c5a22b13378282adaf5190653d7"
+    },
+    {
+      "path": "k8s_inspector/bridge_admin.py",
+      "sha256": "31096dba964f71598c0d05d9f7a94f0f04431df0c951e3dde48a3b60f891f7c1"
+    },
+    {
+      "path": "k8s_inspector/bridge_auth.py",
+      "sha256": "a5bab8d6f81d8fab333af2fc410c9fd0eb49b001c814ee94440371a36a083175"
+    },
+    {
+      "path": "k8s_inspector/bridge_observability.py",
+      "sha256": "451965f58bdd307cc39a04f5bbd3c250362ec36caee2325270ddef8926c1de1c"
+    },
+    {
+      "path": "k8s_inspector/bridge_store.py",
+      "sha256": "49227de7557e24ec81ee798b7797c9ab814d6fafaffada766f657ad0ae89a900"
+    },
+    {
+      "path": "k8s_inspector/checks.py",
+      "sha256": "5aa3cef8c3de1250e630675e702fe930338afcaeb7a6988251c436c40bb4506f"
+    },
+    {
+      "path": "k8s_inspector/cli.py",
+      "sha256": "21d3f7c9d8bdd72bae2ab15054fb3fb97c635a11316ddce740982d1f18a86cd9"
+    },
+    {
+      "path": "k8s_inspector/collector.py",
+      "sha256": "4fc992f74613111fd0b0bf0cdfc31c937555b323b7572d9730359294b3bc3014"
+    },
+    {
+      "path": "k8s_inspector/common.py",
+      "sha256": "6aabdd21f2723f99e729e05515a2e0d5aef1738553fac5d183471d562475d6d4"
+    },
+    {
+      "path": "k8s_inspector/compatibility.py",
+      "sha256": "46ebb44ba3923f37c00df49e25029bf5ae349e4060c11733661a5c559b45ae5b"
+    },
+    {
+      "path": "k8s_inspector/config.py",
+      "sha256": "2ccefa309f95068c07ddff9aec77fb70ad7c066d9c0ec86adc3ad02b6d539399"
+    },
+    {
+      "path": "k8s_inspector/delivery_adapter.py",
+      "sha256": "4b3874972c85233d7525de05a7ef438e75f19a39ce540dd0d06be98b3de7fad7"
+    },
+    {
+      "path": "k8s_inspector/delivery_identity.py",
+      "sha256": "140acb25214dd7814fa30b61867b82f7b98f425235d233c946344a06b808c33a"
+    },
+    {
+      "path": "k8s_inspector/delivery_models.py",
+      "sha256": "ff52b361b63d8da2067b758f1d4ded5c5df350f3c90166804fb85db79c22f779"
+    },
+    {
+      "path": "k8s_inspector/delivery_worker.py",
+      "sha256": "a88d01243dcddbc4e6e529036e8cf22273e630370899e813eadc2df3910ba92a"
+    },
+    {
+      "path": "k8s_inspector/expected_targets.py",
+      "sha256": "b076d3ca1699e216f61d458a9bb9ee4634b2963590ee67b142a812bd0589f61a"
+    },
+    {
+      "path": "k8s_inspector/feishu_app.py",
+      "sha256": "94547fbb37a2674299b1e7a2ebcbddd14bd6171a5baf0f66d86817042575176d"
+    },
+    {
+      "path": "k8s_inspector/kube.py",
+      "sha256": "81dc8393217dbd7562f6f3f0aa63c1c785d5d516a024b783a15292ab6d08e03b"
+    },
+    {
+      "path": "k8s_inspector/mcp_server.py",
+      "sha256": "2158a64ce9a8ea51f762739af5b5ba3fd1ef8fedcfa7744ae1a0c41045ba7a4d"
+    },
+    {
+      "path": "k8s_inspector/metrics.py",
+      "sha256": "568be9f82baf2e6bb79f7ebed40e5154428992728e80035250e865689388df12"
+    },
+    {
+      "path": "k8s_inspector/models.py",
+      "sha256": "4b21e5fb7fd2d8bd35d9121c6fdb4777af2adbe1a8c3779ffb39452a2fd3cfce"
+    },
+    {
+      "path": "k8s_inspector/notify.py",
+      "sha256": "30df72c4321c5bb1e3f7c976e361fcbc819ea51264bcc15abbd5317e002894a4"
+    },
+    {
+      "path": "k8s_inspector/observation_models.py",
+      "sha256": "226e87654a75783668223c9937843d6c82184bf595ebf81066ae3ad8c45837a5"
+    },
+    {
+      "path": "k8s_inspector/observation_state.py",
+      "sha256": "51f5fc16ec64ba79013e4ec14baa3ed7365a7eed8dea0d1f71fdc6afcbb1e77c"
+    },
+    {
+      "path": "k8s_inspector/profiles.py",
+      "sha256": "1e9a5144c744de2eec868d3e63ab960ea2a6a4ca6bd002b7ae59fc30e4ba7494"
+    },
+    {
+      "path": "k8s_inspector/provider_error.py",
+      "sha256": "8af29772ee34897936fc4d40390ff145d8c88268134c062f3fc767d32a4d9f6d"
+    },
+    {
+      "path": "k8s_inspector/report.py",
+      "sha256": "2c4acb639c7ef6aaae7b81fe505a0d180c55b415fbd45a8932d11dc13ed4d7fd"
+    },
+    {
+      "path": "k8s_inspector/rule_catalog.py",
+      "sha256": "778a572bcafde2e64d2aca5630cf4eed29e70999357bc877f69b6436c959e207"
+    },
+    {
+      "path": "k8s_inspector/rule_evaluation.py",
+      "sha256": "286378bb977b27fb097a8b2eae4731a8b0a10584391d59b4dc8ee073f49395fa"
+    },
+    {
+      "path": "k8s_inspector/rules_control.py",
+      "sha256": "495d8f5f497e9b73162ce97acb0771fdb3a5638723b2272a4e1abf7e04d8a315"
+    },
+    {
+      "path": "k8s_inspector/rules_events.py",
+      "sha256": "38c5970bf961a48e242c277ed674bbda25fd1cd8af8f38ff8a4537fe0caa1c1a"
+    },
+    {
+      "path": "k8s_inspector/rules_nodes.py",
+      "sha256": "82f5807fd67641cf74a6b2e2b9cbd54b033024dea5c26631e5327102e5b258db"
+    },
+    {
+      "path": "k8s_inspector/rules_pods.py",
+      "sha256": "bb355292ded3f529d1d8dffcfc72eb3c2ca34a0970451c9b1313d24da421fc7c"
+    },
+    {
+      "path": "k8s_inspector/rules_storage.py",
+      "sha256": "23452ab976d90e42d338485e9105e9c4f6bee612ff5eecd4c21d334d1cc4d58f"
+    },
+    {
+      "path": "k8s_inspector/runner.py",
+      "sha256": "9652634d4ba576f97ef25af4032920616b6dc5cf4c42fbc6fb2a55725ffb97d4"
+    },
+    {
+      "path": "k8s_inspector/sinks.py",
+      "sha256": "a88a91322302396ccec602f85afa3755e2c08e6af665bf9166c73c1270c2565e"
+    },
+    {
+      "path": "k8s_inspector/snapshot.py",
+      "sha256": "3a61d5d05e2c55f3e79b8ecff408794fc1b7b7c2bd8379f9083122cdaa3b83f5"
+    },
+    {
+      "path": "k8s_inspector/state_store.py",
+      "sha256": "997369873a2f98579c8820007cc54d4ca6ec17265050a3360ec722a03d364a69"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "c5f7005be792edfd1d086b7a690585db4d0371572bd3b1839eb5e76ce4d20422"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "cc34245716dba39296b7a0193cf69359be59d3607fd49ce5ca0eb8fec91534f5"
+    },
+    {
+      "path": "tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "tests/delivery_factories.py",
+      "sha256": "fc511f552648cd09e2f07238a9d4a7b92288586eadea8a973f3432ee4167e13b"
+    },
+    {
+      "path": "tests/deployment_helpers.py",
+      "sha256": "c3c37dc87527b62b373689255c1f8989d25cd2d5a9ff5f63234eb2e33189ad2b"
+    },
+    {
+      "path": "tests/factories.py",
+      "sha256": "1af4db4709a63d20af013f594ef8e2ea5555d5a6bec3fa178144f3f996e3fb00"
+    },
+    {
+      "path": "tests/observation_factories.py",
+      "sha256": "1cd0f48d76ea306ce80ee5b3935b2f58b557ddad5d22e40c21c69f97ed35e1dc"
+    },
+    {
+      "path": "tests/prometheus/bridge-rules.test.yml",
+      "sha256": "4287f111ae2601355a4ec8fc8ae231d1f5da4fdf162f6c6716a13ab116471cdf"
+    },
+    {
+      "path": "tests/prometheus/inspection-rules.test.yaml",
+      "sha256": "82672943a674146c7a3a7e430324f98e440e33dd7efe5f816f10658d81270b77"
+    },
+    {
+      "path": "tests/test_alert_routing.py",
+      "sha256": "dc3eab4e44a9156a76417d06588c24dcde361adb2c4eae625cf2151ed9cd21ea"
+    },
+    {
+      "path": "tests/test_alertmanager_bridge.py",
+      "sha256": "6287b0c0779e4186658485aa7b31d5f52c45badb1474249075f3aa073c1e0815"
+    },
+    {
+      "path": "tests/test_bridge_ingress.py",
+      "sha256": "d850e7693fbcc943af83a0f10ad38f28f9b55bf034d0e97f03db0b7908ce4884"
+    },
+    {
+      "path": "tests/test_bridge_migrations.py",
+      "sha256": "299edd433e7252453512ff12debbec116941809a78fc9a0ed98aa4605fe09c0c"
+    },
+    {
+      "path": "tests/test_bridge_observability.py",
+      "sha256": "6b6c3aaba3a29ea2ce64cf90d6740fda9cbc767792e1187d9a8bc6a97a16da0e"
+    },
+    {
+      "path": "tests/test_bridge_store.py",
+      "sha256": "9a1c236c5bab16bd07083ad41e4b42afd299203db83dddd7250ce3ca51353ae5"
+    },
+    {
+      "path": "tests/test_checks.py",
+      "sha256": "39b1adf501935ff8b117e221270bb7cc7dd04d64af17d3dbbdd5d62bc7835fa5"
+    },
+    {
+      "path": "tests/test_collector.py",
+      "sha256": "4163ef8099b72d1d19b550d48e8236e9a16ca1aac00805017fc6e9ef555a46f8"
+    },
+    {
+      "path": "tests/test_common.py",
+      "sha256": "67cc85be396980fe2c542778fc97940d028fac5a90314b7cd4cb640d3330c96d"
+    },
+    {
+      "path": "tests/test_config.py",
+      "sha256": "fbd3c4991d9af9e917268d5b9cf04fb2c26b8d7dd70b1ee2c847e052c94130ee"
+    },
+    {
+      "path": "tests/test_config_validation.py",
+      "sha256": "0f9a6a2939ca3b6b57a27a68c0515555c235e514f8a9129dd2bdcce7cb926258"
+    },
+    {
+      "path": "tests/test_delivery_adapter.py",
+      "sha256": "a024725b784ce06a6eac394fd3b3a66a77373761951cad8fa592fc1b4c286dd0"
+    },
+    {
+      "path": "tests/test_delivery_identity.py",
+      "sha256": "8bbb71d7380c27cd270f7e0d0629a658de46db56165842ba39fc40363ac71936"
+    },
+    {
+      "path": "tests/test_delivery_review_regressions.py",
+      "sha256": "a88c4f5f5771cbb914a7b4e9410b11fa84397fc1837683a04d3d6460b2c329fb"
+    },
+    {
+      "path": "tests/test_delivery_worker.py",
+      "sha256": "0991acbc96e0e260c3da4d88e39b8e67a02bcaa04c644b8513dad79005479e35"
+    },
+    {
+      "path": "tests/test_deployment_contract.py",
+      "sha256": "016184253204c3f2fa351a961610f3a95da4d60af9bce43e385fe959ff090bd5"
+    },
+    {
+      "path": "tests/test_effective_config.py",
+      "sha256": "06e0e5207bad1b86190056d74eff5c816935b374e36509a08dbc9feb8bfc8720"
+    },
+    {
+      "path": "tests/test_failure_preservation.py",
+      "sha256": "3c48f0f4cd6153b98cf49927e48a235eca5b7623b85b418a32691733744ef634"
+    },
+    {
+      "path": "tests/test_foundations_review_http_cli.py",
+      "sha256": "804e1052e87adc7dbbf0946852b5941a2fcfcb8d4ef5d63f12c5365456b1aab9"
+    },
+    {
+      "path": "tests/test_foundations_review_rules.py",
+      "sha256": "30372925ed10a14ff84cf6345a81feb2a851f074170ba4e05debf2acf9def85e"
+    },
+    {
+      "path": "tests/test_foundations_review_transport.py",
+      "sha256": "5cf48045ef7655b687353c591952ac317db036d2024b595ec94f5132adde78d2"
+    },
+    {
+      "path": "tests/test_installed_package.py",
+      "sha256": "1dce9306d690e272a9c20680091dda588836e871021bd5ea3c4fdebfc1c5b74e"
+    },
+    {
+      "path": "tests/test_metrics.py",
+      "sha256": "e6798a9c9c347ff87fac56f765b8378732882d222b1a59a86d03cdca0eeea459"
+    },
+    {
+      "path": "tests/test_metrics_quality.py",
+      "sha256": "e03b479a2a162572c896feafeae89913a873c52ab81eebcf55ae82e6ccd4c035"
+    },
+    {
+      "path": "tests/test_models.py",
+      "sha256": "2107281d79dbe7020b80e8da424417921d5ec0f348ab0de602930e6f1212ca23"
+    },
+    {
+      "path": "tests/test_monitoring_catalog.py",
+      "sha256": "ace51d5d3bfecb3549244a344b19650f6e9e53853752beafeb1fb3bd683e911e"
+    },
+    {
+      "path": "tests/test_notify.py",
+      "sha256": "873043e25413ac5e424e8af5078508e37a8c687b47ef72b149f1f07d115b171f"
+    },
+    {
+      "path": "tests/test_observation_models.py",
+      "sha256": "19d080627e6af3d2eb790a8c4e77f4884fdd9832141246b2a2053b84127d64bf"
+    },
+    {
+      "path": "tests/test_pod_semantics.py",
+      "sha256": "a0e8e6364711e625cb42606f2e6acdb57e81ddf5bf799c0eadbedd4f5585a564"
+    },
+    {
+      "path": "tests/test_pvc_semantics.py",
+      "sha256": "ca226b3417c284daea7cbe7422728a3aaad534857f8017f1bf782268805bf303"
+    },
+    {
+      "path": "tests/test_release_artifacts.py",
+      "sha256": "a4864004a56aaee57a6fec5a8ac8c6a90d97d335b49ee5bf76c9ea818f5f84e7"
+    },
+    {
+      "path": "tests/test_release_gates.py",
+      "sha256": "ed15251dd28b05138e46373319c9c1723ee6ab697dc7613275cc6847c7393e1f"
+    },
+    {
+      "path": "tests/test_report_persistence.py",
+      "sha256": "b481fdf9f2d39bc20cd99c49e4ae45135e344fc60b8aafa101c8b18d8bdb0717"
+    },
+    {
+      "path": "tests/test_report_v2.py",
+      "sha256": "f160f94f7e3f23471cd9ebb7193dd73a3d0e00d223054e983ab90a742a9f8573"
+    },
+    {
+      "path": "tests/test_review_regressions.py",
+      "sha256": "e9dda4d463e5ef0370eca8a3592ea79d6a55baecec2493383e0db5cdd39e546d"
+    },
+    {
+      "path": "tests/test_rollout_scenarios.py",
+      "sha256": "a2a128d470be7209898693b480e578c7e3be3027c779d56c671162570f14469d"
+    },
+    {
+      "path": "tests/test_rule_observations.py",
+      "sha256": "67ebb2f0a9319470ecb03e6dd2e0dc70ee469c5f4e963ede50cc0ac1503fd018"
+    },
+    {
+      "path": "tests/test_runner.py",
+      "sha256": "4a0d756710ca7e5cf8e2246071392fb3cd9fa9dda4c07b0c25a9000bab4ca722"
+    },
+    {
+      "path": "tests/test_scheduling_contract.py",
+      "sha256": "cc00b24777ddd5db458cc895ef332d2113d912e0ab79e3ca531dc695020c4a31"
+    },
+    {
+      "path": "tests/test_sink_isolation.py",
+      "sha256": "75bf710d4cf4cc59981924750ad6e309699e4cd8eac78c977304393dfc9ef5c7"
+    },
+    {
+      "path": "tests/test_snapshot.py",
+      "sha256": "08ad58a3ea654d65439626155fd2d509a39f63c3bef3829b8d0cfe9068a53f6d"
+    },
+    {
+      "path": "tests/test_state_store.py",
+      "sha256": "c04ba943027131b9119b6fb774928f1e58510483e011a87a9377f1b9e7d57149"
+    },
+    {
+      "path": "tools/render_cronjobs.py",
+      "sha256": "675dcb9315f1f310bd53202f91b157561af8804f693096221e8640bfd0e8a831"
+    },
+    {
+      "path": "tools/render_monitoring.py",
+      "sha256": "1d1894154af5ccbb1d837c65c7d96f474b32f23404e9665cbde314abe6667c5d"
+    },
+    {
+      "path": "tools/rollout.py",
+      "sha256": "18187a9277b5b348a13d1779219865937227968358e3dfd22b2ffb8d600f421e"
+    },
+    {
+      "path": "tools/templates/inspector-cronjob.yaml",
+      "sha256": "733d4c55075ed6188901268b7e3d0668750e7a95e4990e544fa23518ac6c7fa7"
+    },
+    {
+      "path": "tools/verify_release.py",
+      "sha256": "4eac2dcb2c2cba8f3a39e9fcce7ae59d7132324f15eb0e70251bf9156a46c2c8"
+    }
+  ]
+}

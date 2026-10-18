@@ -1,0 +1,10 @@
+Requires-Python: >=3.9
+Requires-Dist: kubernetes<38,>=29.0.0
+Requires-Dist: PyYAML<7,>=6.0.1
+Requires-Dist: prometheus-client<1,>=0.20.0
+Requires-Dist: lark-oapi==1.7.5
+Requires-Dist: build<2,>=1.2; extra == "dev"
+Requires-Dist: setuptools<85,>=68; extra == "dev"
+Requires-Dist: wheel<0.49,>=0.45; extra == "dev"
+Requires-Dist: pytest<10,>=8.4; extra == "dev"
+Requires-Dist: tomli>=2; python_version < "3.11" and extra == "dev"

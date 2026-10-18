@@ -1,0 +1,16 @@
+{
+  "base": "ac2a8b9",
+  "review_head": "1eb9408",
+  "source_commit": "f95d478702df97d66a526204033b9fc2d4bc37ce",
+  "offline_scope": true,
+  "local_checks_success": true,
+  "release_ready": false,
+  "full_source_result": "476 passed, 2 skipped, 2 warnings in 378.79s",
+  "final_wheel": "review-fixed-offline/package/wheel/k8s_inspector-0.1.0-py3-none-any.whl",
+  "final_wheel_sha256": "860a6e02f8e04703c5b95b1bfd0aed281f756362838b5333160845bb61cbba46",
+  "external_pending": [
+    "docker",
+    "clean_dependency_install",
+    "environment_acceptance"
+  ]
+}

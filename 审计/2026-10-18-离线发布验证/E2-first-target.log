@@ -1,0 +1,96 @@
+...EEEE                                                                  [100%]
+=================================== ERRORS ====================================
+______ ERROR at setup of test_async_bridge_has_persistent_single_writer _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: invalid Kustomization: json: cannot unmarshal object into Go struct field Patch.patches.path of type string
+
+tests\deployment_helpers.py:16: AssertionError
+______ ERROR at setup of test_bridge_disables_service_account_automount _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: invalid Kustomization: json: cannot unmarshal object into Go struct field Patch.patches.path of type string
+
+tests\deployment_helpers.py:16: AssertionError
+__________ ERROR at setup of test_secrets_not_embedded_in_configmap ___________
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: invalid Kustomization: json: cannot unmarshal object into Go struct field Patch.patches.path of type string
+
+tests\deployment_helpers.py:16: AssertionError
+___ ERROR at setup of test_example_is_suspended_and_has_ingress_restriction ___
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: invalid Kustomization: json: cannot unmarshal object into Go struct field Patch.patches.path of type string
+
+tests\deployment_helpers.py:16: AssertionError
+=========================== short test summary info ===========================
+ERROR tests/test_deployment_contract.py::test_async_bridge_has_persistent_single_writer
+ERROR tests/test_deployment_contract.py::test_bridge_disables_service_account_automount
+ERROR tests/test_deployment_contract.py::test_secrets_not_embedded_in_configmap
+ERROR tests/test_deployment_contract.py::test_example_is_suspended_and_has_ingress_restriction
+3 passed, 4 errors in 0.88s

@@ -1,0 +1,20 @@
+.F...                                                                    [100%]
+================================== FAILURES ===================================
+_________________ test_nested_packages_are_included_in_wheel __________________
+
+installed_env = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1511/installed-package0/project'), WindowsPath(...wsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1511/installed-package0/artifacts/wheel-build.log'))))
+
+    def test_nested_packages_are_included_in_wheel(installed_env):
+        result=run(installed_env,'from k8s_inspector._release_canary import VALUE;print(VALUE)')
+>       assert result.returncode==0 and result.stdout.strip()=='17',result.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 1, in <module>
+E         ModuleNotFoundError: No module named 'k8s_inspector._release_canary'
+E         
+E       assert (1 == 0)
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\23033\\AppData\\Local\\Temp\\pytest-of-23033\\pytest-1511\\installed-package0\\arti...t):\n  File "<string>", line 1, in <module>\nModuleNotFoundError: No module named \'k8s_inspector._release_canary\'\n').returncode
+
+tests\test_installed_package.py:43: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_installed_package.py::test_nested_packages_are_included_in_wheel
+1 failed, 4 passed in 41.16s

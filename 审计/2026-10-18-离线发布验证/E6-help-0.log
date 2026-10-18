@@ -1,0 +1,10 @@
+usage: k8s-inspector [-h] {run,cleanup} ...
+
+positional arguments:
+  {run,cleanup}
+    run          Execute inspection
+    cleanup      Remove expired archive directories
+
+options:
+  -h, --help     show this help message and exit
+

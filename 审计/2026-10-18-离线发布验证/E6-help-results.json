@@ -1,0 +1,58 @@
+[
+  {
+    "command": [
+      "-m",
+      "k8s_inspector.cli",
+      "--help"
+    ],
+    "exit": 0,
+    "usage_present": true
+  },
+  {
+    "command": [
+      "-m",
+      "k8s_inspector.cli",
+      "run",
+      "--help"
+    ],
+    "exit": 0,
+    "usage_present": true
+  },
+  {
+    "command": [
+      "-m",
+      "k8s_inspector.cli",
+      "cleanup",
+      "--help"
+    ],
+    "exit": 0,
+    "usage_present": true
+  },
+  {
+    "command": [
+      "-m",
+      "k8s_inspector.alertmanager_bridge",
+      "--help"
+    ],
+    "exit": 0,
+    "usage_present": true
+  },
+  {
+    "command": [
+      "-m",
+      "k8s_inspector.bridge_admin",
+      "--help"
+    ],
+    "exit": 0,
+    "usage_present": true
+  },
+  {
+    "command": [
+      "-m",
+      "k8s_inspector.expected_targets",
+      "--help"
+    ],
+    "exit": 0,
+    "usage_present": true
+  }
+]

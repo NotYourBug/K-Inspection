@@ -1,0 +1,19 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_____ test_nested_output_directory_does_not_misclassify_installed_import ______
+
+installed_env = (WindowsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1524/installed-package0/project'), WindowsPath(...wsPath('C:/Users/23033/AppData/Local/Temp/pytest-of-23033/pytest-1524/installed-package0/artifacts/wheel-build.log'))))
+
+    def test_nested_output_directory_does_not_misclassify_installed_import(installed_env):
+        from tools.verify_release import install_package
+        source=installed_env[0]
+        result=install_package(source,python_executable=Path(sys.executable),output_dir=source/'release-artifacts',offline=True)
+>       assert result.success,{k:v.detail for k,v in result.checks.items()}
+E       AssertionError: {'wheel': 'exit=0; evidence=wheel-build.log', 'venv': 'exit=0; evidence=venv.log', 'install': 'exit=0; evidence=instal...33\\pytest-1524\\installed-package0\\project\\release-artifacts\\venv\\Lib\\site-packages\\k8s_inspector\\__init__.py'}
+E       assert False
+E        +  where False = VerificationResult(success=False, checks={'wheel': CheckOutcome(success=True, detail='exit=0; evidence=wheel-build.log...s/23033/AppData/Local/Temp/pytest-of-23033/pytest-1524/installed-package0/project/release-artifacts/wheel-build.log'))).success
+
+tests\test_installed_package.py:74: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_installed_package.py::test_nested_output_directory_does_not_misclassify_installed_import
+1 failed, 6 deselected in 58.64s

@@ -1,0 +1,7 @@
+{
+  "runtime_package_entries": 40,
+  "all_identical": true,
+  "earlier_wheel_sha256": "95db4cbda741ac1cd667598e7538be08b8152496b36dee6ae203676bc830a73d",
+  "final_wheel_sha256": "860a6e02f8e04703c5b95b1bfd0aed281f756362838b5333160845bb61cbba46",
+  "meaning": "Prior installed help/backup fixture exercises identical runtime modules; final wheel metadata and imports are independently checked."
+}

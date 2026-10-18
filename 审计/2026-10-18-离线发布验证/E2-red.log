@@ -1,0 +1,134 @@
+FFFEEEE                                                                  [100%]
+=================================== ERRORS ====================================
+______ ERROR at setup of test_async_bridge_has_persistent_single_writer _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\example' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+______ ERROR at setup of test_bridge_disables_service_account_automount _______
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\example' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+__________ ERROR at setup of test_secrets_not_embedded_in_configmap ___________
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\example' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+___ ERROR at setup of test_example_is_suspended_and_has_ingress_restriction ___
+
+    @pytest.fixture(scope='module')
+>   def example(): return render('deploy/overlays/example')
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\test_deployment_contract.py:11: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = 'deploy/overlays/example'
+
+    def render(path):
+        command=os.getenv('KUSTOMIZE') or shutil.which('kustomize')
+        if not command:
+            command=str(ROOT/'.superpowers/tools/kustomize-5.4.3/kustomize.exe')
+        result=subprocess.run([command,'build',str(ROOT/path)],capture_output=True,text=True,
+                              encoding='utf-8',timeout=45)
+>       assert result.returncode==0,result.stderr
+               ^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: Error: must build at directory: not a valid directory: evalsymlink failure on 'C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays\example' : CreateFile C:\Users\23033\Desktop\Cluster-Stability-Inspector\deploy\overlays: The system cannot find the file specified.
+
+tests\deployment_helpers.py:16: AssertionError
+================================== FAILURES ===================================
+_______________ test_base_does_not_install_optional_monitoring ________________
+
+base = [{'apiVersion': 'v1', 'kind': 'ServiceAccount', 'metadata': {'name': 'k8s-inspector', 'namespace': 'kube-system'}}, {'...\n'}, 'kind': 'ConfigMap', 'metadata': {'name': 'k8s-inspector-alertmanager-config', 'namespace': 'kube-system'}}, ...]
+
+    def test_base_does_not_install_optional_monitoring(base):
+>       assert not [d for d in base if d['kind'] in ('Deployment','Service','PersistentVolume')]
+E       AssertionError: assert not [{'apiVersion': 'v1', 'kind': 'Service', 'metadata': {'name': 'alertmanager', 'namespace': 'kube-system'}, 'spec': {'p...: {'metadata': {'labels': {'app': 'alertmanager'}}, 'spec': {'containers': [{...}], 'volumes': [{...}, {...}]}}}}, ...]
+
+tests\test_deployment_contract.py:15: AssertionError
+____________ test_inspector_role_has_no_unneeded_or_mutating_verbs ____________
+
+base = [{'apiVersion': 'v1', 'kind': 'ServiceAccount', 'metadata': {'name': 'k8s-inspector', 'namespace': 'kube-system'}}, {'...\n'}, 'kind': 'ConfigMap', 'metadata': {'name': 'k8s-inspector-alertmanager-config', 'namespace': 'kube-system'}}, ...]
+
+    def test_inspector_role_has_no_unneeded_or_mutating_verbs(base):
+        for d in base:
+            if d['kind'] in ('Role','ClusterRole'):
+>               assert all(set(r['verbs'])<={'get','list'} for r in d['rules'])
+E               assert False
+E                +  where False = all(<generator object test_inspector_role_has_no_unneeded_or_mutating_verbs.<locals>.<genexpr> at 0x000001A2DAFD0820>)
+
+tests\test_deployment_contract.py:23: AssertionError
+__________ test_inspector_profiles_have_separate_block_state_claims ___________
+
+base = [{'apiVersion': 'v1', 'kind': 'ServiceAccount', 'metadata': {'name': 'k8s-inspector', 'namespace': 'kube-system'}}, {'...\n'}, 'kind': 'ConfigMap', 'metadata': {'name': 'k8s-inspector-alertmanager-config', 'namespace': 'kube-system'}}, ...]
+
+    def test_inspector_profiles_have_separate_block_state_claims(base):
+        claims=set()
+        for job in [d for d in base if d['kind']=='CronJob' and 'cleanup' not in d['metadata']['name']]:
+            pod=job['spec']['jobTemplate']['spec']['template']['spec']
+>           volume=next(v for v in pod['volumes'] if v['name']=='state')
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           StopIteration
+
+tests\test_deployment_contract.py:31: StopIteration
+=========================== short test summary info ===========================
+FAILED tests/test_deployment_contract.py::test_base_does_not_install_optional_monitoring
+FAILED tests/test_deployment_contract.py::test_inspector_role_has_no_unneeded_or_mutating_verbs
+FAILED tests/test_deployment_contract.py::test_inspector_profiles_have_separate_block_state_claims
+ERROR tests/test_deployment_contract.py::test_async_bridge_has_persistent_single_writer
+ERROR tests/test_deployment_contract.py::test_bridge_disables_service_account_automount
+ERROR tests/test_deployment_contract.py::test_secrets_not_embedded_in_configmap
+ERROR tests/test_deployment_contract.py::test_example_is_suspended_and_has_ingress_restriction
+3 failed, 4 errors in 3.03s
