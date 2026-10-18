@@ -56,3 +56,19 @@ def test_declared_runtime_imports(installed_env):
 def test_optional_mcp_not_required_for_cli(installed_env):
     result=run(installed_env,"import sys;from k8s_inspector.cli import main;assert 'fastmcp' not in sys.modules;raise SystemExit(main(['run','--help']))")
     assert result.returncode==0 and '--profile' in result.stdout
+
+
+def test_relative_interpreter_is_resolved_before_changing_working_directory(tmp_path):
+    import os
+    from tools.verify_release import install_package
+    root=Path(__file__).resolve().parents[1]
+    relative=Path(os.path.relpath(sys.executable,Path.cwd()))
+    result=install_package(root,python_executable=relative,output_dir=tmp_path/'relative',offline=True)
+    assert result.success,{k:v.detail for k,v in result.checks.items()}
+
+
+def test_nested_output_directory_does_not_misclassify_installed_import(installed_env):
+    from tools.verify_release import install_package
+    source=installed_env[0]
+    result=install_package(source,python_executable=Path(sys.executable),output_dir=source/'release-artifacts',offline=True)
+    assert result.success,{k:v.detail for k,v in result.checks.items()}

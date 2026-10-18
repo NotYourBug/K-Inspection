@@ -9,3 +9,7 @@
 
 /deploy/base/cronjobs-by-frequency.yaml text eol=lf
 /deploy/cronjobs-by-frequency.yaml text eol=lf
+
+/Dockerfile text eol=lf
+
+/deploy/storage/pv-nfs.yaml text eol=lf
